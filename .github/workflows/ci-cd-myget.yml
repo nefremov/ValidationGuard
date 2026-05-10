@@ -1,0 +1,107 @@
+name: CI/CD - Build, Test, and Publish to MyGet
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore ValidationGuard.slnx
+
+      - name: Build
+        run: dotnet build ValidationGuard.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test --solution ValidationGuard.slnx --configuration Release --no-build
+
+  publish_myget:
+    name: Pack and publish to MyGet when version changes
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect package version change
+        id: version_check
+        shell: pwsh
+        run: |
+          $project = 'src/ValidationGuard/ValidationGuard.csproj'
+
+          $hasParent = $true
+          try {
+            git rev-parse HEAD^ | Out-Null
+          }
+          catch {
+            $hasParent = $false
+          }
+
+          if (-not $hasParent) {
+            "version_changed=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+            "No parent commit found. Skipping publish."
+            exit 0
+          }
+
+          $diff = git diff HEAD^ HEAD -- $project
+
+          $versionChanged = $false
+          if ($diff -match '(?m)^[+-].*<(Version|VersionPrefix|VersionSuffix|PackageVersion)>') {
+            $versionChanged = $true
+          }
+
+          "version_changed=$($versionChanged.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+          if ($versionChanged) {
+            "Detected package version change in $project"
+          }
+          else {
+            "No package version change detected in $project"
+          }
+
+      - name: Setup .NET
+        if: steps.version_check.outputs.version_changed == 'true'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        if: steps.version_check.outputs.version_changed == 'true'
+        run: dotnet restore src/ValidationGuard/ValidationGuard.csproj
+
+      - name: Pack
+        if: steps.version_check.outputs.version_changed == 'true'
+        run: dotnet pack src/ValidationGuard/ValidationGuard.csproj --configuration Release --no-restore --output artifacts/packages
+
+      - name: Upload package artifact
+        if: steps.version_check.outputs.version_changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: validationguard-nuget
+          path: artifacts/packages/*.nupkg
+          if-no-files-found: error
+
+      - name: Publish to MyGet
+        if: steps.version_check.outputs.version_changed == 'true'
+        run: dotnet nuget push "artifacts/packages/*.nupkg" --source "${{ secrets.MYGET_SOURCE }}" --api-key "${{ secrets.MYGET_API_KEY }}" --skip-duplicate
