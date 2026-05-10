@@ -30,7 +30,7 @@ jobs:
         run: dotnet build ValidationGuard.slnx --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test ValidationGuard.slnx --configuration Release --no-build
+        run: dotnet test --solution ValidationGuard.slnx --configuration Release --no-build
 
   publish_myget:
     name: Pack and publish to MyGet when version changes
@@ -67,7 +67,7 @@ jobs:
           $diff = git diff HEAD^ HEAD -- $project
 
           $versionChanged = $false
-          if ($diff -match '^[+-].*<(Version|VersionPrefix|VersionSuffix|PackageVersion)>') {
+          if ($diff -match '(?m)^[+-].*<(Version|VersionPrefix|VersionSuffix|PackageVersion)>') {
             $versionChanged = $true
           }
 
