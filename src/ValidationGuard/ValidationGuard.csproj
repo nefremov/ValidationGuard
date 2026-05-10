@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageId>ValidationGuard</PackageId>
+    <Title>ValidationGuard</Title>
+    <Description>Typed validation error accumulation with RFC 6901 JSON Pointers and deterministic output ordering.</Description>
+    <Authors>Nick Efremov</Authors>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/nefremov/ValidationGuard</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/nefremov/ValidationGuard</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageTags>validation;problem-details;rfc6901;rfc9457;dotnet</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+</Project>

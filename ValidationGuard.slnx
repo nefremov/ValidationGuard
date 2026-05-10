@@ -1,0 +1,9 @@
+<Solution>
+  <File Path=".editorconfig" />
+  <Folder Name="/src/">
+    <Project Path="src/ValidationGuard/ValidationGuard.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ValidationGuard.Tests.Unit/ValidationGuard.Tests.Unit.csproj" />
+  </Folder>
+</Solution>
