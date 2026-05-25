@@ -12,11 +12,15 @@ This module defines a .NET 10 library that accumulates typed validation errors a
 
 The module enables consumers (web APIs and internal services) to return consistent, machine-readable validation responses with precise field paths, including nested object properties and array elements.
 
+The canonical internal representation in the core library is a near-RFC entry shape (`pointer`, `code`, `format`, `detail`) that is directly projectable to the RFC 9457 Problem Details `errors` extension.
+
 ### 1.2 Background / Problem Statement
 
 Validation in .NET applications is often fragmented across attributes, custom validators, and ad-hoc error payloads. Teams typically lose consistency in error code typing, path addressing, and response format, especially when validating nested collections and complex DTOs.
 
 Without a standard accumulator and payload model, clients receive inconsistent error structures, making parsing, UX mapping, and automation difficult. A unified library is needed to centralize typed error collection and standardize output as Problem Details with an `errors` extension.
+
+To minimize drift and transformation complexity, internal storage must remain serialization-ready for RFC 9457-compatible output.
 
 ### 1.3 Goals (Business Outcomes)
 
@@ -83,6 +87,7 @@ Without a standard accumulator and payload model, clients receive inconsistent e
 - Typed accumulation of validation errors from root, nested object, array/list, and indexer/keyed contexts.
 - Support for deterministic JSON Pointer path capture for nested members and indexed elements.
 - Support for RFC 6901 token escaping and numeric array-index token validation during pointer capture.
+- Canonical internal storage of near-RFC validation entries (`pointer`, `code`, `format`, `detail`) in `ValidationBuilder`, ready for direct projection to Problem Details `errors`.
 - Mapping accumulated errors into RFC 9457 Problem Details with `errors` extension.
 - Public library contracts for consumers to add and merge validation outcomes, and to finalize output from the root builder.
 - Separate ASP.NET Core adapter library for HTTP integration on top of the core library.
@@ -109,6 +114,16 @@ The system **MUST** allow consumers to register validation failures with a `code
 **Rationale**: Ensures compile-time-safe error coding and consistent downstream interpretation.
 
 **Actors**: `cpt-validationguard-actor-api-developer`
+
+#### Canonical Internal Entry Storage
+
+- [ ] `p1` - **ID**: `cpt-validationguard-fr-canonical-internal-entry-storage`
+
+The system **MUST** store accumulated validation failures in an internal canonical entry shape containing `pointer`, `code`, `format`, and `detail`, aligned with the target Problem Details `errors` entry schema.
+
+**Rationale**: Keeps core accumulation and HTTP projection aligned and reduces mapper complexity.
+
+**Actors**: `cpt-validationguard-actor-api-developer`, `cpt-validationguard-actor-aspnet-core-host`
 
 #### Nested Object Path Handling
 
@@ -168,7 +183,9 @@ The system **MUST** produce validation failure output compatible with RFC 9457 P
 
 The system **MUST** place validation failures into a Problem Details `errors` extension as an array of entries where each entry includes `pointer` (JSON Pointer path), `code`, `format` (message format string classifier), and `detail` (rendered error text).
 
-**Rationale**: Clients require stable traversal of validation failures by location.
+Projection from internal canonical entries to the `errors` extension **MUST** be lossless for `pointer`, `code`, `format`, and `detail`.
+
+**Rationale**: Clients require stable traversal of validation failures by location and consistent value fidelity.
 
 **Actors**: `cpt-validationguard-actor-aspnet-core-host`, `cpt-validationguard-actor-client-developer`, `cpt-validationguard-actor-json-serializer`
 
@@ -206,6 +223,16 @@ The system **MUST** avoid unbounded memory growth while accumulating errors and 
 
 **Rationale**: Prevents validation subsystem pressure in high-throughput APIs.
 
+#### Projection Efficiency
+
+- [ ] `p2` - **ID**: `cpt-validationguard-nfr-projection-efficiency`
+
+The system **MUST** project canonical internal validation entries to Problem Details `errors` without duplicating full intermediate entry collections and with linear-time behavior relative to error count.
+
+**Threshold**: O(n) projection time and bounded temporary allocation proportional to output serialization requirements.
+
+**Rationale**: Preserves throughput and memory characteristics while keeping mapper transformation minimal.
+
 #### API Stability
 
 - [ ] `p1` - **ID**: `cpt-validationguard-nfr-api-stability`
@@ -236,7 +263,7 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 
 **Stability**: stable
 
-**Description**: Allows adding scoped errors, creating nested builders with accessor-based scope addressing, accumulating near-RFC entries, and producing standardized output from the root builder via `ToValidationEntries()`.
+**Description**: Allows adding scoped errors, creating nested builders with accessor-based scope addressing, accumulating canonical near-RFC entries (`pointer`, `code`, `format`, `detail`), and producing standardized output from the root builder via `ToValidationEntries()`.
 
 **Scope Addressing**: Property, nested object, and index scopes are specified via accessor expressions (for example `x => x.Property`, `x => x.Nested`, `x => x[5]`) rather than raw path string assembly.
 
@@ -250,7 +277,7 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 
 **Stability**: stable
 
-**Description**: Converts validation results to RFC 9457 Problem Details with `errors` extension.
+**Description**: Converts canonical validation results to RFC 9457 Problem Details with `errors` extension using minimal transformation.
 
 **Breaking Change Policy**: Major version bump required.
 
@@ -338,6 +365,8 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 - [ ] Problem Details output is RFC 9457-compatible and includes `errors` extension.
 - [ ] `errors` extension is an array of entries and preserves deterministic JSON Pointer paths for nested and indexed elements.
 - [ ] Each validation entry includes `code`, `format`, `detail`, and `pointer`.
+- [ ] Internal accumulation stores canonical near-RFC entries with `pointer`, `code`, `format`, and `detail` in `ValidationBuilder`.
+- [ ] Projection to Problem Details `errors` is lossless for canonical fields and does not require path or message recomputation.
 - [ ] Solution includes core library and separate ASP.NET Core adapter library, both targeting `net10.0`.
 - [ ] Automated tests verify accumulation and serialization behavior with at least one nested-object and one array-index scenario.
 
@@ -354,6 +383,7 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 - Consuming systems use HTTP APIs where Problem Details is acceptable for validation errors.
 - Clients can parse an `errors` extension array and map JSON Pointer paths to UI or domain fields.
 - Typed error representation standard is `code`, `format` (message format string classifier), and `detail` (rendered error text), with path stored as `pointer`.
+- Internal canonical entry shape remains aligned with Problem Details `errors` entry schema to enable minimal mapping logic.
 
 ## 12. Risks
 
@@ -362,3 +392,4 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 | Inconsistent path notation across consumers | Client-side mapping failures and support overhead | Standardize on RFC 6901 JSON Pointer and publish examples/tests |
 | Overly strict public API too early | High cost to evolve library before adoption stabilizes | Mark unstable areas before v1 and stabilize only validated contracts |
 | Ambiguity in `errors` extension schema | Integration mismatches across client teams | Publish explicit extension schema and compatibility policy |
+| Drift between internal entry model and RFC 9457 `errors` schema | Lossy mapping, duplicated transformation logic, and serialization defects | Keep canonical near-RFC internal schema (`pointer`, `code`, `format`, `detail`) and enforce projection fidelity via tests |
