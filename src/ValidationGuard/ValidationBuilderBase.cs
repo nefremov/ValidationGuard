@@ -45,7 +45,9 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
         ArgumentException.ThrowIfNullOrWhiteSpace(format);
         ArgumentException.ThrowIfNullOrWhiteSpace(detail);
 
+        // @cpt-begin:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-resolve-accessor-expression
         var localPointer = ValidationAccessorPointerResolver.Resolve(accessor, _behavior.NameConverter);
+        // @cpt-end:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-resolve-accessor-expression
         var finalPointer = ComposeEntryPointer(localPointer);
 
         // @cpt-begin:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-store-entry
@@ -95,10 +97,12 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
         // @cpt-end:cpt-validationguard-flow-validation-builder-build-nested-errors:p1:inst-return-finalized-entries
     }
 
+    // @cpt-begin:cpt-validationguard-algo-validation-builder-create-manage-nested-builders:p1:inst-dispose-nested-builder
     public void Dispose()
     {
         _disposed = true;
     }
+    // @cpt-end:cpt-validationguard-algo-validation-builder-create-manage-nested-builders:p1:inst-dispose-nested-builder
 
     protected void EnsureNotDisposed()
     {
@@ -108,6 +112,7 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
         }
     }
 
+    // @cpt-begin:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-normalize-pointer
     protected static string NormalizePointer(string pointer)
     {
         if (string.IsNullOrEmpty(pointer))
@@ -122,6 +127,7 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
 
         return pointer;
     }
+    // @cpt-end:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-normalize-pointer
 
     protected static string CombinePointers(string prefix, string pointer)
     {
