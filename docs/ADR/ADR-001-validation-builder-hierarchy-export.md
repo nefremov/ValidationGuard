@@ -15,6 +15,8 @@ ValidationBuilder originally relied on centralized parent-store accumulation and
 
 Recent API changes introduced `ToValidationEntries()` on the root builder and removed export capability from nested builders.
 
+Canonical internal entry storage is maintained in a near-RFC shape (`pointer`, `code`, `format`, `detail`) so root materialization can be projected to Problem Details `errors` with minimal, lossless transformation.
+
 ## Decision
 
 Adopt a hierarchical builder architecture where:
