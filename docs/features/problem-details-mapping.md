@@ -18,7 +18,7 @@ Builds RFC 9457 Problem Details envelope from near-RFC validation entries and pr
 
 Defines deterministic RFC 9457 payload envelope behavior over near-RFC entries and the final error-entry schema for consuming clients.
 
-**Requirements**: `cpt-validationguard-fr-rfc9457-compatible-output`, `cpt-validationguard-fr-errors-extension-projection`, `cpt-validationguard-fr-deterministic-output-ordering`, `cpt-validationguard-nfr-serialization-performance`, `cpt-validationguard-nfr-api-stability`
+**Requirements**: `cpt-validationguard-fr-rfc9457-compatible-output`, `cpt-validationguard-fr-errors-extension-projection`, `cpt-validationguard-fr-deterministic-output-ordering`, `cpt-validationguard-nfr-serialization-performance`, `cpt-validationguard-nfr-projection-efficiency`, `cpt-validationguard-nfr-api-stability`
 
 **Principles**: `cpt-validationguard-principle-rfc-first-envelope`, `cpt-validationguard-principle-stable-error-entry-contract`
 
@@ -56,7 +56,7 @@ Defines deterministic RFC 9457 payload envelope behavior over near-RFC entries a
 1. [ ] - `p1` - Caller submits finalized near-RFC validation entries to mapper - `inst-submit-finalized-entries`
 2. [ ] - `p1` - Mapper creates Problem Details base fields (`type`, `title`, `status`, `detail`, `instance`) - `inst-create-problem-details-base`
 3. [ ] - `p1` - Mapper projects stored near-RFC entries into `errors[]` without field reshaping - `inst-project-errors-array`
-4. [ ] - `p1` - Mapper applies deterministic ordering policy for `errors[]` - `inst-apply-deterministic-order`
+4. [ ] - `p1` - Mapper preserves deterministic ordering provided by finalized canonical entries for `errors[]` - `inst-preserve-deterministic-order`
 5. [ ] - `p1` - Mapper attaches `errors` extension to Problem Details - `inst-attach-errors-extension`
 6. [ ] - `p1` - **RETURN** RFC 9457-compatible object for serialization - `inst-return-problem-details`
 
@@ -74,7 +74,7 @@ Defines deterministic RFC 9457 payload envelope behavior over near-RFC entries a
 1. [ ] - `p1` - Initialize Problem Details with supplied metadata and defaults - `inst-init-envelope`
 2. [ ] - `p1` - **FOR EACH** near-RFC entry in finalized set - `inst-loop-entries`
    1. [ ] - `p1` - Copy `pointer`, `code`, `format`, `detail` to extension entry object with minimal transformation - `inst-copy-entry-fields`
-3. [ ] - `p1` - Sort extension entry array using deterministic ordering strategy - `inst-sort-extension-array`
+3. [ ] - `p1` - Preserve finalized deterministic entry order during extension projection - `inst-preserve-finalized-order`
 4. [ ] - `p1` - Add extension array under key `errors` - `inst-set-errors-extension`
 5. [ ] - `p1` - **RETURN** mapped Problem Details object - `inst-return-envelope`
 
@@ -113,7 +113,7 @@ Defines deterministic RFC 9457 payload envelope behavior over near-RFC entries a
 
 - [ ] `p1` - **ID**: `cpt-validationguard-dod-problem-details-mapping-implement-mapper`
 
-The system **MUST** map finalized near-RFC validation entries to RFC 9457 Problem Details with deterministic `errors[]` extension entries using fields `pointer`, `code`, `format`, and `detail`.
+The system **MUST** map finalized canonical near-RFC validation entries to RFC 9457 Problem Details with deterministic `errors[]` extension entries using fields `pointer`, `code`, `format`, and `detail`, preserving field values losslessly and without semantic reshaping.
 
 **Implements**:
 - `cpt-validationguard-flow-problem-details-mapping-project-errors`
