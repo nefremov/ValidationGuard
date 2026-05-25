@@ -119,7 +119,6 @@ The system **MUST** map finalized canonical near-RFC validation entries to RFC 9
 - `cpt-validationguard-flow-problem-details-mapping-project-errors`
 - `cpt-validationguard-algo-problem-details-mapping-build-envelope`
 - `cpt-validationguard-algo-problem-details-mapping-validate-input-contract`
-- `cpt-validationguard-algo-problem-details-mapping-validate-input-contract`
 
 **Constraints**: `cpt-validationguard-constraint-strict-net10-target`
 
