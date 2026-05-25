@@ -18,7 +18,7 @@ Provides the core builder API for accumulating near-RFC validation failure entri
 
 Defines the implementable behavior for nested-builder accumulation semantics in the core library, where child builders capture pointer prefixes and keep scoped entries that are flattened by the root builder.
 
-**Requirements**: `cpt-validationguard-fr-typed-error-registration`, `cpt-validationguard-fr-nested-object-path-handling`, `cpt-validationguard-fr-array-element-path-handling`, `cpt-validationguard-fr-indexer-keyed-path-handling`, `cpt-validationguard-fr-aggregation-and-merge`, `cpt-validationguard-nfr-memory-efficiency`, `cpt-validationguard-nfr-api-stability`
+**Requirements**: `cpt-validationguard-fr-typed-error-registration`, `cpt-validationguard-fr-canonical-internal-entry-storage`, `cpt-validationguard-fr-nested-object-path-handling`, `cpt-validationguard-fr-array-element-path-handling`, `cpt-validationguard-fr-indexer-keyed-path-handling`, `cpt-validationguard-fr-aggregation-and-merge`, `cpt-validationguard-nfr-memory-efficiency`, `cpt-validationguard-nfr-api-stability`
 
 **Principles**: `cpt-validationguard-principle-stable-error-entry-contract`
 

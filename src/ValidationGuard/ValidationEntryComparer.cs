@@ -8,7 +8,7 @@ public sealed class ValidationEntryComparer : IComparer<ValidationEntry>
     {
     }
 
-    // @cpt-begin:cpt-validationguard-flow-problem-details-mapping-project-errors:p1:inst-apply-deterministic-order
+    // @cpt-begin:cpt-validationguard-flow-validation-builder-build-nested-errors:p1:inst-return-finalized-entries
     public int Compare(ValidationEntry? left, ValidationEntry? right)
     {
         if (ReferenceEquals(left, right))
@@ -46,5 +46,5 @@ public sealed class ValidationEntryComparer : IComparer<ValidationEntry>
 
         return StringComparer.Ordinal.Compare(left.Detail, right.Detail);
     }
-    // @cpt-end:cpt-validationguard-flow-problem-details-mapping-project-errors:p1:inst-apply-deterministic-order
+    // @cpt-end:cpt-validationguard-flow-validation-builder-build-nested-errors:p1:inst-return-finalized-entries
 }
