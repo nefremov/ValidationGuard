@@ -11,16 +11,78 @@ public sealed class ValidationBuilder<TContext> : ValidationBuilderBase<TContext
         new(behavior ?? ValidationBehavior.Default);
 
     // @cpt-begin:cpt-validationguard-flow-validation-builder-build-nested-errors:p1:inst-return-finalized-entries
-    public IReadOnlyList<ValidationEntry> ToValidationEntries()
+    // @cpt-begin:cpt-validationguard-flow-problem-details-mapping-project-errors:p1:inst-submit-finalized-entries
+    /// <summary>
+    /// Finalizes the builder, projects all accumulated validation entries into an RFC 9457-compatible
+    /// <see cref="ValidationProblemDetails"/>, and disposes the builder.
+    /// The builder is invalid after this call.
+    /// </summary>
+    public ValidationProblemDetails Build(
+        string? type = null,
+        string? title = null,
+        int? status = null,
+        string? detail = null,
+        string? instance = null)
     {
         EnsureNotDisposed();
 
         var entries = GetEntries().ToArray();
-
         Array.Sort(entries, ValidationEntryComparer.Instance);
 
-        return entries;
+        // @cpt-begin:cpt-validationguard-algo-problem-details-mapping-validate-input-contract:p1:inst-reject-missing-pointer
+        // @cpt-begin:cpt-validationguard-algo-problem-details-mapping-validate-input-contract:p1:inst-reject-missing-code
+        // @cpt-begin:cpt-validationguard-algo-problem-details-mapping-validate-input-contract:p1:inst-reject-missing-format
+        // @cpt-begin:cpt-validationguard-algo-problem-details-mapping-validate-input-contract:p1:inst-reject-missing-detail
+        for (var i = 0; i < entries.Length; i++)
+        {
+            var entry = entries[i];
+
+            if (string.IsNullOrWhiteSpace(entry.Pointer))
+                throw new InvalidOperationException($"Entry at index {i} has a missing or empty Pointer.");
+
+            if (string.IsNullOrWhiteSpace(entry.Code))
+                throw new InvalidOperationException($"Entry at index {i} has a missing or empty Code.");
+
+            if (string.IsNullOrWhiteSpace(entry.Format))
+                throw new InvalidOperationException($"Entry at index {i} has a missing or empty Format.");
+
+            if (string.IsNullOrWhiteSpace(entry.Detail))
+                throw new InvalidOperationException($"Entry at index {i} has a missing or empty Detail.");
+        }
+        // @cpt-end:cpt-validationguard-algo-problem-details-mapping-validate-input-contract:p1:inst-reject-missing-detail
+        // @cpt-end:cpt-validationguard-algo-problem-details-mapping-validate-input-contract:p1:inst-reject-missing-format
+        // @cpt-end:cpt-validationguard-algo-problem-details-mapping-validate-input-contract:p1:inst-reject-missing-code
+        // @cpt-end:cpt-validationguard-algo-problem-details-mapping-validate-input-contract:p1:inst-reject-missing-pointer
+
+        // @cpt-begin:cpt-validationguard-algo-problem-details-mapping-build-envelope:p1:inst-loop-entries
+        // @cpt-begin:cpt-validationguard-algo-problem-details-mapping-build-envelope:p1:inst-preserve-finalized-order
+        var errorEntries = new ValidationProblemDetailsEntry[entries.Length];
+        for (var i = 0; i < entries.Length; i++)
+        {
+            var e = entries[i];
+            errorEntries[i] = new ValidationProblemDetailsEntry(e.Pointer, e.Code, e.Format, e.Detail);
+        }
+        // @cpt-end:cpt-validationguard-algo-problem-details-mapping-build-envelope:p1:inst-preserve-finalized-order
+        // @cpt-end:cpt-validationguard-algo-problem-details-mapping-build-envelope:p1:inst-loop-entries
+
+        // @cpt-begin:cpt-validationguard-algo-problem-details-mapping-build-envelope:p1:inst-set-errors-extension
+        // @cpt-begin:cpt-validationguard-flow-problem-details-mapping-project-errors:p1:inst-return-problem-details
+        var result = new ValidationProblemDetails
+        {
+            Type = type,
+            Title = title,
+            Status = status,
+            Detail = detail,
+            Instance = instance,
+            Errors = errorEntries,
+        };
+        // @cpt-end:cpt-validationguard-flow-problem-details-mapping-project-errors:p1:inst-return-problem-details
+        // @cpt-end:cpt-validationguard-algo-problem-details-mapping-build-envelope:p1:inst-set-errors-extension
+
+        Dispose();
+        return result;
     }
+    // @cpt-end:cpt-validationguard-flow-problem-details-mapping-project-errors:p1:inst-submit-finalized-entries
     // @cpt-end:cpt-validationguard-flow-validation-builder-build-nested-errors:p1:inst-return-finalized-entries
 
     protected override string ComposeChildPrefix(string localPrefix)
@@ -38,3 +100,4 @@ public sealed class ValidationBuilder<TContext> : ValidationBuilderBase<TContext
         return new NestedValidationBuilder<TChild>(prefix, Behavior);
     }
 }
+

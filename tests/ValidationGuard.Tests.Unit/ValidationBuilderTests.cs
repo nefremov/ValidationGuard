@@ -1,4 +1,4 @@
-namespace ValidationGuard.Tests.Unit;
+﻿namespace ValidationGuard.Tests.Unit;
 
 // @cpt-begin:cpt-validationguard-tests-validation-builder:p1:inst-builder-hierarchy-and-formatting
 public class ValidationBuilderTests
@@ -22,9 +22,9 @@ public class ValidationBuilderTests
         };
 
     [Fact]
-    public void ToValidationEntries_FlattensHierarchyAndSortsDeterministically()
+    public void Build_FlattensHierarchyAndSortsDeterministically()
     {
-        using var builder = ValidationBuilder<Root>.Create();
+        var builder = ValidationBuilder<Root>.Create();
 
         builder.Add(x => x.Name, "B2", "fmt-b", "detail-b");
         builder.Add(x => x.Name, "A1", "fmt-a", "detail-a");
@@ -34,10 +34,10 @@ public class ValidationBuilderTests
             child.Add(x => x.Value, "A1", "fmt-a", "detail-a");
         }
 
-        var entries = builder.ToValidationEntries();
+        var result = builder.Build();
 
         Assert.Collection(
-            entries,
+            result.Errors,
             entry =>
             {
                 Assert.Equal("/Child/Value", entry.Pointer);
@@ -63,66 +63,70 @@ public class ValidationBuilderTests
 
     [Theory]
     [MemberData(nameof(PathSerializationCases))]
-    public void ToValidationEntries_WithPathFragmentSerialization_AppliesConfiguredFormat(
+    public void Build_WithPathFragmentSerialization_AppliesConfiguredFormat(
         ValidationBehavior behavior,
         string expectedPointer)
     {
-        using var builder = ValidationBuilder<Root>.Create(behavior);
+        var builder = ValidationBuilder<Root>.Create(behavior);
 
         using (var child = builder.For(x => x.HomeAddress))
         {
             child.Add(x => x.PostalCode, "A1", "fmt", "detail");
         }
 
-        var entry = Assert.Single(builder.ToValidationEntries());
+        var result = builder.Build();
+        var entry = Assert.Single(result.Errors);
 
         Assert.Equal(expectedPointer, entry.Pointer);
     }
 
     [Theory]
     [MemberData(nameof(RootNameSerializationCases))]
-    public void Add_WithPathFragmentSerialization_AppliesConfiguredFormatForRootSegment(
+    public void Build_WithPathFragmentSerialization_AppliesConfiguredFormatForRootSegment(
         ValidationBehavior behavior,
         string expectedPointer)
     {
-        using var builder = ValidationBuilder<Root>.Create(behavior);
+        var builder = ValidationBuilder<Root>.Create(behavior);
 
         builder.Add(x => x.Name, "A1", "fmt", "detail");
 
-        var entry = Assert.Single(builder.ToValidationEntries());
+        var result = builder.Build();
+        var entry = Assert.Single(result.Errors);
 
         Assert.Equal(expectedPointer, entry.Pointer);
     }
 
     [Fact]
-    public void Add_WithNestedArrayScope_ComposesPointer()
+    public void Build_WithNestedArrayScope_ComposesPointer()
     {
-        using var builder = ValidationBuilder<Root>.Create();
+        var builder = ValidationBuilder<Root>.Create();
 
         using var itemBuilder = builder.For(x => x.Items[2]);
         itemBuilder.Add(x => x.Value, "A1", "fmt", "detail");
 
-        var entry = Assert.Single(builder.ToValidationEntries());
+        var result = builder.Build();
+        var entry = Assert.Single(result.Errors);
         Assert.Equal("/Items/2/Value", entry.Pointer);
     }
 
     [Fact]
-    public void Add_WithNestedNestedScope_ComposesPointer()
+    public void Build_WithNestedNestedScope_ComposesPointer()
     {
-        using var builder = ValidationBuilder<Root>.Create();
+        var builder = ValidationBuilder<Root>.Create();
 
         using var child = builder.For(x => x.Child);
         using var grandChild = child.For(x => x.GrandChild);
         grandChild.Add(x => x.Value, "A1", "fmt", "detail");
 
-        var entry = Assert.Single(builder.ToValidationEntries());
+        var result = builder.Build();
+        var entry = Assert.Single(result.Errors);
         Assert.Equal("/Child/GrandChild/Value", entry.Pointer);
     }
 
     [Fact]
-    public void Merge_WithBuilderAndEntries_AggregatesAllEntries()
+    public void Build_WithMergedBuilderAndEntries_AggregatesAllEntries()
     {
-        using var builder = ValidationBuilder<Root>.Create();
+        var builder = ValidationBuilder<Root>.Create();
         using var other = ValidationBuilder<OtherRoot>.Create();
 
         builder.Add(x => x.Name, "A1", "fmt", "detail");
@@ -131,21 +135,50 @@ public class ValidationBuilderTests
         builder.Merge(other);
         builder.Merge(new[] { new ValidationEntry("/Extra", "C3", "fmt", "detail") });
 
-        var entries = builder.ToValidationEntries();
+        var result = builder.Build();
 
-        Assert.Equal(3, entries.Count);
-        Assert.Contains(entries, x => x.Pointer == "/Name" && x.Code == "A1");
-        Assert.Contains(entries, x => x.Pointer == "/Title" && x.Code == "B2");
-        Assert.Contains(entries, x => x.Pointer == "/Extra" && x.Code == "C3");
+        Assert.Equal(3, result.Errors.Count);
+        Assert.Contains(result.Errors, x => x.Pointer == "/Name" && x.Code == "A1");
+        Assert.Contains(result.Errors, x => x.Pointer == "/Title" && x.Code == "B2");
+        Assert.Contains(result.Errors, x => x.Pointer == "/Extra" && x.Code == "C3");
     }
 
     [Fact]
-    public void ToValidationEntries_WhenDisposed_ThrowsObjectDisposedException()
+    public void Build_WhenDisposed_ThrowsObjectDisposedException()
     {
         var builder = ValidationBuilder<Root>.Create();
         builder.Dispose();
 
-        Assert.Throws<ObjectDisposedException>(() => builder.ToValidationEntries());
+        Assert.Throws<ObjectDisposedException>(() => builder.Build());
+    }
+
+    [Fact]
+    public void Build_AfterBuild_ThrowsObjectDisposedException()
+    {
+        var builder = ValidationBuilder<Root>.Create();
+        builder.Add(x => x.Name, "A1", "fmt", "detail");
+        builder.Build();
+
+        Assert.Throws<ObjectDisposedException>(() => builder.Build());
+    }
+
+    [Fact]
+    public void Build_WithProblemDetailsMetadata_MapsAllBaseFields()
+    {
+        var builder = ValidationBuilder<Root>.Create();
+
+        var result = builder.Build(
+            type: "https://example.com/validation-error",
+            title: "Validation error",
+            status: 422,
+            detail: "One or more validation failures occurred.",
+            instance: "/requests/abc123");
+
+        Assert.Equal("https://example.com/validation-error", result.Type);
+        Assert.Equal("Validation error", result.Title);
+        Assert.Equal(422, result.Status);
+        Assert.Equal("One or more validation failures occurred.", result.Detail);
+        Assert.Equal("/requests/abc123", result.Instance);
     }
 
     [Fact]
