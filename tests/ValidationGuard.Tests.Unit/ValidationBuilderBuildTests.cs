@@ -4,32 +4,32 @@
 public class ValidationBuilderBuildTests
 {
     [Fact]
-    public void Build_WithNoEntries_ReturnsEmptyErrors()
+    public void ToEntries_WithNoEntries_ReturnsEmpty()
     {
         var builder = ValidationBuilder<Root>.Create();
 
-        var result = builder.Build();
+        var result = builder.ToEntries();
 
-        Assert.Empty(result.Errors);
+        Assert.Empty(result);
     }
 
     [Fact]
-    public void Build_PreservesEntryFieldsLosslessly()
+    public void ToEntries_PreservesEntryFieldsLosslessly()
     {
         var builder = ValidationBuilder<Root>.Create();
         builder.Add(x => x.Name, "ERR001", "fmt-name", "Name is required.");
 
-        var result = builder.Build();
+        var result = builder.ToEntries();
 
-        var error = Assert.Single(result.Errors);
-        Assert.Equal("/Name", error.Pointer);
-        Assert.Equal("ERR001", error.Code);
-        Assert.Equal("fmt-name", error.Format);
-        Assert.Equal("Name is required.", error.Detail);
+        var entry = Assert.Single(result);
+        Assert.Equal("/Name", entry.Pointer);
+        Assert.Equal("ERR001", entry.Code);
+        Assert.Equal("fmt-name", entry.Format);
+        Assert.Equal("Name is required.", entry.Detail);
     }
 
     [Fact]
-    public void Build_WithMultipleEntries_ReturnsSortedErrors()
+    public void ToEntries_WithMultipleEntries_ReturnsSortedEntries()
     {
         var builder = ValidationBuilder<Root>.Create();
         builder.Add(x => x.Name, "B", "fmt", "detail-b");
@@ -39,47 +39,43 @@ public class ValidationBuilderBuildTests
             child.Add(x => x.Value, "A", "fmt", "detail-a");
         }
 
-        var result = builder.Build();
+        var result = builder.ToEntries();
 
-        Assert.Equal("/Child/Value", result.Errors[0].Pointer);
-        Assert.Equal("/Name", result.Errors[1].Pointer);
+        Assert.Equal("/Child/Value", result[0].Pointer);
+        Assert.Equal("/Name", result[1].Pointer);
     }
 
     [Fact]
-    public void Build_WithAllProblemDetailsFields_MapsAllBaseFields()
+    public void ToEntries_AfterToEntries_ThrowsObjectDisposedException()
     {
         var builder = ValidationBuilder<Root>.Create();
+        builder.ToEntries();
 
-        var result = builder.Build(
-            type: "https://example.com/validation-error",
-            title: "Validation error",
-            status: 422,
-            detail: "One or more failures occurred.",
-            instance: "/requests/abc");
-
-        Assert.Equal("https://example.com/validation-error", result.Type);
-        Assert.Equal("Validation error", result.Title);
-        Assert.Equal(422, result.Status);
-        Assert.Equal("One or more failures occurred.", result.Detail);
-        Assert.Equal("/requests/abc", result.Instance);
+        Assert.Throws<ObjectDisposedException>(() => builder.ToEntries());
     }
 
     [Fact]
-    public void Build_AfterBuild_ThrowsObjectDisposedException()
+    public void ToEntries_AfterToEntries_AddThrowsObjectDisposedException()
     {
         var builder = ValidationBuilder<Root>.Create();
-        builder.Build();
-
-        Assert.Throws<ObjectDisposedException>(() => builder.Build());
-    }
-
-    [Fact]
-    public void Build_AfterBuild_AddThrowsObjectDisposedException()
-    {
-        var builder = ValidationBuilder<Root>.Create();
-        builder.Build();
+        builder.ToEntries();
 
         Assert.Throws<ObjectDisposedException>(() => builder.Add(x => x.Name, "A", "fmt", "detail"));
+    }
+
+    [Fact]
+    public void ToEntries_WithMetadata_IncludesMetadataInEntries()
+    {
+        var builder = ValidationBuilder<Root>.Create();
+        var metadata = new Dictionary<string, object?> { ["min"] = 1, ["max"] = 10 };
+        builder.Add(x => x.Name, "ERR001", "fmt-name", "Out of range.", metadata);
+
+        var result = builder.ToEntries();
+
+        var entry = Assert.Single(result);
+        Assert.NotNull(entry.Metadata);
+        Assert.Equal(1, entry.Metadata["min"]);
+        Assert.Equal(10, entry.Metadata["max"]);
     }
 
     private sealed class Root
