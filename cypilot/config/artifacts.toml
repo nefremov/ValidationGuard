@@ -1,9 +1,0 @@
-# Cypilot artifacts registry
-
-[[systems]]
-name = "Validationguard"
-slug = "validationguard"
-kit = "sdlc"
-artifacts = []
-codebase = []
-children = []
