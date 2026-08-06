@@ -1,6 +1,6 @@
 ﻿namespace ValidationGuard.Tests.Unit;
 
-// @cpt-begin:cpt-validationguard-tests-validation-entry-comparer:p1:inst-deterministic-ordering
+// @cpt-begin:cpt-validationguard-flow-validation-builder-build-nested-errors:p1:inst-return-finalized-entries
 public class ValidationEntryComparerTests
 {
     public static TheoryData<bool, (string Pointer, string Code, string Format, string Detail)?, (string Pointer, string Code, string Format, string Detail)?, int> CompareCases =>
@@ -44,4 +44,4 @@ public class ValidationEntryComparerTests
         Assert.Equal(expectedSign, Math.Sign(result));
     }
 }
-// @cpt-end:cpt-validationguard-tests-validation-entry-comparer:p1:inst-deterministic-ordering
+// @cpt-end:cpt-validationguard-flow-validation-builder-build-nested-errors:p1:inst-return-finalized-entries

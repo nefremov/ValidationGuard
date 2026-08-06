@@ -1,6 +1,6 @@
 namespace ValidationGuard.Tests.Unit;
 
-// @cpt-begin:cpt-validationguard-tests-validation-builder:p1:inst-builder-hierarchy-and-formatting
+// @cpt-begin:cpt-validationguard-flow-validation-builder-build-nested-errors:p1:inst-return-finalized-entries
 public class ValidationBuilderTests
 {
     public static TheoryData<ValidationBehavior, string> PathSerializationCases =>
@@ -224,4 +224,4 @@ public class ValidationBuilderTests
         }
     }
 }
-// @cpt-end:cpt-validationguard-tests-validation-builder:p1:inst-builder-hierarchy-and-formatting
+// @cpt-end:cpt-validationguard-flow-validation-builder-build-nested-errors:p1:inst-return-finalized-entries

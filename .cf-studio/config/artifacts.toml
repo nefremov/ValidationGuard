@@ -4,6 +4,43 @@
 name = "Validationguard"
 slug = "validationguard"
 kit = "sdlc"
-artifacts = []
-codebase = []
-children = []
+
+[[systems.artifacts]]
+path = "docs/PRD.md"
+kind = "PRD"
+traceability = "DOCS-ONLY"
+
+[[systems.artifacts]]
+path = "docs/DESIGN.md"
+kind = "DESIGN"
+traceability = "DOCS-ONLY"
+
+[[systems.artifacts]]
+path = "docs/DECOMPOSITION.md"
+kind = "DECOMPOSITION"
+traceability = "DOCS-ONLY"
+
+[[systems.artifacts]]
+path = "docs/features/validation-builder.md"
+kind = "FEATURE"
+traceability = "FULL"
+
+[[systems.artifacts]]
+path = "docs/features/aspnetcore-adapter.md"
+kind = "FEATURE"
+traceability = "FULL"
+
+[[systems.artifacts]]
+path = "docs/features/problem-details-mapping.md"
+kind = "FEATURE"
+traceability = "FULL"
+
+[[systems.codebase]]
+name = "Source Code"
+path = "src/ValidationGuard"
+extensions = [".cs"]
+
+[[systems.codebase]]
+name = "Unit Tests"
+path = "tests/ValidationGuard.Tests.Unit"
+extensions = [".cs"]
