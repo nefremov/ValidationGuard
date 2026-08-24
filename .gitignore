@@ -430,6 +430,9 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
+# Constructor Studio transient lock files
+*.toml.lock
+
 # BEGIN Constructor Studio
 # Generated Constructor Studio runtime and agent integration files.
 # Files matched here are owned by Constructor Studio and may be overwritten.
