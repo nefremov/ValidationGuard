@@ -17,6 +17,7 @@ source = "github:constructorfabric/studio-kit-sdlc"
 install_mode = "copy"
 version = "v1.2.1"
 tracking = "tracked"
+tool_risk_fingerprint = "3bdcd30d3029ad80e74c76eb0b57d80ad617a51191eb9d9307b2921c65f5dc16"
 
 [kits.sdlc.local_metadata]
 conf_version = "1.0.0"
@@ -171,99 +172,99 @@ path = "config/kits/sdlc/workflows/pr-review.md"
 kind = "skill"
 public = true
 description = "PR review workflow"
-user_modifiable = false
-generated_targets = ["installed"]
 origin = "legacy-workflow"
+generated_targets = ["installed"]
+user_modifiable = false
 
 [kits.sdlc.resources.workflow_pr_status]
 path = "config/kits/sdlc/workflows/pr-status.md"
 kind = "skill"
 public = true
 description = "PR status report workflow"
-user_modifiable = false
-generated_targets = ["installed"]
 origin = "legacy-workflow"
+generated_targets = ["installed"]
+user_modifiable = false
 
 [kits.sdlc.resources.workflow_migrate_openspec]
 path = "config/kits/sdlc/workflows/migrate-openspec.md"
 kind = "skill"
 public = true
 description = "OpenSpec to Constructor Studio SDLC migration workflow"
-user_modifiable = false
-generated_targets = ["installed"]
 origin = "legacy-workflow"
+generated_targets = ["installed"]
+user_modifiable = false
 
 [kits.sdlc.resources.workflow_doc_prd]
 path = "config/kits/sdlc/workflows/doc-prd.md"
 kind = "skill"
 public = true
 description = "PRD authoring preset workflow (wraps cf-write-docs)"
-user_modifiable = false
-generated_targets = ["installed"]
 origin = "legacy-workflow"
+generated_targets = ["installed"]
+user_modifiable = false
 
 [kits.sdlc.resources.workflow_doc_adr]
 path = "config/kits/sdlc/workflows/doc-adr.md"
 kind = "skill"
 public = true
 description = "ADR authoring preset workflow (wraps cf-write-docs)"
-user_modifiable = false
-generated_targets = ["installed"]
 origin = "legacy-workflow"
+generated_targets = ["installed"]
+user_modifiable = false
 
 [kits.sdlc.resources.workflow_doc_design]
 path = "config/kits/sdlc/workflows/doc-design.md"
 kind = "skill"
 public = true
 description = "DESIGN authoring preset workflow (wraps cf-write-docs)"
-user_modifiable = false
-generated_targets = ["installed"]
 origin = "legacy-workflow"
+generated_targets = ["installed"]
+user_modifiable = false
 
 [kits.sdlc.resources.workflow_decompose]
 path = "config/kits/sdlc/workflows/decompose.md"
 kind = "skill"
 public = true
 description = "DECOMPOSITION authoring preset workflow (wraps cf-write-docs)"
-user_modifiable = false
-generated_targets = ["installed"]
 origin = "legacy-workflow"
+generated_targets = ["installed"]
+user_modifiable = false
 
 [kits.sdlc.resources.workflow_doc_feature]
 path = "config/kits/sdlc/workflows/doc-feature.md"
 kind = "skill"
 public = true
 description = "FEATURE authoring preset workflow (wraps cf-write-docs)"
-user_modifiable = false
-generated_targets = ["installed"]
 origin = "legacy-workflow"
+generated_targets = ["installed"]
+user_modifiable = false
 
 [kits.sdlc.resources.workflow_implement]
 path = "config/kits/sdlc/workflows/implement.md"
 kind = "skill"
 public = true
 description = "CODE implementation preset workflow (wraps cf-coding)"
-user_modifiable = false
-generated_targets = ["installed"]
 origin = "legacy-workflow"
+generated_targets = ["installed"]
+user_modifiable = false
 
 [kits.sdlc.resources.workflow_change_impact_analysis]
 path = "config/kits/sdlc/workflows/change-impact-analysis.md"
 kind = "skill"
 public = true
 description = "Change impact analysis workflow (Phase-1; wraps cf-analyze)"
-user_modifiable = false
-generated_targets = ["installed"]
 origin = "legacy-workflow"
+generated_targets = ["installed"]
+user_modifiable = false
 
 [kits.sdlc.resources.workflow_reverse_engineer]
 path = "config/kits/sdlc/workflows/reverse-engineer.md"
 kind = "skill"
 public = true
 description = "Reverse-engineer artifacts from code workflow (Phase-1; wraps cf-write-docs)"
-user_modifiable = false
-generated_targets = ["installed"]
 origin = "legacy-workflow"
+generated_targets = ["installed"]
+user_modifiable = false
 
 [kits.sdlc.resources.change_impact_config]
 path = "config/kits/sdlc/scripts/change-impact-analysis.toml"
@@ -310,5 +311,17 @@ path = "config/kits/sdlc/AGENTS.md"
 kind = "rule"
 public = true
 description = "Kit AGENTS.md for agent integration entry points"
-user_modifiable = false
 generated_targets = ["installed"]
+user_modifiable = false
+
+[kits.sdlc.source_provenance]
+source_type = "github"
+resolver_mode = "latest_release"
+resolution_basis = "github_release"
+requested_ref = "latest"
+resolved_ref = "v1.2.1"
+commit_sha = "4318126"
+canonical_source = "github:constructorfabric/studio-kit-sdlc"
+effective_source = "github:constructorfabric/studio-kit-sdlc"
+verified = "verified"
+freshness = "fresh"

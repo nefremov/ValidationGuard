@@ -1,3 +1,9 @@
+---
+version: 1.1.0
+status: accepted
+updated: 2026-08-24
+---
+
 # Feature: Validation Builder
 
 
@@ -13,11 +19,13 @@
 - [3. Processes / Business Logic (CDSL)](#3-processes--business-logic-cdsl)
   - [Compose Pointer and Register Entry](#compose-pointer-and-register-entry)
   - [Create and Manage Nested Builders](#create-and-manage-nested-builders)
+  - [Convert Pointer Fragment Names](#convert-pointer-fragment-names)
 - [4. States (CDSL)](#4-states-cdsl)
   - [Validation Builder Nested Scope State Machine](#validation-builder-nested-scope-state-machine)
 - [5. Definitions of Done](#5-definitions-of-done)
   - [Implement ValidationBuilder Core API](#implement-validationbuilder-core-api)
 - [6. Acceptance Criteria](#6-acceptance-criteria)
+- [7. Changelog](#7-changelog)
 
 <!-- /toc -->
 
@@ -34,7 +42,7 @@ Provides the core builder API for accumulating near-RFC validation failure entri
 
 Defines the implementable behavior for nested-builder accumulation semantics in the core library, where child builders capture pointer prefixes and keep scoped entries that are flattened by the root builder.
 
-**Requirements**: `cpt-validationguard-fr-typed-error-registration`, `cpt-validationguard-fr-canonical-internal-entry-storage`, `cpt-validationguard-fr-nested-object-path-handling`, `cpt-validationguard-fr-array-element-path-handling`, `cpt-validationguard-fr-indexer-keyed-path-handling`, `cpt-validationguard-fr-aggregation-and-merge`, `cpt-validationguard-nfr-memory-efficiency`, `cpt-validationguard-nfr-api-stability`
+**Requirements**: `cpt-validationguard-fr-typed-error-registration`, `cpt-validationguard-fr-canonical-internal-entry-storage`, `cpt-validationguard-fr-nested-object-path-handling`, `cpt-validationguard-fr-array-element-path-handling`, `cpt-validationguard-fr-indexer-keyed-path-handling`, `cpt-validationguard-fr-configurable-pointer-naming`, `cpt-validationguard-fr-aggregation-and-merge`, `cpt-validationguard-nfr-memory-efficiency`, `cpt-validationguard-nfr-api-stability`
 
 **Principles**: `cpt-validationguard-principle-stable-error-entry-contract`
 
@@ -116,6 +124,20 @@ Defines the implementable behavior for nested-builder accumulation semantics in 
 6. [ ] - `p1` - Dispose nested builder at end of `using` block without mutating sibling builder state - `inst-dispose-nested-builder`
 7. [ ] - `p1` - **RETURN** parent builder context remains active for additional parallel scopes - `inst-return-parent-context`
 
+### Convert Pointer Fragment Names
+
+- [x] `p2` - **ID**: `cpt-validationguard-algo-validation-builder-convert-fragment-name`
+
+**Input**: Member name resolved from an accessor expression, and the naming convention selected for the validation operation.
+
+**Output**: Converted member-name segment ready for RFC 6901 pointer composition.
+
+**Steps**:
+1. [x] - `p1` - Select the naming convention for the validation operation from the supported set and default to unchanged member names when the consumer selects none - `inst-select-convention`
+2. [x] - `p1` - Reject a naming selection that supplies no conversion contract - `inst-reject-missing-converter`
+3. [x] - `p1` - Expose a conversion contract that reports converted length and writes the converted member name, and forbid introducing RFC 6901 reserved characters absent from the original value - `inst-declare-conversion-contract`
+4. [x] - `p1` - Apply the selected convention casing and separator rules across letter, digit, and acronym boundaries - `inst-apply-convention-casing`
+
 ## 4. States (CDSL)
 
 ### Validation Builder Nested Scope State Machine
@@ -143,6 +165,7 @@ The system **MUST** provide ValidationBuilder contracts for entry registration, 
 - `cpt-validationguard-flow-validation-builder-build-nested-errors`
 - `cpt-validationguard-algo-validation-builder-compose-pointer-register-entry`
 - `cpt-validationguard-algo-validation-builder-create-manage-nested-builders`
+- `cpt-validationguard-algo-validation-builder-convert-fragment-name`
 
 **Constraints**: `cpt-validationguard-constraint-strict-net10-target`
 
@@ -158,6 +181,14 @@ The system **MUST** provide ValidationBuilder contracts for entry registration, 
 - [ ] ValidationBuilder supports object/dictionary indexers and RFC 6901 token escaping when resolving accessor-based scope pointers.
 - [ ] ValidationBuilder rejects invalid RFC 6901 numeric index tokens for array/indexed accessor paths.
 - [ ] Nested validators remain path-agnostic and produce correct final pointers.
+- [ ] Member-name pointer segments are emitted in the naming convention selected for the validation operation, defaulting to unchanged member names.
 - [ ] Nested builders keep scoped entries and the root builder flattens all node entries into one consolidated result.
 - [ ] Multiple sibling nested builders can be used for independent parallel scopes without state leakage.
 - [ ] Finalized entries preserve `pointer`, `code`, `format`, and `detail` for downstream mapping.
+
+## 7. Changelog
+
+| Version | Date | Change |
+|---------|------|--------|
+| 1.1.0 | 2026-08-24 | Added algo `cpt-validationguard-algo-validation-builder-convert-fragment-name` and wired it into the DoD and acceptance criteria. |
+| 1.0.0 | 2026-08-06 | Initial FEATURE. |

@@ -1,3 +1,9 @@
+---
+version: 1.1.0
+status: accepted
+updated: 2026-08-24
+---
+
 # PRD — ValidationGuard Typed Validation Error Accumulator
 
 <!-- toc -->
@@ -29,6 +35,7 @@
 - [10. Dependencies](#10-dependencies)
 - [11. Assumptions](#11-assumptions)
 - [12. Risks](#12-risks)
+- [13. Changelog](#13-changelog)
 
 <!-- /toc -->
 
@@ -182,6 +189,18 @@ The system **MUST** resolve accessor-based indexers (for example `x => x.Metadat
 **Rationale**: Typed accessor-based scoped validation must support dictionary/custom indexer use cases while preserving RFC-compatible pointer correctness.
 
 **Actors**: `cpt-validationguard-actor-api-developer`, `cpt-validationguard-actor-client-developer`
+
+#### Configurable Pointer Fragment Naming
+
+- [ ] `p2` - **ID**: `cpt-validationguard-fr-configurable-pointer-naming`
+
+The system **MUST** allow consumers to select the naming convention applied to member-name segments of emitted RFC 6901 JSON Pointer paths (for example unchanged member names, `camelCase`, `snake_case`, or `kebab-case`), and **MUST** default to leaving member names unchanged.
+
+Selecting a naming convention **MUST NOT** change the structure of a pointer path and **MUST NOT** affect the fidelity of `code`, `format`, and `detail`.
+
+**Rationale**: Clients address validation failures against the JSON payload they received, whose field names follow the host serializer naming policy and commonly differ from .NET member naming. Pointer segments that do not match those names are not resolvable by the client.
+
+**Actors**: `cpt-validationguard-actor-api-developer`, `cpt-validationguard-actor-client-developer`, `cpt-validationguard-actor-json-serializer`
 
 #### Aggregation and Merge
 
@@ -393,6 +412,7 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 - [ ] Problem Details output is RFC 9457-compatible and includes `errors` extension.
 - [ ] `errors` extension is an array of entries and preserves deterministic JSON Pointer paths for nested and indexed elements.
 - [ ] Each validation entry includes `code`, `format`, `detail`, and `pointer`.
+- [ ] Pointer member-name segments can be emitted in a consumer-selected naming convention (`camelCase`, `snake_case`, `kebab-case`), with unchanged member names as the default, without altering pointer structure.
 - [ ] Internal accumulation stores canonical near-RFC entries with `pointer`, `code`, `format`, and `detail` in `ValidationBuilder`.
 - [ ] Projection to Problem Details `errors` is lossless for canonical fields and does not require path or message recomputation.
 - [ ] Solution includes core library and separate ASP.NET Core adapter library, both targeting `net10.0`.
@@ -421,3 +441,10 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 | Overly strict public API too early | High cost to evolve library before adoption stabilizes | Mark unstable areas before v1 and stabilize only validated contracts |
 | Ambiguity in `errors` extension schema | Integration mismatches across client teams | Publish explicit extension schema and compatibility policy |
 | Drift between internal entry model and RFC 9457 `errors` schema | Lossy mapping, duplicated transformation logic, and serialization defects | Keep canonical near-RFC internal schema (`pointer`, `code`, `format`, `detail`) and enforce projection fidelity via tests |
+
+## 13. Changelog
+
+| Version | Date | Change |
+|---------|------|--------|
+| 1.1.0 | 2026-08-24 | Added `cpt-validationguard-fr-configurable-pointer-naming` and its acceptance criterion. |
+| 1.0.0 | 2026-08-06 | Initial PRD. |

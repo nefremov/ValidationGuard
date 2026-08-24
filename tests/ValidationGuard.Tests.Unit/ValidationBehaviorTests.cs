@@ -1,8 +1,8 @@
-namespace ValidationGuard.Tests.Unit;
+﻿namespace ValidationGuard.Tests.Unit;
 
-// @cpt-begin:cpt-validationguard-tests-validation-behavior:p1:inst-validation-behavior-guards
 public class ValidationBehaviorTests
 {
+    // @cpt-begin:cpt-validationguard-algo-validation-builder-convert-fragment-name:p1:inst-reject-missing-converter
     [Fact]
     public void Constructor_WithNullConverter_ThrowsArgumentNullException()
     {
@@ -10,5 +10,5 @@ public class ValidationBehaviorTests
 
         Assert.Equal("nameConverter", exception.ParamName);
     }
+    // @cpt-end:cpt-validationguard-algo-validation-builder-convert-fragment-name:p1:inst-reject-missing-converter
 }
-// @cpt-end:cpt-validationguard-tests-validation-behavior:p1:inst-validation-behavior-guards
