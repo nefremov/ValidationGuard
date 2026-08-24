@@ -63,6 +63,7 @@ This decomposition breaks the design element `cpt-validationguard-design-validat
 - **Scope** (a feature-level summary; the normative wording lives in the PRD requirements listed under Requirements Covered below):
   - Register typed validation entries carrying `code`, `format`, `detail`, and an RFC 6901 `pointer`.
   - Compose RFC 6901 pointer segments for nested object members, array indices, and indexer/keyed accessors, including token escaping and numeric index validation.
+  - Convert member-name pointer segments to a consumer-selected naming convention, defaulting to unchanged member names.
   - Create nested validation scopes for root objects, nested members, and collection elements, with each scope accumulating its own entries for as long as that scope is open.
   - Merge child validation results into a parent accumulator without dropping entries.
   - Materialize deterministic, flattened output from the root builder, so one traversal yields one ordered result set.
@@ -78,6 +79,7 @@ This decomposition breaks the design element `cpt-validationguard-design-validat
   - [ ] `p1` - `cpt-validationguard-fr-nested-object-path-handling`
   - [ ] `p1` - `cpt-validationguard-fr-array-element-path-handling`
   - [ ] `p2` - `cpt-validationguard-fr-indexer-keyed-path-handling`
+  - [ ] `p2` - `cpt-validationguard-fr-configurable-pointer-naming`
   - [ ] `p2` - `cpt-validationguard-fr-aggregation-and-merge`
   - [ ] `p2` - `cpt-validationguard-nfr-memory-efficiency`
   - [ ] `p1` - `cpt-validationguard-nfr-api-stability`

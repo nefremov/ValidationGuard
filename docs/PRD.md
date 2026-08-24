@@ -183,6 +183,18 @@ The system **MUST** resolve accessor-based indexers (for example `x => x.Metadat
 
 **Actors**: `cpt-validationguard-actor-api-developer`, `cpt-validationguard-actor-client-developer`
 
+#### Configurable Pointer Fragment Naming
+
+- [ ] `p2` - **ID**: `cpt-validationguard-fr-configurable-pointer-naming`
+
+The system **MUST** allow consumers to select the naming convention applied to member-name segments of emitted RFC 6901 JSON Pointer paths (for example unchanged member names, `camelCase`, `snake_case`, or `kebab-case`), and **MUST** default to leaving member names unchanged.
+
+Selecting a naming convention **MUST NOT** change the structure of a pointer path and **MUST NOT** affect the fidelity of `code`, `format`, and `detail`.
+
+**Rationale**: Clients address validation failures against the JSON payload they received, whose field names follow the host serializer naming policy and commonly differ from .NET member naming. Pointer segments that do not match those names are not resolvable by the client.
+
+**Actors**: `cpt-validationguard-actor-api-developer`, `cpt-validationguard-actor-client-developer`, `cpt-validationguard-actor-json-serializer`
+
 #### Aggregation and Merge
 
 - [ ] `p2` - **ID**: `cpt-validationguard-fr-aggregation-and-merge`
@@ -393,6 +405,7 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 - [ ] Problem Details output is RFC 9457-compatible and includes `errors` extension.
 - [ ] `errors` extension is an array of entries and preserves deterministic JSON Pointer paths for nested and indexed elements.
 - [ ] Each validation entry includes `code`, `format`, `detail`, and `pointer`.
+- [ ] Pointer member-name segments can be emitted in a consumer-selected naming convention (`camelCase`, `snake_case`, `kebab-case`), with unchanged member names as the default, without altering pointer structure.
 - [ ] Internal accumulation stores canonical near-RFC entries with `pointer`, `code`, `format`, and `detail` in `ValidationBuilder`.
 - [ ] Projection to Problem Details `errors` is lossless for canonical fields and does not require path or message recomputation.
 - [ ] Solution includes core library and separate ASP.NET Core adapter library, both targeting `net10.0`.
