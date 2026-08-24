@@ -1,3 +1,9 @@
+---
+version: 1.0.0
+status: accepted
+updated: 2026-08-06
+---
+
 # Feature: Problem Details Mapping
 
 
@@ -18,6 +24,7 @@
 - [5. Definitions of Done](#5-definitions-of-done)
   - [Implement Problem Details Mapper](#implement-problem-details-mapper)
 - [6. Acceptance Criteria](#6-acceptance-criteria)
+- [7. Changelog](#7-changelog)
 
 <!-- /toc -->
 
@@ -149,3 +156,9 @@ The system **MUST** map finalized canonical near-RFC validation entries to RFC 9
 - [ ] `errors` is an array with deterministic ordering and required fields (`pointer`, `code`, `format`, `detail`).
 - [ ] Mapping rejects invalid contracts and does not emit malformed entries.
 - [ ] Serialization performance target for 200 entries remains compliant with PRD NFR.
+
+## 7. Changelog
+
+| Version | Date | Change |
+|---------|------|--------|
+| 1.0.0 | 2026-08-06 | Initial FEATURE. |

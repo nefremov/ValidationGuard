@@ -1,3 +1,9 @@
+---
+version: 1.1.0
+status: accepted
+updated: 2026-08-24
+---
+
 # PRD — ValidationGuard Typed Validation Error Accumulator
 
 <!-- toc -->
@@ -29,6 +35,7 @@
 - [10. Dependencies](#10-dependencies)
 - [11. Assumptions](#11-assumptions)
 - [12. Risks](#12-risks)
+- [13. Changelog](#13-changelog)
 
 <!-- /toc -->
 
@@ -434,3 +441,10 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 | Overly strict public API too early | High cost to evolve library before adoption stabilizes | Mark unstable areas before v1 and stabilize only validated contracts |
 | Ambiguity in `errors` extension schema | Integration mismatches across client teams | Publish explicit extension schema and compatibility policy |
 | Drift between internal entry model and RFC 9457 `errors` schema | Lossy mapping, duplicated transformation logic, and serialization defects | Keep canonical near-RFC internal schema (`pointer`, `code`, `format`, `detail`) and enforce projection fidelity via tests |
+
+## 13. Changelog
+
+| Version | Date | Change |
+|---------|------|--------|
+| 1.1.0 | 2026-08-24 | Added `cpt-validationguard-fr-configurable-pointer-naming` and its acceptance criterion. |
+| 1.0.0 | 2026-08-06 | Initial PRD. |

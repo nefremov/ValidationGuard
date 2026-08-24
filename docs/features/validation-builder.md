@@ -1,3 +1,9 @@
+---
+version: 1.1.0
+status: accepted
+updated: 2026-08-24
+---
+
 # Feature: Validation Builder
 
 
@@ -19,6 +25,7 @@
 - [5. Definitions of Done](#5-definitions-of-done)
   - [Implement ValidationBuilder Core API](#implement-validationbuilder-core-api)
 - [6. Acceptance Criteria](#6-acceptance-criteria)
+- [7. Changelog](#7-changelog)
 
 <!-- /toc -->
 
@@ -178,3 +185,10 @@ The system **MUST** provide ValidationBuilder contracts for entry registration, 
 - [ ] Nested builders keep scoped entries and the root builder flattens all node entries into one consolidated result.
 - [ ] Multiple sibling nested builders can be used for independent parallel scopes without state leakage.
 - [ ] Finalized entries preserve `pointer`, `code`, `format`, and `detail` for downstream mapping.
+
+## 7. Changelog
+
+| Version | Date | Change |
+|---------|------|--------|
+| 1.1.0 | 2026-08-24 | Added algo `cpt-validationguard-algo-validation-builder-convert-fragment-name` and wired it into the DoD and acceptance criteria. |
+| 1.0.0 | 2026-08-06 | Initial FEATURE. |
