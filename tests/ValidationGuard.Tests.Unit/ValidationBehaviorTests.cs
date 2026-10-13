@@ -1,4 +1,4 @@
-namespace ValidationGuard.Tests.Unit;
+﻿namespace ValidationGuard.Tests.Unit;
 
 public class ValidationBehaviorTests
 {

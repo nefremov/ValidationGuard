@@ -1,3 +1,9 @@
+---
+version: 1.0.0
+status: accepted
+updated: 2026-08-06
+---
+
 # Feature: ASP.NET Core Adapter Integration
 
 
@@ -18,6 +24,7 @@
 - [5. Definitions of Done](#5-definitions-of-done)
   - [Implement ASP.NET Core Adapter Package](#implement-aspnet-core-adapter-package)
 - [6. Acceptance Criteria](#6-acceptance-criteria)
+- [7. Changelog](#7-changelog)
 
 <!-- /toc -->
 
@@ -147,3 +154,9 @@ The system **MUST** provide a separate `net10.0` adapter package that integrates
 - [ ] Adapter package is separate from core package and targets `net10.0`.
 - [ ] Adapter emits RFC 9457-compatible Problem Details with `errors[]` extension from core mapping output.
 - [ ] Adapter registration and response flow work in ASP.NET Core integration tests.
+
+## 7. Changelog
+
+| Version | Date | Change |
+|---------|------|--------|
+| 1.0.0 | 2026-08-06 | Initial FEATURE. |

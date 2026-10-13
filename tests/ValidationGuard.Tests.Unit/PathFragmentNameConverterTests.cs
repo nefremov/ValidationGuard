@@ -1,4 +1,4 @@
-namespace ValidationGuard.Tests.Unit;
+﻿namespace ValidationGuard.Tests.Unit;
 
 public class PathFragmentNameConverterTests
 {
@@ -25,6 +25,7 @@ public class PathFragmentNameConverterTests
         converter.WriteConverted(singleUpper, singleUpperDestination);
         Assert.Equal("n", new string(singleUpperDestination));
     }
+
 
     [Fact]
     public void SeparatedLowerCaseConverters_HandleDigitAndUppercaseTransitions()

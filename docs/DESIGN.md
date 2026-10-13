@@ -1,3 +1,9 @@
+---
+version: 1.1.0
+status: accepted
+updated: 2026-08-24
+---
+
 # Technical Design — ValidationGuard Typed Validation Error Accumulator
 
 
@@ -20,6 +26,7 @@
   - [3.7 Database schemas & tables](#37-database-schemas--tables)
 - [4. Additional context](#4-additional-context)
 - [5. Traceability](#5-traceability)
+- [6. Changelog](#6-changelog)
 
 <!-- /toc -->
 
@@ -45,9 +52,11 @@ Requirements that significantly influence architecture decisions.
 | Requirement | Design Response |
 |-------------|------------------|
 | `cpt-validationguard-fr-typed-error-registration` | Define near-RFC validation entry model with explicit fields: `code`, `format`, `detail`, `pointer`. |
+| `cpt-validationguard-fr-canonical-internal-entry-storage` | Keep the builder's internal entry shape aligned with the Problem Details `errors` entry schema so projection is a field copy rather than a transformation. |
 | `cpt-validationguard-fr-nested-object-path-handling` | Provide path composition utility that generates RFC 6901 JSON Pointer for nested object members. |
 | `cpt-validationguard-fr-array-element-path-handling` | Support indexed pointer composition for collection traversal (`/items/0/name`). |
 | `cpt-validationguard-fr-indexer-keyed-path-handling` | Resolve accessor indexers (`get_Item`) for keyed and numeric segments, RFC 6901-escape keyed tokens, and validate numeric index token correctness. |
+| `cpt-validationguard-fr-configurable-pointer-naming` | Resolve member-name segments through a pluggable fragment-name converter selected per validation operation, defaulting to unchanged member names; conversion precedes RFC 6901 escaping, which is applied to the original value. |
 | `cpt-validationguard-fr-aggregation-and-merge` | Provide builder/merge contracts that combine child results without dropping entries. |
 | `cpt-validationguard-fr-rfc9457-compatible-output` | Store near-RFC validation entries in builder and emit standard Problem Details fields plus extension members with minimal transformation. |
 | `cpt-validationguard-fr-errors-extension-projection` | Persist `errors`-ready entries (`pointer`, `code`, `format`, `detail`) and serialize as deterministic extension array. |
@@ -347,3 +356,10 @@ The adapter package is intentionally separate to keep the core library reusable 
 - **PRD**: [PRD.md](./PRD.md)
 - **ADRs**: [ADR/](./ADR/)
 - **Features**: [features/](./features/)
+
+## 6. Changelog
+
+| Version | Date | Change |
+|---------|------|--------|
+| 1.1.0 | 2026-08-24 | Added Functional Drivers rows for `cpt-validationguard-fr-canonical-internal-entry-storage` and `cpt-validationguard-fr-configurable-pointer-naming`. |
+| 1.0.0 | 2026-08-06 | Initial DESIGN. |
