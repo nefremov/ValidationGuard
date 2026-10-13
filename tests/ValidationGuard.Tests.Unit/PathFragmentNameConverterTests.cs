@@ -2,7 +2,6 @@
 
 public class PathFragmentNameConverterTests
 {
-    // @cpt-begin:cpt-validationguard-algo-validation-builder-convert-fragment-name:p1:inst-apply-convention-casing
     [Fact]
     public void CamelCase_WriteConverted_HandlesEmptyLowerAndAcronymInputs()
     {
@@ -27,9 +26,7 @@ public class PathFragmentNameConverterTests
         Assert.Equal("n", new string(singleUpperDestination));
     }
 
-    // @cpt-end:cpt-validationguard-algo-validation-builder-convert-fragment-name:p1:inst-apply-convention-casing
 
-    // @cpt-begin:cpt-validationguard-algo-validation-builder-convert-fragment-name:p1:inst-apply-convention-casing
     [Fact]
     public void SeparatedLowerCaseConverters_HandleDigitAndUppercaseTransitions()
     {
@@ -50,5 +47,4 @@ public class PathFragmentNameConverterTests
         snake.WriteConverted(acronymTransition, snakeAcronymDestination);
         Assert.Equal("a_bc", new string(snakeAcronymDestination));
     }
-    // @cpt-end:cpt-validationguard-algo-validation-builder-convert-fragment-name:p1:inst-apply-convention-casing
 }

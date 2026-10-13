@@ -1,6 +1,5 @@
 namespace ValidationGuard.Tests.Unit;
 
-// @cpt-begin:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-normalize-pointer
 public class ValidationBuilderBaseTests
 {
     [Fact]
@@ -64,4 +63,3 @@ public class ValidationBuilderBaseTests
         }
     }
 }
-// @cpt-end:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-normalize-pointer

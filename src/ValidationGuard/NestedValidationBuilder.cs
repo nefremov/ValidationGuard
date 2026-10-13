@@ -10,7 +10,6 @@ internal sealed class NestedValidationBuilder<TContext> : ValidationBuilderBase<
         _prefix = NormalizePointer(prefix);
     }
 
-    // @cpt-begin:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-combine-prefix-local-pointer
     protected override string ComposeChildPrefix(string localPrefix)
     {
         return CombinePointers(_prefix, localPrefix);
@@ -20,7 +19,6 @@ internal sealed class NestedValidationBuilder<TContext> : ValidationBuilderBase<
     {
         return CombinePointers(_prefix, localPointer);
     }
-    // @cpt-end:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-combine-prefix-local-pointer
 
     protected override IValidationBuilder<TChild> CreateChild<TChild>(string prefix)
     {

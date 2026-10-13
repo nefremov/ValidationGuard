@@ -1,6 +1,5 @@
 ﻿namespace ValidationGuard;
 
-// @cpt-begin:cpt-validationguard-algo-validation-builder-convert-fragment-name:p1:inst-declare-conversion-contract
 /// <summary>
 /// Converts path fragment names (e.g. property names) to a target naming convention
 /// for use in JSON Pointer segments.
@@ -17,9 +16,7 @@ public interface IPathFragmentNameConverter
 
     void WriteConverted(ReadOnlySpan<char> value, Span<char> destination);
 }
-// @cpt-end:cpt-validationguard-algo-validation-builder-convert-fragment-name:p1:inst-declare-conversion-contract
 
-// @cpt-begin:cpt-validationguard-algo-validation-builder-convert-fragment-name:p1:inst-apply-convention-casing
 internal sealed class PascalCaseNameConverter : IPathFragmentNameConverter
 {
     public static PascalCaseNameConverter Instance { get; } = new();
@@ -132,4 +129,3 @@ internal sealed class KebabCaseNameConverter : SeparatedLowerCaseNameConverter
 
     protected override char Separator => '-';
 }
-// @cpt-end:cpt-validationguard-algo-validation-builder-convert-fragment-name:p1:inst-apply-convention-casing

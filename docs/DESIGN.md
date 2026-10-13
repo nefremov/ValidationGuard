@@ -30,7 +30,6 @@ updated: 2026-08-24
 
 <!-- /toc -->
 
-- [ ] `p3` - **ID**: `cpt-validationguard-design-validation-error-architecture`
 ## 1. Architecture Overview
 
 ### 1.1 Architectural Vision
@@ -51,25 +50,25 @@ Requirements that significantly influence architecture decisions.
 
 | Requirement | Design Response |
 |-------------|------------------|
-| `cpt-validationguard-fr-typed-error-registration` | Define near-RFC validation entry model with explicit fields: `code`, `format`, `detail`, `pointer`. |
-| `cpt-validationguard-fr-canonical-internal-entry-storage` | Keep the builder's internal entry shape aligned with the Problem Details `errors` entry schema so projection is a field copy rather than a transformation. |
-| `cpt-validationguard-fr-nested-object-path-handling` | Provide path composition utility that generates RFC 6901 JSON Pointer for nested object members. |
-| `cpt-validationguard-fr-array-element-path-handling` | Support indexed pointer composition for collection traversal (`/items/0/name`). |
-| `cpt-validationguard-fr-indexer-keyed-path-handling` | Resolve accessor indexers (`get_Item`) for keyed and numeric segments, RFC 6901-escape keyed tokens, and validate numeric index token correctness. |
-| `cpt-validationguard-fr-configurable-pointer-naming` | Resolve member-name segments through a pluggable fragment-name converter selected per validation operation, defaulting to unchanged member names; conversion precedes RFC 6901 escaping, which is applied to the original value. |
-| `cpt-validationguard-fr-aggregation-and-merge` | Provide builder/merge contracts that combine child results without dropping entries. |
-| `cpt-validationguard-fr-rfc9457-compatible-output` | Store near-RFC validation entries in builder and emit standard Problem Details fields plus extension members with minimal transformation. |
-| `cpt-validationguard-fr-errors-extension-projection` | Persist `errors`-ready entries (`pointer`, `code`, `format`, `detail`) and serialize as deterministic extension array. |
-| `cpt-validationguard-fr-deterministic-output-ordering` | Enforce canonical deterministic ordering at root materialization via `ValidationEntryComparer` before serialization. |
+| Typed Error Registration | Define near-RFC validation entry model with explicit fields: `code`, `format`, `detail`, `pointer`. |
+| Canonical Internal Entry Storage | Keep the builder's internal entry shape aligned with the Problem Details `errors` entry schema so projection is a field copy rather than a transformation. |
+| Nested Object Path Handling | Provide path composition utility that generates RFC 6901 JSON Pointer for nested object members. |
+| Array Element Path Handling | Support indexed pointer composition for collection traversal (`/items/0/name`). |
+| Indexer and Keyed Path Handling | Resolve accessor indexers (`get_Item`) for keyed and numeric segments, RFC 6901-escape keyed tokens, and validate numeric index token correctness. |
+| Configurable Pointer Fragment Naming | Resolve member-name segments through a pluggable fragment-name converter selected per validation operation, defaulting to unchanged member names; conversion precedes RFC 6901 escaping, which is applied to the original value. |
+| Aggregation and Merge | Provide builder/merge contracts that combine child results without dropping entries. |
+| RFC 9457-Compatible Output | Store near-RFC validation entries in builder and emit standard Problem Details fields plus extension members with minimal transformation. |
+| Errors Extension Projection | Persist `errors`-ready entries (`pointer`, `code`, `format`, `detail`) and serialize as deterministic extension array. |
+| Deterministic Output Ordering | Enforce canonical deterministic ordering at root materialization via `ValidationEntryComparer` before serialization. |
 
 #### NFR Allocation
 
-| NFR ID | NFR Summary | Allocated To | Design Response | Verification Approach |
+| NFR | NFR Summary | Allocated To | Design Response | Verification Approach |
 |--------|-------------|--------------|-----------------|----------------------|
-| `cpt-validationguard-nfr-serialization-performance` | p95 <= 25 ms for 200 failures | ValidationBuilder and mapper layer | Near-RFC entry storage to minimize projection cost and low-allocation envelope construction | Automated performance tests for 200-entry payloads |
-| `cpt-validationguard-nfr-memory-efficiency` | O(n) memory growth | ValidationBuilder + mapper pipeline | No retained request graph references; bounded transient allocations proportional to entry count | Memory profiling tests across increasing error counts |
-| `cpt-validationguard-nfr-api-stability` | SemVer contract stability | Public contract layer | Versioned contracts and major-only breaking changes | API compatibility checks during CI |
-| `cpt-validationguard-nfr-projection-efficiency` | O(n) projection, bounded transient allocation | ValidationBuilder + mapper pipeline | Canonical internal entries projected directly without duplicate intermediate collections | Linear-time projection tests across increasing error counts |
+| Validation Serialization Performance | p95 <= 25 ms for 200 failures | ValidationBuilder and mapper layer | Near-RFC entry storage to minimize projection cost and low-allocation envelope construction | Automated performance tests for 200-entry payloads |
+| Memory Efficiency | O(n) memory growth | ValidationBuilder + mapper pipeline | No retained request graph references; bounded transient allocations proportional to entry count | Memory profiling tests across increasing error counts |
+| API Stability | SemVer contract stability | Public contract layer | Versioned contracts and major-only breaking changes | API compatibility checks during CI |
+| Projection Efficiency | O(n) projection, bounded transient allocation | ValidationBuilder + mapper pipeline | Canonical internal entries projected directly without duplicate intermediate collections | Linear-time projection tests across increasing error counts |
 
 ### 1.3 Architecture Layers
 
@@ -81,8 +80,6 @@ graph TD
     E[ValidationGuard.AspNetCore Adapter] --> D
     E --> F[ASP.NET Core ProblemDetails Pipeline]
 ```
-
-- [ ] `p3` - **ID**: `cpt-validationguard-tech-layered-library-architecture`
 
 | Layer | Responsibility | Technology |
 |-------|---------------|------------|
@@ -97,15 +94,11 @@ graph TD
 
 #### RFC-First Error Envelope
 
-- [ ] `p2` - **ID**: `cpt-validationguard-principle-rfc-first-envelope`
-
 All transport outputs follow RFC 9457 Problem Details semantics. Validation-specific data is carried only in extension members and never replaces standard Problem Details fields.
 
 **ADRs**: None currently.
 
 #### Stable Error Entry Contract
-
-- [ ] `p2` - **ID**: `cpt-validationguard-principle-stable-error-entry-contract`
 
 Validation entries must preserve a stable contract with `pointer`, `code`, `format`, and `detail` to enable predictable client mapping and long-term compatibility.
 
@@ -114,8 +107,6 @@ Validation entries must preserve a stable contract with `pointer`, `code`, `form
 ### 2.2 Constraints
 
 #### Strict Target Framework Constraint
-
-- [ ] `p2` - **ID**: `cpt-validationguard-constraint-strict-net10-target`
 
 Core and adapter libraries target strictly `net10.0`. No multi-targeting is included in this design scope.
 
@@ -152,8 +143,6 @@ graph LR
 
 #### Pointer Builder
 
-- [ ] `p2` - **ID**: `cpt-validationguard-component-pointer-builder`
-
 ##### Why this component exists
 
 Ensures all path addressing is emitted as RFC 6901 JSON Pointer and prevents ad-hoc path string drift.
@@ -166,13 +155,11 @@ Build and normalize pointer segments for properties, array indices, and indexer 
 
 Does not perform validation logic or serialization; only pointer composition and normalization.
 
-##### Related components (by ID)
+##### Related components
 
-- `cpt-validationguard-component-validation-builder` — called by builder to attach stable pointers.
+- Validation Builder — called by builder to attach stable pointers.
 
 #### Validation Builder
-
-- [ ] `p2` - **ID**: `cpt-validationguard-component-validation-builder`
 
 ##### Why this component exists
 
@@ -186,14 +173,12 @@ Register entries with `code`, `format`, `detail`, `pointer`; create nested build
 
 Does not handle HTTP transport concerns or ASP.NET Core pipeline wiring. Nested validators remain path-agnostic and do not infer containment location. Nested builders isolate scope context per branch and keep local entries; only the root builder materializes the full hierarchy. Merge operations perform runtime checks to ensure merged builders belong to the same internal model. Hierarchy traversal uses `IValidationBuilderNode` as an internal abstraction to support mixed generic child node traversal.
 
-##### Related components (by ID)
+##### Related components
 
-- `cpt-validationguard-component-pointer-builder` — depends on for pointer generation.
-- `cpt-validationguard-component-problem-details-mapper` — provides root-materialized entries for mapping.
+- Pointer Builder — depends on for pointer generation.
+- ProblemDetails Mapper — provides root-materialized entries for mapping.
 
 #### ProblemDetails Mapper
-
-- [ ] `p2` - **ID**: `cpt-validationguard-component-problem-details-mapper`
 
 ##### Why this component exists
 
@@ -207,14 +192,12 @@ Generate Problem Details object and attach `errors` array entries containing `po
 
 Does not own validation rule execution or web framework middleware registration.
 
-##### Related components (by ID)
+##### Related components
 
-- `cpt-validationguard-component-validation-builder` — consumes root-materialized entries.
-- `cpt-validationguard-component-aspnetcore-adapter` — used by adapter integration.
+- Validation Builder — consumes root-materialized entries.
+- ASP.NET Core Adapter — used by adapter integration.
 
 #### ASP.NET Core Adapter
-
-- [ ] `p2` - **ID**: `cpt-validationguard-component-aspnetcore-adapter`
 
 ##### Why this component exists
 
@@ -228,15 +211,13 @@ Integrate with ASP.NET Core ProblemDetails pipeline, convert validation results 
 
 Does not change core entry semantics or pointer conventions.
 
-##### Related components (by ID)
+##### Related components
 
-- `cpt-validationguard-component-problem-details-mapper` — delegates payload projection.
+- ProblemDetails Mapper — delegates payload projection.
 
 ### 3.3 API Contracts
 
-- [ ] `p2` - **ID**: `cpt-validationguard-interface-validation-library-contracts`
-
-- **Contracts**: `cpt-validationguard-contract-errors-extension-consumer`, `cpt-validationguard-contract-aspnetcore-problemdetails-integration`, `cpt-validationguard-contract-aspnetcore-adapter-package`
+- **Contracts**: Errors Extension Consumer Contract, ASP.NET Core ProblemDetails Integration, ASP.NET Core Adapter Package
 - **Technology**: .NET public interfaces/types + HTTP `application/problem+json`
 - **Location**: [Public contracts](../src)
 
@@ -290,11 +271,9 @@ These accessors are resolved to RFC 6901 pointer segments and appended to the ne
 
 #### Validation Failure to Problem Details Response
 
-**ID**: `cpt-validationguard-seq-validation-failure-response`
+**Use cases**: Return nested validation errors for request DTO
 
-**Use cases**: `cpt-validationguard-usecase-return-nested-validation-errors`
-
-**Actors**: `cpt-validationguard-actor-api-developer`, `cpt-validationguard-actor-aspnet-core-host`
+**Actors**: API Developer, ASP.NET Core API Host
 
 ```mermaid
 sequenceDiagram
@@ -343,8 +322,6 @@ sequenceDiagram
 
 This library design does not include persistent storage requirements. Validation failures are transient and request-scoped.
 
-- [ ] `p3` - **ID**: `cpt-validationguard-db-none`
-
 ## 4. Additional context
 
 Capacity and cost are primarily governed by payload size and serialization overhead. For current scope, the architecture targets predictable O(n) scaling with the number of validation entries and bounded per-request transient allocations.
@@ -355,11 +332,10 @@ The adapter package is intentionally separate to keep the core library reusable 
 
 - **PRD**: [PRD.md](./PRD.md)
 - **ADRs**: [ADR/](./ADR/)
-- **Features**: [features/](./features/)
 
 ## 6. Changelog
 
 | Version | Date | Change |
 |---------|------|--------|
-| 1.1.0 | 2026-08-24 | Added Functional Drivers rows for `cpt-validationguard-fr-canonical-internal-entry-storage` and `cpt-validationguard-fr-configurable-pointer-naming`. |
+| 1.1.0 | 2026-08-24 | Added Functional Drivers rows for Canonical Internal Entry Storage and Configurable Pointer Fragment Naming. |
 | 1.0.0 | 2026-08-06 | Initial DESIGN. |

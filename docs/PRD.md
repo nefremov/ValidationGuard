@@ -80,14 +80,10 @@ To minimize drift and transformation complexity, internal storage must remain se
 
 #### API Developer
 
-**ID**: `cpt-validationguard-actor-api-developer`
-
 **Role**: Integrates the library into API request validation flows.
 **Needs**: Deterministic error structures, low-friction API usage, and stable contracts for clients.
 
 #### Client Application Developer
-
-**ID**: `cpt-validationguard-actor-client-developer`
 
 **Role**: Consumes validation responses from services that use the library.
 **Needs**: Predictable path and code formats for UI field binding and localized messaging.
@@ -96,13 +92,9 @@ To minimize drift and transformation complexity, internal storage must remain se
 
 #### ASP.NET Core API Host
 
-**ID**: `cpt-validationguard-actor-aspnet-core-host`
-
 **Role**: Produces HTTP responses and serializes Problem Details payloads.
 
 #### JSON Serializer
-
-**ID**: `cpt-validationguard-actor-json-serializer`
 
 **Role**: Serializes Problem Details plus extension members into response JSON.
 
@@ -142,57 +134,45 @@ To minimize drift and transformation complexity, internal storage must remain se
 
 #### Typed Error Registration
 
-- [ ] `p1` - **ID**: `cpt-validationguard-fr-typed-error-registration`
-
 The system **MUST** allow consumers to register validation failures with a `code`, a `format` field containing the message format string classifier, a `detail` field containing the rendered error text, and a `pointer` field containing the RFC 6901 JSON Pointer path reference.
 
 **Rationale**: Ensures compile-time-safe error coding and consistent downstream interpretation.
 
-**Actors**: `cpt-validationguard-actor-api-developer`
+**Actors**: API Developer
 
 #### Canonical Internal Entry Storage
-
-- [ ] `p1` - **ID**: `cpt-validationguard-fr-canonical-internal-entry-storage`
 
 The system **MUST** store accumulated validation failures in an internal canonical entry shape containing `pointer`, `code`, `format`, and `detail`, aligned with the target Problem Details `errors` entry schema.
 
 **Rationale**: Keeps core accumulation and HTTP projection aligned and reduces mapper complexity.
 
-**Actors**: `cpt-validationguard-actor-api-developer`, `cpt-validationguard-actor-aspnet-core-host`
+**Actors**: API Developer, ASP.NET Core API Host
 
 #### Nested Object Path Handling
-
-- [ ] `p1` - **ID**: `cpt-validationguard-fr-nested-object-path-handling`
 
 The system **MUST** support capturing and preserving RFC 6901 JSON Pointer paths for nested object members.
 
 **Rationale**: Required for precise field-level feedback on complex request payloads.
 
-**Actors**: `cpt-validationguard-actor-api-developer`, `cpt-validationguard-actor-client-developer`
+**Actors**: API Developer, Client Application Developer
 
 #### Array Element Path Handling
-
-- [ ] `p1` - **ID**: `cpt-validationguard-fr-array-element-path-handling`
 
 The system **MUST** support capturing and preserving RFC 6901 JSON Pointer paths for indexed collection elements.
 
 **Rationale**: Collection validation is common and must remain machine-addressable.
 
-**Actors**: `cpt-validationguard-actor-api-developer`, `cpt-validationguard-actor-client-developer`
+**Actors**: API Developer, Client Application Developer
 
 #### Indexer and Keyed Path Handling
-
-- [ ] `p2` - **ID**: `cpt-validationguard-fr-indexer-keyed-path-handling`
 
 The system **MUST** resolve accessor-based indexers (for example `x => x.Metadata["key"]`, `x => x.Bag["region"]`, `x => x.Numbered[3]`) into RFC 6901 JSON Pointer segments, apply RFC 6901 token escaping for keyed segments, and reject invalid numeric array-index tokens.
 
 **Rationale**: Typed accessor-based scoped validation must support dictionary/custom indexer use cases while preserving RFC-compatible pointer correctness.
 
-**Actors**: `cpt-validationguard-actor-api-developer`, `cpt-validationguard-actor-client-developer`
+**Actors**: API Developer, Client Application Developer
 
 #### Configurable Pointer Fragment Naming
-
-- [ ] `p2` - **ID**: `cpt-validationguard-fr-configurable-pointer-naming`
 
 The system **MUST** allow consumers to select the naming convention applied to member-name segments of emitted RFC 6901 JSON Pointer paths (for example unchanged member names, `camelCase`, `snake_case`, or `kebab-case`), and **MUST** default to leaving member names unchanged.
 
@@ -200,33 +180,27 @@ Selecting a naming convention **MUST NOT** change the structure of a pointer pat
 
 **Rationale**: Clients address validation failures against the JSON payload they received, whose field names follow the host serializer naming policy and commonly differ from .NET member naming. Pointer segments that do not match those names are not resolvable by the client.
 
-**Actors**: `cpt-validationguard-actor-api-developer`, `cpt-validationguard-actor-client-developer`, `cpt-validationguard-actor-json-serializer`
+**Actors**: API Developer, Client Application Developer, JSON Serializer
 
 #### Aggregation and Merge
-
-- [ ] `p2` - **ID**: `cpt-validationguard-fr-aggregation-and-merge`
 
 The system **MUST** support aggregating validation failures from multiple validators/scopes into one final result while preserving all paths and codes.
 
 **Rationale**: Enables compositional validation for larger object graphs.
 
-**Actors**: `cpt-validationguard-actor-api-developer`
+**Actors**: API Developer
 
 ### 5.2 Problem Details Output
 
 #### RFC 9457-Compatible Output
 
-- [ ] `p1` - **ID**: `cpt-validationguard-fr-rfc9457-compatible-output`
-
 The system **MUST** produce validation failure output compatible with RFC 9457 Problem Details structure.
 
 **Rationale**: Standardized error envelopes improve interoperability across clients and services.
 
-**Actors**: `cpt-validationguard-actor-aspnet-core-host`, `cpt-validationguard-actor-client-developer`
+**Actors**: ASP.NET Core API Host, Client Application Developer
 
 #### Errors Extension Projection
-
-- [ ] `p1` - **ID**: `cpt-validationguard-fr-errors-extension-projection`
 
 The system **MUST** place validation failures into a Problem Details `errors` extension as an array of entries where each entry includes `pointer` (JSON Pointer path), `code`, `format` (message format string classifier), and `detail` (rendered error text).
 
@@ -234,25 +208,21 @@ Projection from internal canonical entries to the `errors` extension **MUST** be
 
 **Rationale**: Clients require stable traversal of validation failures by location and consistent value fidelity.
 
-**Actors**: `cpt-validationguard-actor-aspnet-core-host`, `cpt-validationguard-actor-client-developer`, `cpt-validationguard-actor-json-serializer`
+**Actors**: ASP.NET Core API Host, Client Application Developer, JSON Serializer
 
 #### Deterministic Output Ordering
-
-- [ ] `p3` - **ID**: `cpt-validationguard-fr-deterministic-output-ordering`
 
 The system **SHOULD** provide deterministic ordering of serialized validation entries in the `errors` array for stable testing and diagnostics.
 
 **Rationale**: Reduces flaky tests and simplifies payload comparisons.
 
-**Actors**: `cpt-validationguard-actor-api-developer`
+**Actors**: API Developer
 
 ## 6. Non-Functional Requirements
 
 ### 6.1 NFR Inclusions
 
 #### Validation Serialization Performance
-
-- [ ] `p2` - **ID**: `cpt-validationguard-nfr-serialization-performance`
 
 The system **MUST** serialize a validation result containing up to 200 failures into Problem Details JSON (including `errors` array entries) within 25 ms at p95 on a standard developer workstation profile.
 
@@ -262,8 +232,6 @@ The system **MUST** serialize a validation result containing up to 200 failures 
 
 #### Memory Efficiency
 
-- [ ] `p2` - **ID**: `cpt-validationguard-nfr-memory-efficiency`
-
 The system **MUST** avoid unbounded memory growth while accumulating errors and keep per-failure overhead bounded and proportional to error count.
 
 **Threshold**: Memory growth must be O(n) with number of failures and no retained transient graph references after export.
@@ -272,8 +240,6 @@ The system **MUST** avoid unbounded memory growth while accumulating errors and 
 
 #### Projection Efficiency
 
-- [ ] `p2` - **ID**: `cpt-validationguard-nfr-projection-efficiency`
-
 The system **MUST** project canonical internal validation entries to Problem Details `errors` without duplicating full intermediate entry collections and with linear-time behavior relative to error count.
 
 **Threshold**: O(n) projection time and bounded temporary allocation proportional to output serialization requirements.
@@ -281,8 +247,6 @@ The system **MUST** project canonical internal validation entries to Problem Det
 **Rationale**: Preserves throughput and memory characteristics while keeping mapper transformation minimal.
 
 #### API Stability
-
-- [ ] `p1` - **ID**: `cpt-validationguard-nfr-api-stability`
 
 The system **MUST** provide semantic versioning guarantees for public interfaces and require major version changes for breaking public API changes.
 
@@ -304,8 +268,6 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 
 #### ValidationBuilder Contract
 
-- [ ] `p1` - **ID**: `cpt-validationguard-interface-validation-builder-contract`
-
 **Type**: .NET public type contract
 
 **Stability**: stable
@@ -317,8 +279,6 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 **Breaking Change Policy**: Major version bump required.
 
 #### Problem Details Mapper Contract
-
-- [ ] `p1` - **ID**: `cpt-validationguard-interface-problem-details-mapper-contract`
 
 **Type**: .NET public type contract
 
@@ -332,8 +292,6 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 
 #### ASP.NET Core ProblemDetails Integration
 
-- [ ] `p2` - **ID**: `cpt-validationguard-contract-aspnetcore-problemdetails-integration`
-
 **Direction**: required from client
 
 **Protocol/Format**: HTTP `application/problem+json`
@@ -342,8 +300,6 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 
 #### ASP.NET Core Adapter Package
 
-- [ ] `p1` - **ID**: `cpt-validationguard-contract-aspnetcore-adapter-package`
-
 **Direction**: provided by library
 
 **Protocol/Format**: Separate `net10.0` adapter library package integrating with ASP.NET Core ProblemDetails pipeline
@@ -351,8 +307,6 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 **Compatibility**: Core library and adapter version compatibility maintained within the same major version.
 
 #### Errors Extension Consumer Contract
-
-- [ ] `p2` - **ID**: `cpt-validationguard-contract-errors-extension-consumer`
 
 **Direction**: provided by library
 
@@ -364,9 +318,7 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 
 #### Return nested validation errors for request DTO
 
-- [ ] `p2` - **ID**: `cpt-validationguard-usecase-return-nested-validation-errors`
-
-**Actor**: `cpt-validationguard-actor-api-developer`
+**Actor**: API Developer
 
 **Preconditions**:
 - API request DTO includes nested objects and collections.
@@ -388,9 +340,7 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 
 #### Merge child validator results into parent result
 
-- [ ] `p3` - **ID**: `cpt-validationguard-usecase-merge-child-validator-results`
-
-**Actor**: `cpt-validationguard-actor-api-developer`
+**Actor**: API Developer
 
 **Preconditions**:
 - Multiple validators produce partial validation results.
@@ -446,5 +396,5 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 
 | Version | Date | Change |
 |---------|------|--------|
-| 1.1.0 | 2026-08-24 | Added `cpt-validationguard-fr-configurable-pointer-naming` and its acceptance criterion. |
+| 1.1.0 | 2026-08-24 | Added Configurable Pointer Fragment Naming and its acceptance criterion. |
 | 1.0.0 | 2026-08-06 | Initial PRD. |
