@@ -1,6 +1,5 @@
 ﻿namespace ValidationGuard;
 
-// @cpt-begin:cpt-validationguard-core-validation-behavior:p1:inst-name-converter-presets
 public sealed class ValidationBehavior
 {
     public static ValidationBehavior PascalCase { get; } = new(PascalCaseNameConverter.Instance);
@@ -20,4 +19,3 @@ public sealed class ValidationBehavior
 
     public IPathFragmentNameConverter NameConverter { get; }
 }
-// @cpt-end:cpt-validationguard-core-validation-behavior:p1:inst-name-converter-presets

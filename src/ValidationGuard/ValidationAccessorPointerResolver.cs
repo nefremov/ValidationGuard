@@ -52,7 +52,6 @@ public static class ValidationAccessorPointerResolver
 
     private static string ResolveGetItemExpression(MethodCallExpression call, IPathFragmentNameConverter nameConverter)
     {
-        // @cpt-begin:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-resolve-indexer-get-item
         if (call.Arguments.Count != 1)
         {
             throw new NotSupportedException("Only single-argument indexers are supported.");
@@ -64,7 +63,6 @@ public static class ValidationAccessorPointerResolver
             ? EvaluateArrayIndexSegment(argument)
             : EvaluateSegment(argument);
         return CombinePointerWithSegment(objectPointer, segmentValue);
-        // @cpt-end:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-resolve-indexer-get-item
     }
 
     private static string ResolveArrayIndexExpression(BinaryExpression binary, IPathFragmentNameConverter nameConverter)
@@ -75,7 +73,6 @@ public static class ValidationAccessorPointerResolver
 
     private static string EvaluateArrayIndexSegment(Expression expression)
     {
-        // @cpt-begin:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-validate-array-index-token-rfc6901
         var raw = EvaluateSegment(expression);
 
         if (raw.Length == 0)
@@ -85,7 +82,6 @@ public static class ValidationAccessorPointerResolver
 
         return IsRfc6901ArrayIndex(raw) ? raw : throw new ArgumentException($"Invalid RFC 6901 array index token '{raw}'.", nameof(expression));
 
-        // @cpt-end:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-validate-array-index-token-rfc6901
     }
 
     private static bool IsRfc6901ArrayIndex(string token)
@@ -200,12 +196,10 @@ public static class ValidationAccessorPointerResolver
 
             span[writeIndex++] = '/';
 
-            // @cpt-begin:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-escape-indexer-token-rfc6901
             var segmentSpan = span[writeIndex..];
 
             WriteConvertedSegment(state.segment, state.nameConverter, segmentSpan, state.convertedLength);
             EscapeSegment(segmentSpan, state.convertedLength, state.escapingAdditionalLength);
-            // @cpt-end:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-escape-indexer-token-rfc6901
         });
     }
 

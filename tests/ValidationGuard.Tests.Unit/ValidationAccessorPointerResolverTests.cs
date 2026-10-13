@@ -3,7 +3,6 @@ using System.Reflection;
 
 namespace ValidationGuard.Tests.Unit;
 
-// @cpt-begin:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-resolve-accessor-expression
 public class ValidationAccessorPointerResolverTests
 {
     [Fact]
@@ -473,4 +472,3 @@ public class ValidationAccessorPointerResolverTests
     }
 
 }
-// @cpt-end:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-resolve-accessor-expression

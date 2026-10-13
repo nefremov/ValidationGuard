@@ -1,6 +1,5 @@
 ﻿namespace ValidationGuard;
 
-// @cpt-begin:cpt-validationguard-core-path-fragment-name-converters:p1:inst-converter-contracts
 /// <summary>
 /// Converts path fragment names (e.g. property names) to a target naming convention
 /// for use in JSON Pointer segments.
@@ -130,4 +129,3 @@ internal sealed class KebabCaseNameConverter : SeparatedLowerCaseNameConverter
 
     protected override char Separator => '-';
 }
-// @cpt-end:cpt-validationguard-core-path-fragment-name-converters:p1:inst-converter-contracts

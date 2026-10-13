@@ -21,15 +21,11 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
         EnsureNotDisposed();
         ArgumentNullException.ThrowIfNull(accessor);
 
-        // @cpt-begin:cpt-validationguard-algo-validation-builder-create-manage-nested-builders:p1:inst-resolve-scope-prefix
         var localPrefix = ValidationAccessorPointerResolver.Resolve(accessor, _behavior.NameConverter);
-        // @cpt-end:cpt-validationguard-algo-validation-builder-create-manage-nested-builders:p1:inst-resolve-scope-prefix
         var childPrefix = ComposeChildPrefix(localPrefix);
-        // @cpt-begin:cpt-validationguard-algo-validation-builder-create-manage-nested-builders:p1:inst-create-nested-builder
         var child = CreateChild<TChild>(childPrefix);
         _children.Add((IValidationBuilderNode)child);
         return child;
-        // @cpt-end:cpt-validationguard-algo-validation-builder-create-manage-nested-builders:p1:inst-create-nested-builder
     }
 
     public void Add<TValue>(
@@ -45,14 +41,10 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
         ArgumentException.ThrowIfNullOrWhiteSpace(format);
         ArgumentException.ThrowIfNullOrWhiteSpace(detail);
 
-        // @cpt-begin:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-resolve-accessor-expression
         var localPointer = ValidationAccessorPointerResolver.Resolve(accessor, _behavior.NameConverter);
-        // @cpt-end:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-resolve-accessor-expression
         var finalPointer = ComposeEntryPointer(localPointer);
 
-        // @cpt-begin:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-store-entry
         _entries.Add(new ValidationEntry(finalPointer, code, format, detail, metadata));
-        // @cpt-end:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-store-entry
     }
 
     public void Merge(IEnumerable<ValidationEntry> entries)
@@ -81,7 +73,6 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
 
     public IEnumerable<ValidationEntry> GetEntries()
     {
-        // @cpt-begin:cpt-validationguard-flow-validation-builder-build-nested-errors:p1:inst-return-finalized-entries
         foreach (var entry in _entries)
         {
             yield return entry;
@@ -94,15 +85,12 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
                 yield return childEntry;
             }
         }
-        // @cpt-end:cpt-validationguard-flow-validation-builder-build-nested-errors:p1:inst-return-finalized-entries
     }
 
-    // @cpt-begin:cpt-validationguard-algo-validation-builder-create-manage-nested-builders:p1:inst-dispose-nested-builder
     public void Dispose()
     {
         _disposed = true;
     }
-    // @cpt-end:cpt-validationguard-algo-validation-builder-create-manage-nested-builders:p1:inst-dispose-nested-builder
 
     protected void EnsureNotDisposed()
     {
@@ -112,7 +100,6 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
         }
     }
 
-    // @cpt-begin:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-normalize-pointer
     protected static string NormalizePointer(string pointer)
     {
         if (string.IsNullOrEmpty(pointer))
@@ -127,7 +114,6 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
 
         return pointer;
     }
-    // @cpt-end:cpt-validationguard-algo-validation-builder-compose-pointer-register-entry:p1:inst-normalize-pointer
 
     protected static string CombinePointers(string prefix, string pointer)
     {

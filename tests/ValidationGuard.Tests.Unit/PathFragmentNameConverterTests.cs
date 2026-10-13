@@ -1,6 +1,5 @@
 namespace ValidationGuard.Tests.Unit;
 
-// @cpt-begin:cpt-validationguard-tests-path-fragment-name-converters:p1:inst-converter-edge-cases
 public class PathFragmentNameConverterTests
 {
     [Fact]
@@ -48,4 +47,3 @@ public class PathFragmentNameConverterTests
         Assert.Equal("a_bc", new string(snakeAcronymDestination));
     }
 }
-// @cpt-end:cpt-validationguard-tests-path-fragment-name-converters:p1:inst-converter-edge-cases

@@ -10,7 +10,6 @@ public sealed class ValidationBuilder<TContext> : ValidationBuilderBase<TContext
     public static ValidationBuilder<TContext> Create(ValidationBehavior? behavior = null) =>
         new(behavior ?? ValidationBehavior.Default);
 
-    // @cpt-begin:cpt-validationguard-flow-validation-builder-build-nested-errors:p1:inst-return-finalized-entries
     public IReadOnlyList<ValidationEntry> ToValidationEntries()
     {
         EnsureNotDisposed();
@@ -21,7 +20,6 @@ public sealed class ValidationBuilder<TContext> : ValidationBuilderBase<TContext
 
         return entries;
     }
-    // @cpt-end:cpt-validationguard-flow-validation-builder-build-nested-errors:p1:inst-return-finalized-entries
 
     protected override string ComposeChildPrefix(string localPrefix)
     {
