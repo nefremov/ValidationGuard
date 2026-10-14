@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageId>ValidationGuard.Http</PackageId>
+    <Title>ValidationGuard.Http</Title>
+    <Description>RFC 9457 Problem Details projection for ValidationGuard entries with code-to-status mapping declared in assembly metadata and verified by a bundled analyzer.</Description>
+    <Authors>Nick Efremov</Authors>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/nefremov/ValidationGuard</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/nefremov/ValidationGuard</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageTags>validation;problem-details;rfc6901;rfc9457;aspnetcore;dotnet</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ValidationGuard\ValidationGuard.csproj" />
+    <ProjectReference Include="..\ValidationGuard.Http.Analyzers\ValidationGuard.Http.Analyzers.csproj"
+                      PrivateAssets="all"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ValidationGuard.Http.Tests.Unit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
+  <Target Name="PackAnalyzer" BeforeTargets="_GetPackageFiles">
+    <MSBuild Projects="..\ValidationGuard.Http.Analyzers\ValidationGuard.Http.Analyzers.csproj"
+             Targets="GetTargetPath"
+             Properties="Configuration=$(Configuration)">
+      <Output TaskParameter="TargetOutputs" ItemName="_ValidationGuardHttpAnalyzer" />
+    </MSBuild>
+    <ItemGroup>
+      <None Include="@(_ValidationGuardHttpAnalyzer)" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    </ItemGroup>
+  </Target>
+</Project>

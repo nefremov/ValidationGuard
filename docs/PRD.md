@@ -1,7 +1,7 @@
 ---
-version: 1.1.0
+version: 1.2.0
 status: accepted
-updated: 2026-08-24
+updated: 2026-10-14
 ---
 
 # PRD — ValidationGuard Typed Validation Error Accumulator
@@ -218,6 +218,16 @@ The system **SHOULD** provide deterministic ordering of serialized validation en
 
 **Actors**: API Developer
 
+#### HTTP Status Derivation
+
+The system **MUST** derive the HTTP response status from the codes of the validation entries using code-to-status mappings that the code-owning libraries declare in assembly metadata, folded by a configurable status precedence. When exactly one entry holds the highest-ranked status, the envelope **MUST** use the `type` and `title` declared for that entry's code and **MUST** carry the entry's `detail` in the Problem Details `detail`; when several entries hold it, the envelope **MUST** use the framework's generic `type` and `title` for the status and omit `detail`. The `title` **MUST NOT** contain occurrence-specific text. Codes without a mapping **MUST** fall back to a configurable status (422 by default) without failing the response.
+
+Declaration mistakes and code collisions between referenced libraries **SHOULD** be reported at build time rather than at application startup.
+
+**Rationale**: Validation entries are transport-agnostic, while an HTTP response carries one status. Build-time verification avoids repeating deterministic checks on every service start.
+
+**Actors**: API Developer, Client Application Developer
+
 ## 6. Non-Functional Requirements
 
 ### 6.1 NFR Inclusions
@@ -310,9 +320,11 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 
 **Direction**: provided by library
 
-**Protocol/Format**: JSON extension array under `errors`, each entry containing `pointer`, `code`, `format`, and `detail`
+**Protocol/Format**: JSON extension array under `errors`, each entry containing `pointer`, `code`, `format`, and `detail`, plus a nested `metadata` object when the entry carries metadata
 
 **Compatibility**: `pointer`, `code`, `format`, and `detail` fields remain stable across minor versions.
+
+**Consumer guidance**: Clients identify individual failures by `errors[].code`. The response `status`, `type` and `title` summarize the response and depend on how many entries share the highest-ranked status, so clients should not use them to identify a specific failure.
 
 ## 8. Use Cases
 
@@ -396,5 +408,6 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 
 | Version | Date | Change |
 |---------|------|--------|
+| 1.2.0 | 2026-10-14 | Added HTTP Status Derivation; documented nested `metadata` and consumer guidance for the errors extension. |
 | 1.1.0 | 2026-08-24 | Added Configurable Pointer Fragment Naming and its acceptance criterion. |
 | 1.0.0 | 2026-08-06 | Initial PRD. |
