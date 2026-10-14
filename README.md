@@ -81,8 +81,9 @@ This repository uses the workflow at `.github/workflows/ci-cd-myget.yml`.
 ### CD (publish to MyGet)
 
 - Triggers on `push` to `main` only.
-- Publishes **only when package version changed** in:
+- Publishes **only when package version changed**, checked separately for each package project:
   - `src/ValidationGuard/ValidationGuard.csproj`
+  - `src/ValidationGuard.Http/ValidationGuard.Http.csproj` (the package includes the bundled analyzer)
 - Version tags that are checked:
   - `<Version>`
   - `<VersionPrefix>`
@@ -91,9 +92,11 @@ This repository uses the workflow at `.github/workflows/ci-cd-myget.yml`.
 
 If a version change is detected, the pipeline:
 
-1. Packs the NuGet package
-2. Uploads `.nupkg` as a workflow artifact
-3. Pushes package to MyGet (with duplicate-skip enabled)
+1. Packs each package whose version changed
+2. Uploads the `.nupkg` files as a workflow artifact
+3. Pushes the packages to MyGet (with duplicate-skip enabled)
+
+`ValidationGuard.Http` depends on the `ValidationGuard` package version it was built against, so bump and publish `ValidationGuard` first, or in the same commit, when the Http package needs core changes.
 
 ## Required GitHub secrets
 
