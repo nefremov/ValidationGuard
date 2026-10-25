@@ -1,7 +1,7 @@
 ---
-version: 1.1.0
+version: 1.2.0
 status: accepted
-updated: 2026-08-24
+updated: 2026-10-14
 ---
 
 # Technical Design — ValidationGuard Typed Validation Error Accumulator
@@ -44,7 +44,7 @@ The design prioritizes compatibility, composability, and predictable evolution. 
 
 Requirements that significantly influence architecture decisions.
 
-**ADRs**: `ADR-001` ([Validation builder hierarchy and root-only materialization](./ADR/ADR-001-validation-builder-hierarchy-export.md)).
+**ADRs**: `ADR-001` ([Validation builder hierarchy and root-only materialization](./ADR/ADR-001-validation-builder-hierarchy-export.md)), `ADR-002` ([HTTP status mapping and Problem Details envelope selection](./ADR/ADR-002-http-status-mapping-and-problem-envelope.md)).
 
 #### Functional Drivers
 
@@ -60,6 +60,7 @@ Requirements that significantly influence architecture decisions.
 | RFC 9457-Compatible Output | Store near-RFC validation entries in builder and emit standard Problem Details fields plus extension members with minimal transformation. |
 | Errors Extension Projection | Persist `errors`-ready entries (`pointer`, `code`, `format`, `detail`) and serialize as deterministic extension array. |
 | Deterministic Output Ordering | Enforce canonical deterministic ordering at root materialization via `ValidationEntryComparer` before serialization. |
+| HTTP Status Derivation | Map codes to `(status, type, title)` through assembly-metadata declarations, fold entries by status precedence, and verify declarations with a bundled analyzer at build time. |
 
 #### NFR Allocation
 
@@ -77,7 +78,7 @@ graph TD
     A[Consumer Validation Logic] --> B[ValidationGuard]
     B --> C[Error Accumulation]
     B --> D[ProblemDetails Mapper]
-    E[ValidationGuard.AspNetCore Adapter] --> D
+    E[ValidationGuard.Http Adapter] --> D
     E --> F[ASP.NET Core ProblemDetails Pipeline]
 ```
 
@@ -126,7 +127,8 @@ Core and adapter libraries target strictly `net10.0`. No multi-targeting is incl
 |--------|-------------|--------|
 | ValidationEntry | Near-RFC validation failure entry with `pointer`, `code`, `format`, `detail`, optional metadata | [ValidationEntry](../src/ValidationGuard) |
 | ValidationBuilder | Primary builder/accumulator used during validation traversal and merge operations | [ValidationBuilder](../src/ValidationGuard) |
-| ProblemDetailsProjection | Mapping output model for RFC 9457 + `errors` extension | [ProblemDetails mapper](../src/ValidationGuard) |
+| ProblemDetailsProjection | Mapping output model for RFC 9457 + `errors` extension | [ValidationGuard.Http](../src/ValidationGuard.Http) |
+| HttpErrorCode | Code-to-`(status, type, title)` mapping declared in assembly metadata | [ValidationGuard.Http](../src/ValidationGuard.Http) |
 
 **Relationships**:
 - ValidationBuilder → ValidationEntry: creates and aggregates entries.
@@ -186,11 +188,22 @@ Transforms domain validation results into RFC 9457-conformant output with stable
 
 ##### Responsibility scope
 
-Generate Problem Details object and attach `errors` array entries containing `pointer`, `code`, `format`, and `detail` from near-RFC builder data with minimal transformation.
+Generate a Problem Details object and attach `errors` array entries containing `pointer`, `code`, `format`, `detail`, and nested `metadata` when present, writing them straight from builder entries without intermediate objects.
+
+Select the envelope from the entries (see `ADR-002`):
+
+- Resolve each entry's code to `(status, type, title)` through `ErrorCodeMap`; unmapped codes take the fallback status (422 by default) and are logged.
+- The response status is the highest-ranked status under `StatusPrecedence` (default `403 > 404 > 409 > 422 > 400`).
+- When exactly one entry holds the highest rank, use its code's declared `type` and `title`, and put the entry's `detail` into the Problem Details `detail`.
+- When several entries hold the highest rank, leave `type`, `title` and `detail` unset.
+- Leave any undeclared `type` or `title` unset so ASP.NET Core applies its generic status-derived values; `title` never carries occurrence-specific text (RFC 9457 §3.1.3).
+- Always include every entry in the `errors` extension.
+
+Implemented by `ValidationProblemFactory`, `ErrorCodeMap`, `StatusPrecedence` and `ValidationErrorsJsonConverter` in `ValidationGuard.Http`.
 
 ##### Responsibility boundaries
 
-Does not own validation rule execution or web framework middleware registration.
+Does not own validation rule execution or web framework middleware registration. Does not validate mapping values at runtime; status ranges, URIs and in-assembly duplicates are enforced by the analyzer at build time.
 
 ##### Related components
 
@@ -206,6 +219,10 @@ Separates transport integration concerns from core validation-domain concerns wh
 ##### Responsibility scope
 
 Integrate with ASP.NET Core ProblemDetails pipeline, convert validation results to HTTP responses, and preserve response media type compatibility.
+
+Collect code mappings declared with `[assembly: HttpErrorCode]` and `[assembly: HttpErrorCodeOverride]` from the assemblies the application registers through `services.AddValidationProblems(codes => codes.AddAssemblyOf<T>())`. Adding a code twice throws; overrides apply when the map is built, regardless of registration order.
+
+Ship the `ValidationGuard.Http.Analyzers` Roslyn analyzer inside the same NuGet package so declaration mistakes fail the build of the declaring assembly. Code collisions between referenced packages are reported as build warnings (VGH005), because the analyzer cannot tell whether the application registers both packages; registering both throws when the map is built at startup.
 
 ##### Responsibility boundaries
 
@@ -236,8 +253,8 @@ These accessors are resolved to RFC 6901 pointer segments and appended to the ne
 | Dependency Module | Interface Used | Purpose |
 |-------------------|----------------|----------|
 | ValidationGuard | Internal domain contracts | Entry and builder modeling |
-| ValidationGuard.Mapping | Internal mapper contract | RFC 9457 projection from domain result |
-| ValidationGuard.AspNetCore | Adapter interfaces | ASP.NET Core response integration |
+| ValidationGuard.Http | `ValidationProblemFactory`, `ErrorCodeMapBuilder`, `HttpErrorCode` attributes | RFC 9457 projection, HTTP status derivation, and ASP.NET Core integration |
+| ValidationGuard.Http.Analyzers | Roslyn diagnostics `VGH001`–`VGH007` | Build-time verification of HTTP code declarations; packed into the `ValidationGuard.Http` NuGet package |
 
 **Dependency Rules** (per project conventions):
 - No circular dependencies
@@ -337,5 +354,6 @@ The adapter package is intentionally separate to keep the core library reusable 
 
 | Version | Date | Change |
 |---------|------|--------|
+| 1.2.0 | 2026-10-14 | Added HTTP Status Derivation driver and `ADR-002`; specified envelope selection for the ProblemDetails Mapper; replaced the planned Mapping and AspNetCore modules with `ValidationGuard.Http` and its bundled analyzer. |
 | 1.1.0 | 2026-08-24 | Added Functional Drivers rows for Canonical Internal Entry Storage and Configurable Pointer Fragment Naming. |
 | 1.0.0 | 2026-08-06 | Initial DESIGN. |
