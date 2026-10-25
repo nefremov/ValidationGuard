@@ -4,6 +4,8 @@ namespace ValidationGuard;
 
 public interface IValidationBuilder<TContext> : IDisposable
 {
+    ValidationBehavior Behavior { get; }
+
     IValidationBuilder<TChild> For<TChild>(Expression<Func<TContext, TChild>> accessor);
 
     void Add<TValue>(

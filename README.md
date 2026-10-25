@@ -7,7 +7,68 @@ Typed validation error accumulation for .NET 10 with RFC 6901 JSON Pointer paths
 | Package | Purpose |
 |---------|---------|
 | `ValidationGuard` | Transport-agnostic validation builder and entries |
+| `ValidationGuard.CommonErrors` | Ready-made errors with stable codes and message formats (not found, null, empty, range, length) |
 | `ValidationGuard.Http` | RFC 9457 Problem Details projection for ASP.NET Core, with a bundled build-time analyzer |
+
+## Common errors with ValidationGuard.CommonErrors
+
+Extension methods on any validation builder add frequently needed errors with a stable code, a localizable
+`format`, a rendered `detail`, and one `metadata` value per format placeholder. They only report: the caller decides
+whether a value is invalid.
+
+```csharp
+using ValidationGuard.CommonErrors;
+
+using var validation = ValidationBuilder<CreateOrder>.Create(ValidationBehavior.CamelCase);
+
+if (!customers.Exists(request.CustomerId))
+    validation.AddNotFound(x => x.CustomerId, "Customer", request.CustomerId);
+
+if (request.Quantity < 1)
+    validation.AddLessThan(x => x.Quantity, request.Quantity, 1);
+```
+
+produces
+
+```json
+{ "pointer": "/customerId", "code": "VG0001",
+  "format": "{entity} with {id} does not exist",
+  "detail": "Customer with 3f2b...e1 does not exist",
+  "metadata": { "entity": "Customer", "id": "3f2b...e1" } }
+```
+
+| Code | Method | Format | HTTP |
+|------|--------|--------|------|
+| `VG0001` | `AddNotFound` (1, 2 or 3 `Guid` keys, or a 2/3-`Guid` tuple) | `{entity} with {id} does not exist`<br>`{entity} with {id1}, {id2} does not exist`<br>`{entity} with {id1}, {id2}, {id3} does not exist` | 404 |
+| `VG0010` | `AddAlreadyExists` (1, 2 or 3 `Guid` keys, or a 2/3-`Guid` tuple) | `{entity} with {id} already exists` (and 2/3-key variants) | 409 |
+| `VG0011` | `AddNotUnique` (1, 2 or 3 unique properties) | `{entity} with {name} {value} already exists`<br>`{entity} with {name1} {value1} and {name2} {value2} already exists`<br>`{entity} with {name1} {value1}, {name2} {value2} and {name3} {value3} already exists` | 409 |
+| `VG0002` | `AddNull` | `Property {name} is null` | 422 |
+| `VG0003` | `AddEmpty` (strings) | `Property {name} is empty` | 422 |
+| `VG0004` | `AddLessThan` | `Property {name} is {value}, which is less than {min_value}` | 422 |
+| `VG0005` | `AddLessThanOrEqual` | `Property {name} is {value}, which is less than or equal to {min_value}` | 422 |
+| `VG0006` | `AddGreaterThan` | `Property {name} is {value}, which is greater than {max_value}` | 422 |
+| `VG0007` | `AddGreaterThanOrEqual` | `Property {name} is {value}, which is greater than or equal to {max_value}` | 422 |
+| `VG0008` | `AddTooShort` (strings) | `Property {name} is {length} characters long, which is shorter than {min_length}` | 422 |
+| `VG0009` | `AddTooLong` (strings) | `Property {name} is {length} characters long, which is longer than {max_length}` | 422 |
+
+- Composite keys can be passed separately or as a tuple; both produce the same entry:
+  `AddNotFound(x => x.LineId, "OrderLine", orderId, lineId)` or `AddNotFound(x => x.LineId, "OrderLine", key)`
+  where `key` is `(Guid, Guid)`.
+- Unique-constraint conflicts take the entity first, then up to three property/value pairs:
+  `AddNotUnique("Product", x => x.Sku, sku, x => x.VendorId, vendorId)` produces
+  `Product with sku CH-12 and vendorId 3f2b...e1 already exists`. The entry points at the first property.
+  Both messages say "already exists", but the codes differ so clients can tell them apart:
+  `AddAlreadyExists` reports a primary-key conflict (`VG0010`), `AddNotUnique` a unique-constraint
+  conflict (`VG0011`).
+- `{name}` is the last segment of the entry's JSON Pointer, so it follows the builder's naming convention.
+- Range methods take the offending value and the bound, e.g. `AddLessThan(x => x.Quantity, request.Quantity, 1)`;
+  both appear in `detail` and `metadata`. Values in `detail` are formatted with the invariant culture.
+- Length methods take the string but report only its `{length}`, so user input never appears in the response.
+- Codes and formats are available as constants in `CommonErrorCodes` and `CommonErrorFormats`. The `VG` prefix is
+  reserved for ValidationGuard; codes are never renumbered or reused.
+- The package depends only on `ValidationGuard`. The HTTP statuses above are declared by `ValidationGuard.Http` and
+  applied automatically by `AddValidationProblems`; change one with `.Override(CommonErrorCodes.NotFound, 422)` or
+  `[assembly: HttpErrorCodeOverride(...)]`.
 
 ## HTTP responses with ValidationGuard.Http
 
@@ -85,6 +146,7 @@ This repository uses the workflow at `.github/workflows/ci-cd-nuget.yml`.
   - A change to the shared version in `src/Directory.Build.props` publishes every package.
   - A version override added to an individual project file publishes only that package:
     - `src/ValidationGuard/ValidationGuard.csproj`
+    - `src/ValidationGuard.CommonErrors/ValidationGuard.CommonErrors.csproj`
     - `src/ValidationGuard.Http/ValidationGuard.Http.csproj` (the package includes the bundled analyzer)
 - Version tags that are checked:
   - `<Version>`

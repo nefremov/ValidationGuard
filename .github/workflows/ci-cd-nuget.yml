@@ -53,6 +53,7 @@ jobs:
         run: |
           $projects = @(
             'src/ValidationGuard/ValidationGuard.csproj',
+            'src/ValidationGuard.CommonErrors/ValidationGuard.CommonErrors.csproj',
             'src/ValidationGuard.Http/ValidationGuard.Http.csproj'
           )
 

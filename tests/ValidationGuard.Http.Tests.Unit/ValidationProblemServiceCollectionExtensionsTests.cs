@@ -20,6 +20,46 @@ public class ValidationProblemServiceCollectionExtensionsTests
     }
 
     [Fact]
+    public void AddValidationProblems_MapsEveryCommonErrorCodeByDefault()
+    {
+        var services = new ServiceCollection();
+        services.AddValidationProblems(_ => { });
+
+        using var provider = services.BuildServiceProvider();
+        var map = provider.GetRequiredService<ErrorCodeMap>();
+
+        var commonCodes = typeof(CommonErrors.CommonErrorCodes)
+            .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Select(f => (string)f.GetRawConstantValue()!);
+
+        foreach (var code in commonCodes)
+        {
+            Assert.True(map.TryGetCode(code, out var mapped), $"{code} is not mapped");
+            var expected = code switch
+            {
+                CommonErrors.CommonErrorCodes.NotFound => 404,
+                CommonErrors.CommonErrorCodes.AlreadyExists => 409,
+                CommonErrors.CommonErrorCodes.NotUnique => 409,
+                _ => 422,
+            };
+            Assert.Equal(expected, mapped.Status);
+        }
+    }
+
+    [Fact]
+    public void AddValidationProblems_CommonErrorStatus_CanBeOverridden()
+    {
+        var services = new ServiceCollection();
+        services.AddValidationProblems(codes => codes.Override(CommonErrors.CommonErrorCodes.NotFound, 422));
+
+        using var provider = services.BuildServiceProvider();
+        var map = provider.GetRequiredService<ErrorCodeMap>();
+
+        Assert.True(map.TryGetCode(CommonErrors.CommonErrorCodes.NotFound, out var mapped));
+        Assert.Equal(422, mapped.Status);
+    }
+
+    [Fact]
     public void AddValidationProblems_CalledTwice_Throws()
     {
         var services = new ServiceCollection();

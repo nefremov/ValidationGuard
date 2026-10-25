@@ -193,6 +193,8 @@ public class ValidationBuilderTests
 
     private sealed class ForeignBuilder<TContext> : IValidationBuilder<TContext>
     {
+        public ValidationBehavior Behavior => ValidationBehavior.Default;
+
         public IValidationBuilder<TChild> For<TChild>(System.Linq.Expressions.Expression<Func<TContext, TChild>> accessor)
         {
             throw new NotSupportedException();

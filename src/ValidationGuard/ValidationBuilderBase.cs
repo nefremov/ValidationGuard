@@ -139,5 +139,5 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
 
     protected abstract IValidationBuilder<TChild> CreateChild<TChild>(string prefix);
 
-    protected ValidationBehavior Behavior => _behavior;
+    public ValidationBehavior Behavior => _behavior;
 }

@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ValidationGuard\ValidationGuard.csproj" />
+    <ProjectReference Include="..\ValidationGuard.CommonErrors\ValidationGuard.CommonErrors.csproj" />
     <ProjectReference Include="..\ValidationGuard.Http.Analyzers\ValidationGuard.Http.Analyzers.csproj"
                       PrivateAssets="all"
                       ReferenceOutputAssembly="false" />

@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>true</IsPackable>
+    <PackageId>ValidationGuard.CommonErrors</PackageId>
+    <Title>ValidationGuard.CommonErrors</Title>
+    <Description>Ready-made ValidationGuard errors with stable codes and message formats: not found, already exists, null, empty, length, and range violations.</Description>
+    <PackageTags>validation;errors;problem-details;rfc6901;rfc9457;dotnet</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ValidationGuard\ValidationGuard.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ValidationGuard.CommonErrors.Tests.Unit" />
+  </ItemGroup>
+</Project>

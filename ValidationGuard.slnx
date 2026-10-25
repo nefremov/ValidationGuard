@@ -1,11 +1,13 @@
 <Solution>
   <File Path=".editorconfig" />
   <Folder Name="/src/">
+    <Project Path="src/ValidationGuard.CommonErrors/ValidationGuard.CommonErrors.csproj" />
     <Project Path="src/ValidationGuard.Http.Analyzers/ValidationGuard.Http.Analyzers.csproj" />
     <Project Path="src/ValidationGuard.Http/ValidationGuard.Http.csproj" />
     <Project Path="src/ValidationGuard/ValidationGuard.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/ValidationGuard.CommonErrors.Tests.Unit/ValidationGuard.CommonErrors.Tests.Unit.csproj" />
     <Project Path="tests/ValidationGuard.Http.Tests.Unit/ValidationGuard.Http.Tests.Unit.csproj" />
     <Project Path="tests/ValidationGuard.Tests.Unit/ValidationGuard.Tests.Unit.csproj" />
   </Folder>
