@@ -1,0 +1,144 @@
+name: CI/CD - Build, Test, and Publish to NuGet
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore ValidationGuard.slnx
+
+      - name: Build
+        run: dotnet build ValidationGuard.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test --solution ValidationGuard.slnx --configuration Release --no-build
+
+  publish_nuget:
+    name: Pack and publish to NuGet when version changes
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      id-token: write # required for NuGet Trusted Publishing (OIDC)
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect package version changes
+        id: version_check
+        shell: pwsh
+        run: |
+          $projects = @(
+            'src/ValidationGuard/ValidationGuard.csproj',
+            'src/ValidationGuard.Http/ValidationGuard.Http.csproj'
+          )
+
+          $hasParent = $true
+          try {
+            git rev-parse HEAD^ | Out-Null
+          }
+          catch {
+            $hasParent = $false
+          }
+
+          if (-not $hasParent) {
+            "version_changed=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+            "No parent commit found. Skipping publish."
+            exit 0
+          }
+
+          # All packages share one version in src/Directory.Build.props; a project may still
+          # override it in its own .csproj, so both files are checked.
+          $versionPattern = '(?m)^[+-].*<(Version|VersionPrefix|VersionSuffix|PackageVersion)>'
+          $sharedVersionFile = 'src/Directory.Build.props'
+          $sharedChanged = (git diff HEAD^ HEAD -- $sharedVersionFile) -join "`n" -match $versionPattern
+          if ($sharedChanged) {
+            "Detected shared package version change in $sharedVersionFile"
+          }
+
+          $changed = @()
+          foreach ($project in $projects) {
+            $diff = (git diff HEAD^ HEAD -- $project) -join "`n"
+
+            if ($sharedChanged -or $diff -match $versionPattern) {
+              $changed += $project
+              "Detected package version change in $project"
+            }
+            else {
+              "No package version change detected in $project"
+            }
+          }
+
+          "version_changed=$(($changed.Count -gt 0).ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "changed_projects=$($changed -join ';')" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Setup .NET
+        if: steps.version_check.outputs.version_changed == 'true'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        if: steps.version_check.outputs.version_changed == 'true'
+        shell: pwsh
+        run: |
+          foreach ($project in '${{ steps.version_check.outputs.changed_projects }}'.Split(';')) {
+            dotnet restore $project
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      - name: Pack
+        if: steps.version_check.outputs.version_changed == 'true'
+        shell: pwsh
+        run: |
+          foreach ($project in '${{ steps.version_check.outputs.changed_projects }}'.Split(';')) {
+            dotnet pack $project --configuration Release --no-restore --output artifacts/packages
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      - name: Upload package artifact
+        if: steps.version_check.outputs.version_changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: validationguard-nuget
+          path: |
+            artifacts/packages/*.nupkg
+            artifacts/packages/*.snupkg
+          if-no-files-found: error
+
+      # Exchanges the GitHub OIDC token for a short-lived NuGet API key.
+      # The nuget.org Trusted Publishing policy must name this repository and
+      # this workflow file (ci-cd-nuget.yml).
+      - name: NuGet login (Trusted Publishing)
+        if: steps.version_check.outputs.version_changed == 'true'
+        id: nuget_login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Publish to NuGet
+        if: steps.version_check.outputs.version_changed == 'true'
+        run: dotnet nuget push "artifacts/packages/*.nupkg" --source https://api.nuget.org/v3/index.json --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" --skip-duplicate

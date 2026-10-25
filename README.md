@@ -64,9 +64,9 @@ The package includes an analyzer that checks declarations at build time:
 
 See [ADR-002](docs/ADR/ADR-002-http-status-mapping-and-problem-envelope.md) for the reasoning.
 
-## Release flow (GitHub Actions + MyGet)
+## Release flow (GitHub Actions + NuGet)
 
-This repository uses the workflow at `.github/workflows/ci-cd-myget.yml`.
+This repository uses the workflow at `.github/workflows/ci-cd-nuget.yml`.
 
 ### CI
 
@@ -78,12 +78,14 @@ This repository uses the workflow at `.github/workflows/ci-cd-myget.yml`.
   2. Build (Release)
   3. Run tests (Release)
 
-### CD (publish to MyGet)
+### CD (publish to nuget.org)
 
 - Triggers on `push` to `main` only.
-- Publishes **only when package version changed**, checked separately for each package project:
-  - `src/ValidationGuard/ValidationGuard.csproj`
-  - `src/ValidationGuard.Http/ValidationGuard.Http.csproj` (the package includes the bundled analyzer)
+- Publishes **only when a package version changed**:
+  - A change to the shared version in `src/Directory.Build.props` publishes every package.
+  - A version override added to an individual project file publishes only that package:
+    - `src/ValidationGuard/ValidationGuard.csproj`
+    - `src/ValidationGuard.Http/ValidationGuard.Http.csproj` (the package includes the bundled analyzer)
 - Version tags that are checked:
   - `<Version>`
   - `<VersionPrefix>`
@@ -92,18 +94,25 @@ This repository uses the workflow at `.github/workflows/ci-cd-myget.yml`.
 
 If a version change is detected, the pipeline:
 
-1. Packs each package whose version changed
-2. Uploads the `.nupkg` files as a workflow artifact
-3. Pushes the packages to MyGet (with duplicate-skip enabled)
+1. Packs each package whose version changed, with its symbol package (`.snupkg`)
+2. Uploads the `.nupkg` and `.snupkg` files as a workflow artifact
+3. Exchanges the job's GitHub OIDC token for a short-lived nuget.org API key via [Trusted Publishing](https://learn.microsoft.com/nuget/nuget-org/trusted-publishing)
+4. Pushes the packages to nuget.org (with duplicate-skip enabled)
 
-`ValidationGuard.Http` depends on the `ValidationGuard` package version it was built against, so bump and publish `ValidationGuard` first, or in the same commit, when the Http package needs core changes.
+`ValidationGuard.Http` depends on the `ValidationGuard` package version it was built against. Bumping the shared version keeps the two in lockstep; if you override a single project's version instead, bump and publish `ValidationGuard` first, or in the same commit, when the Http package needs core changes.
 
-## Required GitHub secrets
+## Build configuration
 
-Configure these repository secrets before publishing:
+- `tests/Directory.Build.props` holds settings shared by the test projects.
+- `src/Directory.Build.props` holds the single package version and the shared package metadata for every shipping project under `src/`. Test projects live outside `src/` and are not versioned.
+- `src/Directory.Build.targets` packs `README.md` and `LICENSE` into every packable project.
+- `src/Directory.Packages.props` and `tests/Directory.Packages.props` pin NuGet dependency versions (central package management) for their folder. `PackageReference` items in project files carry no `Version`. `Microsoft.CodeAnalysis.CSharp` appears in both and must stay in sync, because the analyzer tests compile against the same Roslyn version as the analyzer.
 
-- `MYGET_SOURCE`  
-  Example: `https://www.myget.org/F/<feed-name>/api/v3/index.json`
-- `MYGET_API_KEY`
+## Publishing setup
 
-Without these secrets, CI still runs, but the publish step cannot succeed.
+No long-lived API key is stored in the repository. Publishing requires:
+
+- A **Trusted Publishing policy** on nuget.org naming owner `nefremov`, repository `ValidationGuard`, and workflow file `ci-cd-nuget.yml`. Renaming the workflow file breaks publishing until the policy is updated.
+- A repository secret **`NUGET_USER`** containing the nuget.org profile name (not email) that owns the policy.
+
+Without these, CI still runs, but the publish step cannot succeed.
