@@ -1,0 +1,6 @@
+<Project>
+  <!-- Shared by every test project under tests/. Tests are not versioned or packed. -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+</Project>
