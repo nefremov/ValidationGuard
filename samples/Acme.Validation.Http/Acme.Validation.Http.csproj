@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    The HTTP statuses of the Acme errors, declared in assembly metadata. Outside this repository, reference the
+    ValidationGuard.Http package instead: it brings the analyzer that checks these declarations at build time.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\Acme.Validation\Acme.Validation.csproj" />
+    <ProjectReference Include="..\..\src\ValidationGuard.Http\ValidationGuard.Http.csproj" />
+    <ProjectReference Include="..\..\src\ValidationGuard.Http.Analyzers\ValidationGuard.Http.Analyzers.csproj"
+                      PrivateAssets="all"
+                      ReferenceOutputAssembly="false"
+                      OutputItemType="Analyzer" />
+  </ItemGroup>
+</Project>

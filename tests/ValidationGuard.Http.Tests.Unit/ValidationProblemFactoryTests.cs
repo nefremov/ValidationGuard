@@ -1,30 +1,20 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+using static ValidationGuard.Http.Tests.Unit.TestFactory;
 
 namespace ValidationGuard.Http.Tests.Unit;
 
+// ValidationProblemFactory.Create: choosing the status, type, title and detail from the entries.
 public class ValidationProblemFactoryTests
 {
-    private const string ConflictType = "https://example.test/errors/A409";
-    private const string ConflictTitle = "SKU retired";
-    private const string ForbiddenType = "https://example.test/errors/A403";
-    private const string ForbiddenTitle = "Channel not permitted";
-
-    private static readonly ValidationProblemFactory Factory = new(
-        new ErrorCodeMapBuilder()
-            .Add("A409", 409, ConflictType, ConflictTitle)
-            .Add("B409", 409)
-            .Add("A403", 403, ForbiddenType, ForbiddenTitle)
-            .Add("A422", 422)
-            .Add("A400", 400)
-            .Build(),
-        StatusPrecedence.Default,
-        NullLogger<ValidationProblemFactory>.Instance);
-
     [Fact]
     public void Create_SingleEntry_UsesDeclaredTypeAndTitleAndEntryDetail()
     {
-        var problem = Factory.Create([Entry("/sku", "A409", "SKU 8812 is retired.")]);
+        // Arrange
+        ValidationEntry[] entries = [Entry("/sku", "A409", "SKU 8812 is retired.")];
 
+        // Act
+        var problem = Instance.Create(entries);
+
+        // Assert
         Assert.Equal(409, problem.Status);
         Assert.Equal(ConflictType, problem.Type);
         Assert.Equal(ConflictTitle, problem.Title);
@@ -34,15 +24,18 @@ public class ValidationProblemFactoryTests
     [Fact]
     public void Create_SingleTopRankedEntryAmongOthers_UsesItsDeclarationAndDetail()
     {
-        var entries = new[]
-        {
+        // Arrange
+        ValidationEntry[] entries =
+        [
             Entry("/name", "A422", "Name is required."),
             Entry("/channel", "A403", "Channel 'web' is not permitted."),
             Entry("/qty", "A422", "Quantity is out of range."),
-        };
+        ];
 
-        var problem = Factory.Create(entries);
+        // Act
+        var problem = Instance.Create(entries);
 
+        // Assert
         Assert.Equal(403, problem.Status);
         Assert.Equal(ForbiddenType, problem.Type);
         Assert.Equal(ForbiddenTitle, problem.Title);
@@ -52,8 +45,13 @@ public class ValidationProblemFactoryTests
     [Fact]
     public void Create_SingleTopRankedEntryWithoutDeclaredTypeOrTitle_LeavesThemForFrameworkDefaults()
     {
-        var problem = Factory.Create([Entry("/name", "A422", "Name is required.")]);
+        // Arrange
+        ValidationEntry[] entries = [Entry("/name", "A422", "Name is required.")];
 
+        // Act
+        var problem = Instance.Create(entries);
+
+        // Assert
         Assert.Equal(422, problem.Status);
         Assert.Null(problem.Type);
         Assert.Null(problem.Title);
@@ -63,15 +61,18 @@ public class ValidationProblemFactoryTests
     [Fact]
     public void Create_SeveralEntriesOfTopRankedCode_LeavesGenericTypeTitleAndNoDetail()
     {
-        var entries = new[]
-        {
+        // Arrange
+        ValidationEntry[] entries =
+        [
             Entry("/lines/0/sku", "A409", "SKU 8812 is retired."),
             Entry("/lines/1/sku", "A409", "SKU 9001 is retired."),
             Entry("/name", "A422", "Name is required."),
-        };
+        ];
 
-        var problem = Factory.Create(entries);
+        // Act
+        var problem = Instance.Create(entries);
 
+        // Assert
         Assert.Equal(409, problem.Status);
         Assert.Null(problem.Type);
         Assert.Null(problem.Title);
@@ -81,8 +82,13 @@ public class ValidationProblemFactoryTests
     [Fact]
     public void Create_DifferentCodesSharingTopStatus_LeavesGenericTypeAndTitle()
     {
-        var problem = Factory.Create([Entry("/a", "A409", "First."), Entry("/b", "B409", "Second.")]);
+        // Arrange
+        ValidationEntry[] entries = [Entry("/a", "A409", "First."), Entry("/b", "B409", "Second.")];
 
+        // Act
+        var problem = Instance.Create(entries);
+
+        // Assert
         Assert.Equal(409, problem.Status);
         Assert.Null(problem.Type);
         Assert.Null(problem.Title);
@@ -92,8 +98,13 @@ public class ValidationProblemFactoryTests
     [Fact]
     public void Create_UnmappedCode_FallsBackTo422()
     {
-        var problem = Factory.Create([Entry("/x", "UNKNOWN", "Something is wrong.")]);
+        // Arrange
+        ValidationEntry[] entries = [Entry("/x", "UNKNOWN", "Something is wrong.")];
 
+        // Act
+        var problem = Instance.Create(entries);
+
+        // Assert
         Assert.Equal(422, problem.Status);
         Assert.Null(problem.Type);
         Assert.Null(problem.Title);
@@ -103,8 +114,13 @@ public class ValidationProblemFactoryTests
     [Fact]
     public void Create_UnmappedCodeAlongsideMappedFallbackStatus_CountsBothAsTopRanked()
     {
-        var problem = Factory.Create([Entry("/x", "UNKNOWN", "First."), Entry("/y", "A422", "Second.")]);
+        // Arrange
+        ValidationEntry[] entries = [Entry("/x", "UNKNOWN", "First."), Entry("/y", "A422", "Second.")];
 
+        // Act
+        var problem = Instance.Create(entries);
+
+        // Assert
         Assert.Equal(422, problem.Status);
         Assert.Null(problem.Title);
         Assert.Null(problem.Detail);
@@ -113,10 +129,13 @@ public class ValidationProblemFactoryTests
     [Fact]
     public void Create_AlwaysProjectsAllEntriesIntoErrorsExtension()
     {
-        var entries = new[] { Entry("/a", "A409", "First."), Entry("/b", "A422", "Second.") };
+        // Arrange
+        ValidationEntry[] entries = [Entry("/a", "A409", "First."), Entry("/b", "A422", "Second.")];
 
-        var problem = Factory.Create(entries);
+        // Act
+        var problem = Instance.Create(entries);
 
+        // Assert
         var errors = Assert.IsType<ValidationErrors>(problem.Extensions[ValidationProblemFactory.ErrorsExtensionName]);
         Assert.Same(entries, errors.Entries);
     }
@@ -124,41 +143,64 @@ public class ValidationProblemFactoryTests
     [Fact]
     public void Create_NoEntries_Throws()
     {
-        Assert.Throws<ArgumentException>(() => Factory.Create([]));
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => Instance.Create([]));
     }
 
     [Fact]
-    public void CreateResult_SeveralTopRankedEntries_FrameworkFillsGenericTypeAndTitle()
+    public void Create_UnmappedCode_LogsAWarningNamingCodeAndFallbackStatus()
     {
-        var result = Factory.CreateResult([Entry("/a", "A409", "First."), Entry("/b", "A409", "Second.")]);
+        // Arrange
+        var logger = new CapturingLogger();
+        var factory = new ValidationProblemFactory(
+            new ErrorCodeMapBuilder().Add("A422", 422).Build(), StatusPrecedence.Default, logger);
 
-        Assert.Equal(409, result.StatusCode);
-        Assert.False(string.IsNullOrEmpty(result.ProblemDetails.Type));
-        Assert.False(string.IsNullOrEmpty(result.ProblemDetails.Title));
-        Assert.NotEqual(ConflictTitle, result.ProblemDetails.Title);
-        Assert.Null(result.ProblemDetails.Detail);
+        // Act
+        factory.Create([Entry("/x", "UNKNOWN", "First."), Entry("/y", "A422", "Second.")]);
+
+        // Assert
+        var (level, message) = Assert.Single(logger.Entries);
+        Assert.Equal(Microsoft.Extensions.Logging.LogLevel.Warning, level);
+        Assert.Contains("'UNKNOWN'", message);
+        Assert.Contains("422", message);
     }
 
     [Fact]
-    public void CreateResult_SingleEntry_KeepsDeclaredTypeAndTitle()
+    public void Create_NullEntries_Throws()
     {
-        var result = Factory.CreateResult([Entry("/a", "A409", "SKU 8812 is retired.")]);
-
-        Assert.Equal(ConflictType, result.ProblemDetails.Type);
-        Assert.Equal(ConflictTitle, result.ProblemDetails.Title);
-        Assert.Equal("SKU 8812 is retired.", result.ProblemDetails.Detail);
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => Instance.Create(null!));
     }
 
     [Fact]
-    public void CreateResult_SingleEntryWithoutDeclaredTitle_FrameworkFillsStableTitle()
+    public void Constructor_NullArguments_Throw()
     {
-        var result = Factory.CreateResult([Entry("/name", "A422", "Name is required.")]);
+        // Arrange
+        var map = new ErrorCodeMapBuilder().Build();
+        var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger<ValidationProblemFactory>.Instance;
 
-        Assert.False(string.IsNullOrEmpty(result.ProblemDetails.Title));
-        Assert.NotEqual("Name is required.", result.ProblemDetails.Title);
-        Assert.Equal("Name is required.", result.ProblemDetails.Detail);
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new ValidationProblemFactory(null!, StatusPrecedence.Default, logger));
+        Assert.Throws<ArgumentNullException>(() => new ValidationProblemFactory(map, null!, logger));
+        Assert.Throws<ArgumentNullException>(() => new ValidationProblemFactory(map, StatusPrecedence.Default, null!));
     }
 
-    private static ValidationEntry Entry(string pointer, string code, string detail) =>
-        new(pointer, code, detail, detail);
+    // Records each log call's level and formatted message.
+    private sealed class CapturingLogger : Microsoft.Extensions.Logging.ILogger<ValidationProblemFactory>
+    {
+        public List<(Microsoft.Extensions.Logging.LogLevel Level, string Message)> Entries { get; } = [];
+
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull => null;
+
+        public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel) => true;
+
+        public void Log<TState>(
+            Microsoft.Extensions.Logging.LogLevel logLevel,
+            Microsoft.Extensions.Logging.EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter) =>
+            Entries.Add((logLevel, formatter(state, exception)));
+    }
 }

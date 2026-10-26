@@ -1,225 +1,291 @@
 namespace ValidationGuard.Tests.Unit;
 
+// Recording entries, producing them (ordering, deferred rendering, identity), and disposal.
 public class ValidationBuilderTests
 {
-    public static TheoryData<ValidationBehavior, string> PathSerializationCases =>
-        new()
-        {
-            { ValidationBehavior.PascalCase, "/HomeAddress/PostalCode" },
-            { ValidationBehavior.CamelCase, "/homeAddress/postalCode" },
-            { ValidationBehavior.SnakeCase, "/home_address/postal_code" },
-            { ValidationBehavior.KebabCase, "/home-address/postal-code" }
-        };
-
-    public static TheoryData<ValidationBehavior, string> RootNameSerializationCases =>
-        new()
-        {
-            { ValidationBehavior.PascalCase, "/Name" },
-            { ValidationBehavior.CamelCase, "/name" },
-            { ValidationBehavior.SnakeCase, "/name" },
-            { ValidationBehavior.KebabCase, "/name" }
-        };
-
     [Fact]
     public void ToValidationEntries_FlattensHierarchyAndSortsDeterministically()
     {
-        using var builder = ValidationBuilder<Root>.Create();
-
-        builder.Add(x => x.Name, "B2", "fmt-b", "detail-b");
-        builder.Add(x => x.Name, "A1", "fmt-a", "detail-a");
-
-        using (var child = builder.For(x => x.Child))
+        // Arrange
+        using var validation = ValidationBuilder<Order>.Create();
+        validation.Add("B2", "fmt-b", new FixedDetail(validation.Resolve(x => x.Customer), "detail-b"));
+        validation.Add("A1", "fmt-a", new FixedDetail(validation.Resolve(x => x.Customer), "detail-a"));
+        using (var address = validation.For(x => x.HomeAddress))
         {
-            child.Add(x => x.Value, "A1", "fmt-a", "detail-a");
+            address.Add("A1", "fmt-a", new FixedDetail(address.Resolve(x => x.PostalCode), "detail-a"));
         }
 
-        var entries = builder.ToValidationEntries();
+        // Act
+        var entries = validation.ToValidationEntries();
 
-        Assert.Collection(
-            entries,
-            entry =>
-            {
-                Assert.Equal("/Child/Value", entry.Pointer);
-                Assert.Equal("A1", entry.Code);
-                Assert.Equal("fmt-a", entry.Format);
-                Assert.Equal("detail-a", entry.Detail);
-            },
-            entry =>
-            {
-                Assert.Equal("/Name", entry.Pointer);
-                Assert.Equal("A1", entry.Code);
-                Assert.Equal("fmt-a", entry.Format);
-                Assert.Equal("detail-a", entry.Detail);
-            },
-            entry =>
-            {
-                Assert.Equal("/Name", entry.Pointer);
-                Assert.Equal("B2", entry.Code);
-                Assert.Equal("fmt-b", entry.Format);
-                Assert.Equal("detail-b", entry.Detail);
-            });
+        // Assert
+        Assert.Equal(
+            [
+                ("/Customer", "A1", "fmt-a", "detail-a"),
+                ("/Customer", "B2", "fmt-b", "detail-b"),
+                ("/HomeAddress/PostalCode", "A1", "fmt-a", "detail-a"),
+            ],
+            entries.Select(e => (e.Pointer, e.Code, e.Format, e.Detail)));
     }
 
-    [Theory]
-    [MemberData(nameof(PathSerializationCases))]
-    public void ToValidationEntries_WithPathFragmentSerialization_AppliesConfiguredFormat(
-        ValidationBehavior behavior,
-        string expectedPointer)
+    [Fact]
+    public void AddProperty_CreatesPropertyMetadataForTheProperty()
     {
-        using var builder = ValidationBuilder<Root>.Create(behavior);
+        // Arrange
+        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
 
-        using (var child = builder.For(x => x.HomeAddress))
+        // Act
+        validation.AddProperty(x => x.Customer.FirstName, "C1", "Customer name is invalid");
+
+        // Assert
+        var entry = Assert.Single(validation.ToValidationEntries());
+        Assert.Equal("/customer/firstName", entry.Pointer);
+        Assert.Equal("Customer name is invalid", entry.Detail);
+        Assert.Equal("customer.firstName", Assert.IsType<PropertyValidationMetadata>(entry.Metadata).Name);
+    }
+
+    [Fact]
+    public void Add_WithoutMetadata_PointsAtScopeAndDetailIsTheFormat()
+    {
+        // Arrange
+        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var line = validation.For(x => x.Lines[2]);
+
+        // Act
+        line.Add("C1", "{name} is invalid");
+
+        // Assert
+        var entry = Assert.Single(validation.ToValidationEntries());
+        Assert.Equal("/lines/2", entry.Pointer);
+        Assert.Equal("{name} is invalid", entry.Detail);
+        Assert.Null(entry.Metadata);
+    }
+
+    [Fact]
+    public void Resolve_ReturnsFragmentsRelativeToTheBuilder()
+    {
+        // Arrange
+        using var validation = ValidationBuilder<Order>.Create();
+        using var line = validation.For(x => x.Lines[2]);
+
+        // Act
+        var note = line.Resolve(x => x.Detail.Note);
+        var tag = validation.Resolve(x => x.Tags["a/b"]);
+
+        // Assert
+        Assert.Equal(
+            [new PathFragment(PathFragmentKind.Member, "Detail"), new PathFragment(PathFragmentKind.Member, "Note")],
+            note);
+        Assert.Equal(
+            [new PathFragment(PathFragmentKind.Member, "Tags"), new PathFragment(PathFragmentKind.Key, "a/b")],
+            tag);
+    }
+
+    [Fact]
+    public void Add_DoesNotRender_ToValidationEntriesRendersEveryTime()
+    {
+        // Arrange
+        using var validation = ValidationBuilder<Order>.Create();
+        var probe = new ProbeMetadata(validation.Resolve(x => x.Customer));
+        validation.Add("C1", "{name}", probe);
+        var writesAfterAdd = probe.NameWrites;
+
+        // Act
+        validation.ToValidationEntries();
+        validation.ToValidationEntries();
+
+        // Assert
+        Assert.Equal(0, writesAfterAdd);
+        Assert.Equal(2, probe.NameWrites);
+    }
+
+    [Fact]
+    public void ToValidationEntries_CompletesTheSameEntriesInPlace()
+    {
+        // Arrange
+        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        validation.Add("C1", "{name}", new ProbeMetadata(validation.Resolve(x => x.Customer)));
+
+        // Act
+        var first = Assert.Single(validation.ToValidationEntries());
+        var second = Assert.Single(validation.ToValidationEntries());
+
+        // Assert
+        Assert.Same(first, second);
+        Assert.Equal("customer", second.Detail);
+    }
+
+    [Fact]
+    public void ProducedEntry_EqualsEntryBuiltFromSameValues()
+    {
+        // Arrange
+        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using (var customer = validation.For(x => x.Customer))
         {
-            child.Add(x => x.PostalCode, "A1", "fmt", "detail");
+            customer.Add("C1", "Customer is invalid");
         }
 
-        var entry = Assert.Single(builder.ToValidationEntries());
+        var built = new ValidationEntry("/customer", "C1", "Customer is invalid", "Customer is invalid");
 
-        Assert.Equal(expectedPointer, entry.Pointer);
-    }
+        // Act
+        var produced = Assert.Single(validation.ToValidationEntries());
 
-    [Theory]
-    [MemberData(nameof(RootNameSerializationCases))]
-    public void Add_WithPathFragmentSerialization_AppliesConfiguredFormatForRootSegment(
-        ValidationBehavior behavior,
-        string expectedPointer)
-    {
-        using var builder = ValidationBuilder<Root>.Create(behavior);
-
-        builder.Add(x => x.Name, "A1", "fmt", "detail");
-
-        var entry = Assert.Single(builder.ToValidationEntries());
-
-        Assert.Equal(expectedPointer, entry.Pointer);
-    }
-
-    [Fact]
-    public void Add_WithNestedArrayScope_ComposesPointer()
-    {
-        using var builder = ValidationBuilder<Root>.Create();
-
-        using var itemBuilder = builder.For(x => x.Items[2]);
-        itemBuilder.Add(x => x.Value, "A1", "fmt", "detail");
-
-        var entry = Assert.Single(builder.ToValidationEntries());
-        Assert.Equal("/Items/2/Value", entry.Pointer);
-    }
-
-    [Fact]
-    public void Add_WithNestedNestedScope_ComposesPointer()
-    {
-        using var builder = ValidationBuilder<Root>.Create();
-
-        using var child = builder.For(x => x.Child);
-        using var grandChild = child.For(x => x.GrandChild);
-        grandChild.Add(x => x.Value, "A1", "fmt", "detail");
-
-        var entry = Assert.Single(builder.ToValidationEntries());
-        Assert.Equal("/Child/GrandChild/Value", entry.Pointer);
-    }
-
-    [Fact]
-    public void Merge_WithBuilderAndEntries_AggregatesAllEntries()
-    {
-        using var builder = ValidationBuilder<Root>.Create();
-        using var other = ValidationBuilder<OtherRoot>.Create();
-
-        builder.Add(x => x.Name, "A1", "fmt", "detail");
-        other.Add(x => x.Title, "B2", "fmt", "detail");
-
-        builder.Merge(other);
-        builder.Merge(new[] { new ValidationEntry("/Extra", "C3", "fmt", "detail") });
-
-        var entries = builder.ToValidationEntries();
-
-        Assert.Equal(3, entries.Count);
-        Assert.Contains(entries, x => x.Pointer == "/Name" && x.Code == "A1");
-        Assert.Contains(entries, x => x.Pointer == "/Title" && x.Code == "B2");
-        Assert.Contains(entries, x => x.Pointer == "/Extra" && x.Code == "C3");
+        // Assert
+        Assert.Equal(built, produced);
+        Assert.Equal(built.GetHashCode(), produced.GetHashCode());
     }
 
     [Fact]
     public void ToValidationEntries_WhenDisposed_ThrowsObjectDisposedException()
     {
-        var builder = ValidationBuilder<Root>.Create();
-        builder.Dispose();
+        // Arrange
+        var validation = ValidationBuilder<Order>.Create();
+        validation.Dispose();
 
-        Assert.Throws<ObjectDisposedException>(() => builder.ToValidationEntries());
+        // Act & Assert
+        Assert.Throws<ObjectDisposedException>(() => validation.ToValidationEntries());
     }
 
     [Fact]
-    public void Merge_WithForeignBuilder_ThrowsArgumentException()
+    public void ResolveAndAdd_WhenDisposed_ThrowObjectDisposedException()
     {
-        using var builder = ValidationBuilder<Root>.Create();
-        using var foreign = new ForeignBuilder<Root>();
+        // Arrange
+        var validation = ValidationBuilder<Order>.Create();
+        validation.Dispose();
 
-        var exception = Assert.Throws<ArgumentException>(() => builder.Merge(foreign));
-
-        Assert.Equal("other", exception.ParamName);
+        // Act & Assert
+        Assert.Throws<ObjectDisposedException>(() => validation.Resolve(x => x.Customer));
+        Assert.Throws<ObjectDisposedException>(() => validation.AddProperty(x => x.Customer, "C1", "f"));
+        Assert.Throws<ObjectDisposedException>(() => validation.Add("C1", "f"));
     }
 
-    private sealed class Root
+    [Theory]
+    [InlineData(null, "f")]
+    [InlineData(" ", "f")]
+    [InlineData("C1", null)]
+    [InlineData("C1", "")]
+    public void Add_BlankCodeOrFormat_Throws(string? code, string? format)
     {
-        public string Name { get; set; } = string.Empty;
+        // Arrange
+        using var validation = ValidationBuilder<Order>.Create();
 
-        public Child Child { get; set; } = new();
-
-        public AddressInfo HomeAddress { get; set; } = new();
-
-        public Child[] Items { get; set; } = Array.Empty<Child>();
+        // Act & Assert
+        Assert.ThrowsAny<ArgumentException>(() => validation.Add(code!, format!));
+        Assert.ThrowsAny<ArgumentException>(() => validation.AddProperty(x => x.Customer, code!, format!));
     }
 
-    private sealed class OtherRoot
+    [Fact]
+    public void For_WhenDisposed_ThrowsObjectDisposedException()
     {
-        public string Title { get; set; } = string.Empty;
+        // Arrange
+        var validation = ValidationBuilder<Order>.Create();
+        validation.Dispose();
+
+        // Act & Assert
+        Assert.Throws<ObjectDisposedException>(() => validation.For(x => x.Customer));
     }
 
-    private sealed class Child
+    [Fact]
+    public void ToValidationEntries_NestedBuildersWithoutEntries_AreSkippedWithoutGaps()
     {
-        public string Value { get; set; } = string.Empty;
-
-        public GrandChild GrandChild { get; set; } = new();
-    }
-
-    private sealed class GrandChild
-    {
-        public string Value { get; set; } = string.Empty;
-    }
-
-    private sealed class AddressInfo
-    {
-        public string PostalCode { get; set; } = string.Empty;
-    }
-
-    private sealed class ForeignBuilder<TContext> : IValidationBuilder<TContext>
-    {
-        public IValidationBuilder<TChild> For<TChild>(System.Linq.Expressions.Expression<Func<TContext, TChild>> accessor)
-        {
-            throw new NotSupportedException();
-        }
-
-        public void Add<TValue>(
-            System.Linq.Expressions.Expression<Func<TContext, TValue>> accessor,
-            string code,
-            string format,
-            string detail,
-            IReadOnlyDictionary<string, object?>? metadata = null)
-        {
-            throw new NotSupportedException();
-        }
-
-        public void Merge(IEnumerable<ValidationEntry> entries)
-        {
-            throw new NotSupportedException();
-        }
-
-        public void Merge<TOther>(IValidationBuilder<TOther> other)
-        {
-            throw new NotSupportedException();
-        }
-
-        public void Dispose()
+        // Arrange
+        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using (validation.For(x => x.Customer))
         {
         }
+
+        using (var line = validation.For(x => x.Lines[0]))
+        using (line.For(x => x.Detail))
+        {
+        }
+
+        using (var address = validation.For(x => x.HomeAddress))
+        {
+            address.AddProperty(x => x.PostalCode, "C1", "f");
+        }
+
+        // Act
+        var entries = validation.ToValidationEntries();
+
+        // Assert
+        Assert.Equal("/homeAddress/postalCode", Assert.Single(entries).Pointer);
+    }
+
+    [Fact]
+    public void ToValidationEntries_DeeplyNestedBuilders_RenderTheWholePath()
+    {
+        // The scope holds nine fragments, more than the writer's initial path buffer.
+
+        // Arrange
+        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using (var outer = validation.For(x => x.Tree.Next!.Next!.Next!))
+        using (var inner = outer.For(x => x.Next!.Next!.Next!.Next!.Next!))
+        {
+            inner.AddProperty(x => x.Value, "C1", "{name}");
+        }
+
+        // Act
+        var entry = Assert.Single(validation.ToValidationEntries());
+
+        // Assert
+        Assert.Equal("/tree" + string.Concat(Enumerable.Repeat("/next", 8)) + "/value", entry.Pointer);
+        Assert.Equal("tree" + string.Concat(Enumerable.Repeat(".next", 8)) + ".value", entry.Detail);
+    }
+
+    [Fact]
+    public void ThrowIfInvalid_WithEntries_ThrowsWithTheProducedEntries()
+    {
+        // Arrange
+        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        validation.AddProperty(x => x.Customer, "C2", "second");
+        validation.AddProperty(x => x.Customer, "C1", "first");
+
+        // Act
+        var exception = Assert.Throws<ValidationFailedException>(validation.ThrowIfInvalid);
+
+        // Assert
+        Assert.Equal(["C1", "C2"], exception.Entries.Select(e => e.Code));
+        Assert.Equal("Validation failed: C1 at '/customer': first (and 1 more)", exception.Message);
+    }
+
+    [Fact]
+    public void ThrowIfInvalid_WithOneEntry_DescribesIt()
+    {
+        // Arrange
+        using var validation = ValidationBuilder<Order>.Create();
+        validation.Add("C1", "Orders are closed");
+
+        // Act
+        var exception = Assert.Throws<ValidationFailedException>(validation.ThrowIfInvalid);
+
+        // Assert
+        Assert.Equal("Validation failed: C1 at '': Orders are closed", exception.Message);
+    }
+
+    [Fact]
+    public void ThrowIfInvalid_WithoutEntries_DoesNothing()
+    {
+        // Arrange
+        using var validation = ValidationBuilder<Order>.Create();
+
+        // Act
+        var exception = Record.Exception(validation.ThrowIfInvalid);
+
+        // Assert
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void ValidationFailedException_WithoutEntries_Throws()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => new ValidationFailedException([]));
+        Assert.Throws<ArgumentNullException>(() => new ValidationFailedException(null!));
+    }
+
+    // Renders a fixed detail regardless of the format: a metadata type decides how its entry is rendered.
+    private sealed class FixedDetail(PathFragment[] property, string detail) : PropertyValidationMetadata(property)
+    {
+        protected override string RenderDetail(string format, ValidationMessageWriter writer) => detail;
     }
 }

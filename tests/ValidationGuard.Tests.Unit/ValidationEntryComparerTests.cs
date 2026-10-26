@@ -2,44 +2,46 @@
 
 public class ValidationEntryComparerTests
 {
-    public static TheoryData<bool, (string Pointer, string Code, string Format, string Detail)?, (string Pointer, string Code, string Format, string Detail)?, int> CompareCases =>
+    public static TheoryData<string[]?, string[]?, int> OrderCases =>
         new()
         {
-            { true, ("/a", "A1", "fmt", "detail"), ("/a", "A1", "fmt", "detail"), 0 },
-            { false, null, ("/a", "A1", "fmt", "detail"), -1 },
-            { false, ("/a", "A1", "fmt", "detail"), null, 1 },
-            { false, ("/a", "Z1", "z", "z"), ("/b", "A1", "a", "a"), -1 },
-            { false, ("/a", "A1", "z", "z"), ("/a", "B1", "a", "a"), -1 },
-            { false, ("/a", "A1", "a", "z"), ("/a", "A1", "b", "a"), -1 },
-            { false, ("/a", "A1", "a", "a"), ("/a", "A1", "a", "b"), -1 }
+            { null, ["/a", "A1", "fmt", "detail"], -1 },
+            { ["/a", "A1", "fmt", "detail"], null, 1 },
+            { ["/a", "A1", "fmt", "detail"], ["/a", "A1", "fmt", "detail"], 0 },
+            { ["/a", "Z1", "z", "z"], ["/b", "A1", "a", "a"], -1 },
+            { ["/a", "A1", "z", "z"], ["/a", "B1", "a", "a"], -1 },
+            { ["/a", "A1", "a", "z"], ["/a", "A1", "b", "a"], -1 },
+            { ["/a", "A1", "a", "a"], ["/a", "A1", "a", "b"], -1 },
         };
 
     [Theory]
-    [MemberData(nameof(CompareCases))]
-    public void Compare_OrdersAsExpected(
-        bool useSameInstance,
-        (string Pointer, string Code, string Format, string Detail)? leftValues,
-        (string Pointer, string Code, string Format, string Detail)? rightValues,
-        int expectedSign)
+    [MemberData(nameof(OrderCases))]
+    public void Compare_OrdersByPointerCodeFormatThenDetail_NullFirst(string[]? left, string[]? right, int expectedSign)
     {
-        ValidationEntry? left = leftValues is null
-            ? null
-            : new ValidationEntry(leftValues.Value.Pointer, leftValues.Value.Code, leftValues.Value.Format, leftValues.Value.Detail);
+        // Arrange
+        var leftEntry = Entry(left);
+        var rightEntry = Entry(right);
 
-        ValidationEntry? right;
-        if (useSameInstance)
-        {
-            right = left;
-        }
-        else
-        {
-            right = rightValues is null
-                ? null
-                : new ValidationEntry(rightValues.Value.Pointer, rightValues.Value.Code, rightValues.Value.Format, rightValues.Value.Detail);
-        }
+        // Act
+        var result = ValidationEntryComparer.Instance.Compare(leftEntry, rightEntry);
 
-        var result = ValidationEntryComparer.Instance.Compare(left, right);
-
+        // Assert
         Assert.Equal(expectedSign, Math.Sign(result));
     }
+
+    [Fact]
+    public void Compare_SameInstance_ReturnsZero()
+    {
+        // Arrange
+        var entry = new ValidationEntry("/a", "A1", "fmt", "detail");
+
+        // Act
+        var result = ValidationEntryComparer.Instance.Compare(entry, entry);
+
+        // Assert
+        Assert.Equal(0, result);
+    }
+
+    private static ValidationEntry? Entry(string[]? values) =>
+        values is null ? null : new ValidationEntry(values[0], values[1], values[2], values[3]);
 }

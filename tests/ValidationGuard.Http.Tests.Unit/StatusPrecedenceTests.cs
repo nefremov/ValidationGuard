@@ -5,13 +5,16 @@ public class StatusPrecedenceTests
     [Fact]
     public void Default_RanksForbiddenNotFoundConflictUnprocessableBadRequest()
     {
+        // Arrange
         var precedence = StatusPrecedence.Default;
 
-        Assert.True(precedence.Rank(403) > precedence.Rank(404));
-        Assert.True(precedence.Rank(404) > precedence.Rank(409));
-        Assert.True(precedence.Rank(409) > precedence.Rank(422));
-        Assert.True(precedence.Rank(422) > precedence.Rank(400));
-        Assert.True(precedence.Rank(400) > 0);
+        // Act
+        int[] ranks = [precedence.Rank(403), precedence.Rank(404), precedence.Rank(409), precedence.Rank(422), precedence.Rank(400)];
+
+        // Assert
+        Assert.Equal(ranks.OrderDescending(), ranks);
+        Assert.Equal(ranks.Length, ranks.Distinct().Count());
+        Assert.True(ranks[^1] > 0);
     }
 
     [Theory]
@@ -22,14 +25,20 @@ public class StatusPrecedenceTests
     [InlineData(-1)]
     public void Rank_UnlistedStatus_IsZero(int status)
     {
-        Assert.Equal(0, StatusPrecedence.Default.Rank(status));
+        // Act
+        var rank = StatusPrecedence.Default.Rank(status);
+
+        // Assert
+        Assert.Equal(0, rank);
     }
 
     [Fact]
     public void Constructor_CustomOrder_RanksFirstHighest()
     {
+        // Act
         var precedence = new StatusPrecedence(400, 422);
 
+        // Assert
         Assert.True(precedence.Rank(400) > precedence.Rank(422));
         Assert.Equal(0, precedence.Rank(403));
     }
@@ -39,12 +48,14 @@ public class StatusPrecedenceTests
     [InlineData(600)]
     public void Constructor_StatusOutsideErrorRange_Throws(int status)
     {
+        // Act & Assert
         Assert.Throws<ArgumentOutOfRangeException>(() => new StatusPrecedence(status));
     }
 
     [Fact]
     public void Constructor_DuplicateStatus_Throws()
     {
+        // Act & Assert
         Assert.Throws<ArgumentException>(() => new StatusPrecedence(422, 400, 422));
     }
 }

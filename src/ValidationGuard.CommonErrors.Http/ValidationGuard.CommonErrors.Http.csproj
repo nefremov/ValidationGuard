@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>true</IsPackable>
+    <PackageId>ValidationGuard.CommonErrors.Http</PackageId>
+    <Title>ValidationGuard.CommonErrors.Http</Title>
+    <Description>HTTP statuses for ValidationGuard.CommonErrors codes, registered with ValidationGuard.Http by AddCommonErrors.</Description>
+    <PackageTags>validation;errors;problem-details;rfc9457;aspnetcore;dotnet</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ValidationGuard.CommonErrors\ValidationGuard.CommonErrors.csproj" />
+    <ProjectReference Include="..\ValidationGuard.Http\ValidationGuard.Http.csproj" />
+  </ItemGroup>
+</Project>

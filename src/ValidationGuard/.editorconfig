@@ -1,0 +1,4 @@
+# Folders group the sources by concern; every type stays in the ValidationGuard namespace, so the public API does not
+# depend on the folder layout.
+[*.cs]
+dotnet_style_namespace_match_folder = false

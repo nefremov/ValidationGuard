@@ -1,11 +1,47 @@
 <Solution>
   <File Path=".editorconfig" />
+  <File Path=".gitignore" />
+  <File Path="global.json" />
+  <File Path="LICENSE" />
+  <File Path="README.md" />
+  <File Path="ValidationGuard.sln.DotSettings" />
+  <Folder Name="/.github/" />
+  <Folder Name="/.github/workflows/">
+    <File Path=".github/workflows/ci-cd-nuget.yml" />
+  </Folder>
+  <Folder Name="/docs/">
+    <File Path="docs/DESIGN.md" />
+    <File Path="docs/PRD.md" />
+  </Folder>
+  <Folder Name="/docs/ADR/">
+    <File Path="docs/ADR/ADR-001-validation-builder-hierarchy-export.md" />
+    <File Path="docs/ADR/ADR-002-http-status-mapping-and-problem-envelope.md" />
+  </Folder>
+  <Folder Name="/samples/">
+    <File Path="samples/Directory.Build.props" />
+    <File Path="samples/Directory.Packages.props" />
+    <File Path="samples/README.md" />
+    <Project Path="samples/Acme.Validation.Http/Acme.Validation.Http.csproj" />
+    <Project Path="samples/Acme.Validation.Tests/Acme.Validation.Tests.csproj" />
+    <Project Path="samples/Acme.Validation/Acme.Validation.csproj" />
+    <Project Path="samples/ValidationGuard.Samples.Console/ValidationGuard.Samples.Console.csproj" />
+    <Project Path="samples/ValidationGuard.Samples.WebApi/ValidationGuard.Samples.WebApi.csproj" />
+  </Folder>
   <Folder Name="/src/">
+    <File Path="src/Directory.Build.props" />
+    <File Path="src/Directory.Build.targets" />
+    <File Path="src/Directory.Packages.props" />
+    <Project Path="src/ValidationGuard.CommonErrors.Http/ValidationGuard.CommonErrors.Http.csproj" />
+    <Project Path="src/ValidationGuard.CommonErrors/ValidationGuard.CommonErrors.csproj" />
     <Project Path="src/ValidationGuard.Http.Analyzers/ValidationGuard.Http.Analyzers.csproj" />
     <Project Path="src/ValidationGuard.Http/ValidationGuard.Http.csproj" />
     <Project Path="src/ValidationGuard/ValidationGuard.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <File Path="tests/Directory.Build.props" />
+    <File Path="tests/Directory.Packages.props" />
+    <Project Path="tests/ValidationGuard.CommonErrors.Http.Tests.Unit/ValidationGuard.CommonErrors.Http.Tests.Unit.csproj" />
+    <Project Path="tests/ValidationGuard.CommonErrors.Tests.Unit/ValidationGuard.CommonErrors.Tests.Unit.csproj" />
     <Project Path="tests/ValidationGuard.Http.Tests.Unit/ValidationGuard.Http.Tests.Unit.csproj" />
     <Project Path="tests/ValidationGuard.Tests.Unit/ValidationGuard.Tests.Unit.csproj" />
   </Folder>
