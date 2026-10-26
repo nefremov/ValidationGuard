@@ -32,3 +32,9 @@ Content-Type: application/json
     { "sku": "CH-12", "quantity": 50 }
   ]
 }
+
+### Thrown below the endpoint (ThrowIfInvalid): the exception handler writes the same Problem Details, with a traceId
+PUT {{host}}/orders/3f2b8a51-0c7e-4d0b-9a55-6c1d2e3f40e1/email
+Content-Type: application/json
+
+{ "email": "ann" }

@@ -214,17 +214,33 @@ builder.Services.AddValidationProblems(codes => codes
     .Override("IDX017", StatusCodes.Status422UnprocessableEntity));
 ```
 
-Endpoints turn the root builder's entries into a response:
+Endpoints return the root builder as a response with `Problem(validation)`, imported with `using static`:
 
 ```csharp
-app.MapPost("/orders", (Order order, ValidationProblemFactory problems) =>
+using static ValidationGuard.Http.ValidationResults;
+
+app.MapPost("/orders", (Order order) =>
 {
     using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
     // ... add entries ...
-    var entries = validation.ToValidationEntries();
-    return entries.Count == 0 ? Results.Ok() : (IResult)problems.CreateResult(entries);
+    if (validation.ToValidationEntries().Count > 0)
+        return Problem(validation);
+    return Results.Ok();
 });
 ```
+
+- `Problem(validation)` returns a `ValidationProblemResult`. It produces the entries at once, so the builder may be
+  disposed before the response is written, and finds the `ValidationProblemFactory` when the response executes: no
+  parameter is needed. It also documents a Problem Details response for OpenAPI. `Problem(entries)` takes entries
+  already produced.
+- With `builder.Services.AddProblemDetails(...)`, the response goes through ASP.NET Core's `IProblemDetailsService`, so
+  `CustomizeProblemDetails` (a `traceId`, an `instance`) applies to validation problems too.
+- Code that cannot return a result, such as a service, calls `validation.ThrowIfInvalid()`, which throws a
+  `ValidationFailedException` with the entries when there are any. `AddValidationProblems` registers an
+  `IExceptionHandler` that writes the same response; enable it with `app.UseExceptionHandler()` (which needs
+  `AddProblemDetails()` when no error path is set).
+- `ValidationProblemFactory.Create(entries)` and `CreateResult(entries)` remain for building the `ProblemDetails`
+  yourself.
 
 How the envelope is chosen:
 

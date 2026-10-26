@@ -232,6 +232,57 @@ public class ValidationBuilderTests
         Assert.Equal("tree" + string.Concat(Enumerable.Repeat(".next", 8)) + ".value", entry.Detail);
     }
 
+    [Fact]
+    public void ThrowIfInvalid_WithEntries_ThrowsWithTheProducedEntries()
+    {
+        // Arrange
+        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        validation.AddProperty(x => x.Customer, "C2", "second");
+        validation.AddProperty(x => x.Customer, "C1", "first");
+
+        // Act
+        var exception = Assert.Throws<ValidationFailedException>(validation.ThrowIfInvalid);
+
+        // Assert
+        Assert.Equal(["C1", "C2"], exception.Entries.Select(e => e.Code));
+        Assert.Equal("Validation failed: C1 at '/customer': first (and 1 more)", exception.Message);
+    }
+
+    [Fact]
+    public void ThrowIfInvalid_WithOneEntry_DescribesIt()
+    {
+        // Arrange
+        using var validation = ValidationBuilder<Order>.Create();
+        validation.Add("C1", "Orders are closed");
+
+        // Act
+        var exception = Assert.Throws<ValidationFailedException>(validation.ThrowIfInvalid);
+
+        // Assert
+        Assert.Equal("Validation failed: C1 at '': Orders are closed", exception.Message);
+    }
+
+    [Fact]
+    public void ThrowIfInvalid_WithoutEntries_DoesNothing()
+    {
+        // Arrange
+        using var validation = ValidationBuilder<Order>.Create();
+
+        // Act
+        var exception = Record.Exception(validation.ThrowIfInvalid);
+
+        // Assert
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void ValidationFailedException_WithoutEntries_Throws()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => new ValidationFailedException([]));
+        Assert.Throws<ArgumentNullException>(() => new ValidationFailedException(null!));
+    }
+
     // Renders a fixed detail regardless of the format: a metadata type decides how its entry is rendered.
     private sealed class FixedDetail(PathFragment[] property, string detail) : PropertyValidationMetadata(property)
     {

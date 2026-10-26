@@ -1,10 +1,16 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ValidationGuard.Http;
 
 public static class ValidationProblemServiceCollectionExtensions
 {
+    /// <summary>
+    /// Registers the error code map built by <paramref name="configure"/>, the default <see cref="StatusPrecedence"/>,
+    /// the <see cref="ValidationProblemFactory"/>, and the <see cref="ValidationProblemExceptionHandler"/> for
+    /// <see cref="ValidationFailedException"/>. Call it once, registering every code.
+    /// </summary>
     public static IServiceCollection AddValidationProblems(
         this IServiceCollection services,
         Action<ErrorCodeMapBuilder> configure)
@@ -27,6 +33,7 @@ public static class ValidationProblemServiceCollectionExtensions
         services.AddSingleton(builder.Build());
         services.TryAddSingleton(StatusPrecedence.Default);
         services.TryAddSingleton<ValidationProblemFactory>();
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IExceptionHandler, ValidationProblemExceptionHandler>());
 
         return services;
     }

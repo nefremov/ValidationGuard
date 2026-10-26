@@ -35,4 +35,19 @@ public sealed class ValidationBuilder<TContext> : ValidationBuilderBase<TContext
 
         return entries;
     }
+
+    /// <summary>
+    /// Throws a <see cref="ValidationFailedException"/> with the produced entries if any were added; otherwise does
+    /// nothing. For code that cannot return a result; ValidationGuard.Http turns the exception into a Problem Details
+    /// response.
+    /// </summary>
+    /// <exception cref="ValidationFailedException">Entries were added.</exception>
+    public void ThrowIfInvalid()
+    {
+        var entries = ToValidationEntries();
+        if (entries.Count > 0)
+        {
+            throw new ValidationFailedException(entries);
+        }
+    }
 }

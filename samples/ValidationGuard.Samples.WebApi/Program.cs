@@ -6,6 +6,7 @@ using ValidationGuard;
 using ValidationGuard.CommonErrors;
 using ValidationGuard.CommonErrors.Http;
 using ValidationGuard.Http;
+using static ValidationGuard.Http.ValidationResults;
 
 [assembly: HttpErrorCode("APP0001", 422, Title = "Duplicate SKU")]
 
@@ -18,9 +19,18 @@ builder.Services.AddValidationProblems(codes => codes
     .AddAcmeErrors()
     .AddAssemblyOf<Program>());
 
+// Optional: ASP.NET Core's Problem Details service. Its customizations (here a traceId) apply to validation problems
+// too, and the exception handler middleware below needs it to turn ValidationFailedException into a response.
+builder.Services.AddProblemDetails(options =>
+    options.CustomizeProblemDetails = context =>
+        context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier);
+
 var app = builder.Build();
 
-app.MapPost("/orders", (CreateOrder order, ValidationProblemFactory problems) =>
+// Turns ValidationFailedException, thrown by ThrowIfInvalid below the endpoints, into a Problem Details response.
+app.UseExceptionHandler();
+
+app.MapPost("/orders", (CreateOrder order) =>
 {
     using var validation = ValidationBuilder<CreateOrder>.Create(NameConverters.CamelCase);
 
@@ -57,10 +67,21 @@ app.MapPost("/orders", (CreateOrder order, ValidationProblemFactory problems) =>
         validation.AddInsufficientFunds(x => x.Lines, total, Store.Balance, "EUR");
     }
 
-    var entries = validation.ToValidationEntries();
-    return entries.Count == 0
-        ? Results.Created($"/orders/{Guid.NewGuid()}", order)
-        : (IResult)problems.CreateResult(entries);
+    // Problem(validation) produces the entries now and writes them as Problem Details when the response is sent, after
+    // the builder is disposed.
+    if (validation.ToValidationEntries().Count > 0)
+    {
+        return Problem(validation);
+    }
+
+    return Results.Created($"/orders/{Guid.NewGuid()}", order);
+});
+
+// Code below the endpoint that cannot return a result throws instead; the exception handler writes the same response.
+app.MapPut("/orders/{id:guid}/email", (Guid id, ChangeEmail change) =>
+{
+    OrderService.ChangeEmail(id, change);
+    return Results.NoContent();
 });
 
 app.Run();
@@ -68,6 +89,27 @@ app.Run();
 public sealed record CreateOrder(Guid CustomerId, string? Email, List<OrderLine> Lines);
 
 public sealed record OrderLine(string? Sku, int Quantity);
+
+public sealed record ChangeEmail(string? Email);
+
+internal static class OrderService
+{
+    public static void ChangeEmail(Guid orderId, ChangeEmail change)
+    {
+        using var validation = ValidationBuilder<ChangeEmail>.Create(NameConverters.CamelCase);
+        if (string.IsNullOrEmpty(change.Email))
+        {
+            validation.AddEmpty("Order", x => x.Email);
+        }
+        else if (!change.Email.Contains('@'))
+        {
+            validation.AddInvalidFormat("Order", x => x.Email, "^.+@.+$");
+        }
+
+        validation.ThrowIfInvalid();
+        // ... change the order's email ...
+    }
+}
 
 // Rules for one order line, reusable wherever an OrderLine appears (an order, a cart, a quote): accessors start at the
 // line, and the caller's builder decides where in the document it sits.
