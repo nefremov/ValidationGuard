@@ -21,8 +21,7 @@ public static class ValidationProblemServiceCollectionExtensions
             }
         }
 
-        // Built-in mappings for ValidationGuard.CommonErrors codes, declared on this assembly.
-        var builder = new ErrorCodeMapBuilder().AddAssembly(typeof(ValidationProblemFactory).Assembly);
+        var builder = new ErrorCodeMapBuilder();
         configure(builder);
 
         services.AddSingleton(builder.Build());

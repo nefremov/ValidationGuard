@@ -6,28 +6,47 @@ namespace ValidationGuard.CommonErrors;
 /// </summary>
 public static class CommonErrorFormats
 {
-    public const string NotFound = "{entity} with {id} does not exist";
-    public const string NotFound2 = "{entity} with {id1}, {id2} does not exist";
-    public const string NotFound3 = "{entity} with {id1}, {id2}, {id3} does not exist";
+    public const string NotFound = "{entity} with {name} = {value} does not exist";
+    public const string NotFound2 = "{entity} with {name1} = {value1} and {name2} = {value2} does not exist";
+    public const string NotFound3 =
+        "{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} does not exist";
 
-    public const string AlreadyExists = "{entity} with {id} already exists";
-    public const string AlreadyExists2 = "{entity} with {id1}, {id2} already exists";
-    public const string AlreadyExists3 = "{entity} with {id1}, {id2}, {id3} already exists";
+    public const string AlreadyExists = "{entity} with {name} = {value} already exists";
+    public const string AlreadyExists2 = "{entity} with {name1} = {value1} and {name2} = {value2} already exists";
+    public const string AlreadyExists3 =
+        "{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} already exists";
 
-    public const string NotUnique = "{entity} with {name} {value} already exists";
+    public const string NotUnique = "{entity} with {name} = {value} already exists";
     public const string NotUnique2 =
-        "{entity} with {name1} {value1} and {name2} {value2} already exists";
+        "{entity} with {name1} = {value1} and {name2} = {value2} already exists";
     public const string NotUnique3 =
-        "{entity} with {name1} {value1}, {name2} {value2} and {name3} {value3} already exists";
+        "{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} already exists";
 
-    public const string Null = "Property {name} is null";
-    public const string Empty = "Property {name} is empty";
+    public const string Null = "Value for {name} is required";
+    public const string Empty = "Value for {name} must not be empty";
 
-    public const string LessThan = "Property {name} is {value}, which is less than {min_value}";
-    public const string LessThanOrEqual = "Property {name} is {value}, which is less than or equal to {min_value}";
-    public const string GreaterThan = "Property {name} is {value}, which is greater than {max_value}";
-    public const string GreaterThanOrEqual = "Property {name} is {value}, which is greater than or equal to {max_value}";
+    public const string LessThan = "Value {value} for {name} must be at least {min_value}";
+    public const string LessThanOrEqual = "Value {value} for {name} must be greater than {min_value}";
+    public const string GreaterThan = "Value {value} for {name} must be at most {max_value}";
+    public const string GreaterThanOrEqual = "Value {value} for {name} must be less than {max_value}";
 
-    public const string TooShort = "Property {name} is {length} characters long, which is shorter than {min_length}";
-    public const string TooLong = "Property {name} is {length} characters long, which is longer than {max_length}";
+    public const string TooShort = "Value for {name} must be at least {min_length} characters long, but has {length}";
+    public const string TooLong = "Value for {name} must be at most {max_length} characters long, but has {length}";
+
+    public const string OutOfInclusiveRange =
+        "Value {value} for {name} must be in the range [{min_value}, {max_value}]";
+    public const string OutOfExclusiveRange =
+        "Value {value} for {name} must be in the range ({min_value}, {max_value})";
+    public const string OutOfMinInclusiveRange =
+        "Value {value} for {name} must be in the range [{min_value}, {max_value})";
+    public const string OutOfMaxInclusiveRange =
+        "Value {value} for {name} must be in the range ({min_value}, {max_value}]";
+
+    public const string ReferenceNotFound = "Value {value} for {name} does not refer to an existing {referenced_entity}";
+
+    public const string IncompatibleValues = "{entity} cannot have {name1} = {value1} when {name2} = {value2}";
+
+    public const string NotAllowedValue = "Value {value} for {name} must be one of {allowed_values}";
+
+    public const string NotModifiable = "Value for {name} cannot be changed";
 }

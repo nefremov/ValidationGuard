@@ -54,6 +54,7 @@ jobs:
           $projects = @(
             'src/ValidationGuard/ValidationGuard.csproj',
             'src/ValidationGuard.CommonErrors/ValidationGuard.CommonErrors.csproj',
+            'src/ValidationGuard.CommonErrors.Http/ValidationGuard.CommonErrors.Http.csproj',
             'src/ValidationGuard.Http/ValidationGuard.Http.csproj'
           )
 

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <!-- Outside this repository, reference the ValidationGuard and ValidationGuard.CommonErrors packages instead. -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ValidationGuard\ValidationGuard.csproj" />
+    <ProjectReference Include="..\..\src\ValidationGuard.CommonErrors\ValidationGuard.CommonErrors.csproj" />
+    <ProjectReference Include="..\Acme.Validation\Acme.Validation.csproj" />
+  </ItemGroup>
+</Project>

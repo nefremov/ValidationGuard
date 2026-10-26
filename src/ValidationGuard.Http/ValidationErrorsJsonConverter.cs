@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
@@ -28,10 +28,11 @@ public sealed class ValidationErrorsJsonConverter : JsonConverter<ValidationErro
             writer.WriteString(FormatName, entry.Format);
             writer.WriteString(DetailName, entry.Detail);
 
-            if (entry.Metadata is { Count: > 0 } metadata)
+            // Metadata writes itself as a JSON object; an empty dictionary (as read back from JSON) is omitted.
+            if (entry.Metadata is { } metadata and not DictionaryValidationMetadata { Values.Count: 0 })
             {
                 writer.WritePropertyName(MetadataName);
-                WriteMetadata(writer, metadata, options);
+                metadata.WriteTo(writer, options);
             }
 
             writer.WriteEndObject();
@@ -68,14 +69,12 @@ public sealed class ValidationErrorsJsonConverter : JsonConverter<ValidationErro
         string? code = null;
         string? format = null;
         string? detail = null;
-        IReadOnlyDictionary<string, object?>? metadata = null;
+        ValidationMetadata? metadata = null;
 
         while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
         {
-            if (reader.TokenType != JsonTokenType.PropertyName)
-            {
-                throw new JsonException("Expected a property name in an errors entry.");
-            }
+            // Inside an object the reader yields only property names (and the end), or throws for malformed JSON.
+            System.Diagnostics.Debug.Assert(reader.TokenType == JsonTokenType.PropertyName);
 
             if (reader.ValueTextEquals(PointerName.EncodedUtf8Bytes))
             {
@@ -100,8 +99,10 @@ public sealed class ValidationErrorsJsonConverter : JsonConverter<ValidationErro
             else if (reader.ValueTextEquals(MetadataName.EncodedUtf8Bytes))
             {
                 reader.Read();
+                // The original metadata type is not known on the reading side; values arrive as JsonElement.
                 var typeInfo = (JsonTypeInfo<Dictionary<string, object?>>)options.GetTypeInfo(typeof(Dictionary<string, object?>));
-                metadata = JsonSerializer.Deserialize(ref reader, typeInfo);
+                var values = JsonSerializer.Deserialize(ref reader, typeInfo);
+                metadata = values is null ? null : new DictionaryValidationMetadata(values);
             }
             else
             {
@@ -116,43 +117,5 @@ public sealed class ValidationErrorsJsonConverter : JsonConverter<ValidationErro
             format ?? throw new JsonException("An errors entry is missing 'format'."),
             detail ?? throw new JsonException("An errors entry is missing 'detail'."),
             metadata);
-    }
-
-    private static void WriteMetadata(
-        Utf8JsonWriter writer,
-        IReadOnlyDictionary<string, object?> metadata,
-        JsonSerializerOptions options)
-    {
-        writer.WriteStartObject();
-
-        if (metadata is Dictionary<string, object?> dictionary)
-        {
-            foreach (var (key, value) in dictionary)
-            {
-                WriteMember(writer, key, value, options);
-            }
-        }
-        else
-        {
-            foreach (var (key, value) in metadata)
-            {
-                WriteMember(writer, key, value, options);
-            }
-        }
-
-        writer.WriteEndObject();
-    }
-
-    private static void WriteMember(Utf8JsonWriter writer, string key, object? value, JsonSerializerOptions options)
-    {
-        writer.WritePropertyName(key);
-
-        if (value is null)
-        {
-            writer.WriteNullValue();
-            return;
-        }
-
-        JsonSerializer.Serialize(writer, value, options.GetTypeInfo(value.GetType()));
     }
 }

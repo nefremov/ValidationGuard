@@ -38,4 +38,19 @@ public static class CommonErrorCodes
 
     /// <summary>An entity with the same values for a unique combination of up to three properties already exists.</summary>
     public const string NotUnique = "VG0011";
+
+    /// <summary>A property is outside a range; the format shows which ends belong to it (<see cref="RangeBounds"/>).</summary>
+    public const string OutOfRange = "VG0012";
+
+    /// <summary>A property refers to another entity, by key, that does not exist (a foreign key).</summary>
+    public const string ReferenceNotFound = "VG0013";
+
+    /// <summary>Two properties have values that cannot occur together.</summary>
+    public const string IncompatibleValues = "VG0014";
+
+    /// <summary>A property has a value outside its allowed values (a list or an enum type).</summary>
+    public const string NotAllowedValue = "VG0015";
+
+    /// <summary>A property cannot be modified.</summary>
+    public const string NotModifiable = "VG0016";
 }

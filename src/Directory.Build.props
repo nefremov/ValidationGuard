@@ -4,7 +4,7 @@
     All packages are versioned in lockstep: bump <Version> here to publish every packable project.
   -->
   <PropertyGroup>
-    <Version>1.0.0-pre1</Version>
+    <Version>1.0.0-pre2</Version>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
   </PropertyGroup>
