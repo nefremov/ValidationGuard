@@ -87,7 +87,7 @@ public class RangeErrorTests
     }
 
     [Fact]
-    public void AddLessThan_UnderAnotherCulture_FormatsNumbersWithInvariantCulture()
+    public void AddLessThan_UnderAnotherCulture_FormatsNumbersWithThatCulture()
     {
         // Arrange
         using var culture = new CultureScope("de-DE");
@@ -96,7 +96,7 @@ public class RangeErrorTests
         var entry = SingleEntry(v => v.AddLessThan("Order", x => x.Price, 999.25m, 1234.5m));
 
         // Assert
-        Assert.Equal("Value 999.25 for price must be at least 1234.5", entry.Detail);
+        Assert.Equal("Value 999,25 for price must be at least 1234,5", entry.Detail);
     }
 
     public static TheoryData<RangeBounds, int, string> OutOfRangeCases =>
@@ -127,7 +127,7 @@ public class RangeErrorTests
     public void AddOutOfRange_UnknownBounds_Throws()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create();
+        using var validation = new ValidationBuilder<Order>();
 
         // Act & Assert
         Assert.Throws<ArgumentOutOfRangeException>(
@@ -135,7 +135,7 @@ public class RangeErrorTests
     }
 
     [Fact]
-    public void AddOutOfRange_DecimalUnderAnotherCulture_UsesInvariantCulture()
+    public void AddOutOfRange_DecimalUnderAnotherCulture_UsesThatCulture()
     {
         // Arrange
         using var culture = new CultureScope("de-DE");
@@ -145,6 +145,6 @@ public class RangeErrorTests
             v => v.AddOutOfRange("Order", x => x.Price, 0.5m, 1.25m, 99.5m, RangeBounds.MinInclusive));
 
         // Assert
-        Assert.Equal("Value 0.5 for price must be in the range [1.25, 99.5)", entry.Detail);
+        Assert.Equal("Value 0,5 for price must be in the range [1,25, 99,5)", entry.Detail);
     }
 }

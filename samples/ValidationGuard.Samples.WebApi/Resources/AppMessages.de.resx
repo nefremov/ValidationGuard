@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- German translations of the application's own code, the common errors it reports (by code), and its entity and member names (by name). A member's translation is written into paths as is. -->
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="VG0001" xml:space="preserve">
+    <value>{entity} mit {name} = {value} existiert nicht</value>
+  </data>
+  <data name="VG0003" xml:space="preserve">
+    <value>Wert für {name} darf nicht leer sein</value>
+  </data>
+  <data name="VG0009" xml:space="preserve">
+    <value>Wert für {name} darf höchstens {max_length} Zeichen lang sein, hat aber {length}</value>
+  </data>
+  <data name="APP0001" xml:space="preserve">
+    <value>Wert für {name} enthält mehrere Positionen mit derselben SKU</value>
+  </data>
+  <data name="Customer" xml:space="preserve">
+    <value>Kunde</value>
+  </data>
+  <data name="Order" xml:space="preserve">
+    <value>Auftrag</value>
+  </data>
+  <data name="OrderLine" xml:space="preserve">
+    <value>Auftragsposition</value>
+  </data>
+  <data name="CustomerId" xml:space="preserve">
+    <value>kundenId</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>eMail</value>
+  </data>
+  <data name="Lines" xml:space="preserve">
+    <value>positionen</value>
+  </data>
+  <data name="Sku" xml:space="preserve">
+    <value>sku</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>menge</value>
+  </data>
+</root>

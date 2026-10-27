@@ -24,7 +24,9 @@ Adopt a hierarchical builder architecture where:
 1. Each builder node stores its own entries.
 2. Child relationships are tracked as a tree of builder nodes.
 3. Nested builders do not expose export/finalization APIs.
-4. The root builder is the only public finalization point via `ToValidationEntries()`.
+4. The root builder is the only public finalization point via `ToValidationEntries()`, which completes the whole
+   hierarchy: entries are rendered once, later calls return the same entries, and no entry or nested builder can be
+   added afterwards. `Valid` checks for entries without completing.
 5. Hierarchy traversal uses lazy `IEnumerable<ValidationEntry>` (`GetEntries()`) and allocates an array only at final root materialization.
 6. Deterministic ordering is enforced at finalization with `ValidationEntryComparer`.
 

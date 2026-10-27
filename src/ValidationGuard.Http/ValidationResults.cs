@@ -6,9 +6,9 @@ namespace ValidationGuard.Http;
 /// <code>
 /// app.MapPost("/orders", (CreateOrder order) =>
 /// {
-///     using var validation = ValidationBuilder&lt;CreateOrder&gt;.Create(NameConverters.CamelCase);
+///     using var validation = new ValidationBuilder&lt;CreateOrder&gt;(NameConverters.CamelCase);
 ///     // ... add entries ...
-///     return validation.ToValidationEntries().Count == 0 ? Results.Ok() : Problem(validation);
+///     return validation.Valid ? Results.Ok() : Problem(validation);
 /// });
 /// </code>
 /// </summary>

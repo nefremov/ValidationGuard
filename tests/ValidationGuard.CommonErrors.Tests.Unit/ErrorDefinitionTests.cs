@@ -43,7 +43,7 @@ public class ErrorDefinitionTests
         // A property error is an EntityErrorDefinition with no key properties, so the key-property overloads reject it.
 
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create();
+        using var validation = new ValidationBuilder<Order>();
         EntityErrorDefinition error = SampleErrors.InvalidFormat;
 
         // Act
@@ -76,7 +76,7 @@ public class ErrorDefinitionTests
     }
 
     [Fact]
-    public void Add_MixedValueTypesUnderAnotherCulture_UseInvariantCulture()
+    public void Add_MixedValueTypesUnderAnotherCulture_UseThatCulture()
     {
         // Arrange
         using var culture = new CultureScope("de-DE");
@@ -85,7 +85,7 @@ public class ErrorDefinitionTests
         var entry = SingleEntry(v => v.Add(SampleErrors.TooHeavy, "Order", x => x.Weight, 12.5m, "kg"));
 
         // Assert
-        Assert.Equal("Value 12.5 \"kg\" for weight is too heavy", entry.Detail);
+        Assert.Equal("Value 12,5 \"kg\" for weight is too heavy", entry.Detail);
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public class ErrorDefinitionTests
     public void Add_EntityErrorWithWrongKeyCount_Throws()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create();
+        using var validation = new ValidationBuilder<Order>();
 
         // Act
         var exception = Assert.Throws<ArgumentException>(
@@ -263,7 +263,7 @@ public class ErrorDefinitionTests
     public void Add_NullDefinition_ThrowsArgumentNullException()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create();
+        using var validation = new ValidationBuilder<Order>();
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => validation.Add((PropertyErrorDefinition)null!, "Order", x => x.Email));
@@ -273,7 +273,7 @@ public class ErrorDefinitionTests
     public void Add_BlankEntity_Throws()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create();
+        using var validation = new ValidationBuilder<Order>();
 
         // Act & Assert
         Assert.ThrowsAny<ArgumentException>(() => validation.Add(SampleErrors.SlugTaken, " ", x => x.Slug, "s"));

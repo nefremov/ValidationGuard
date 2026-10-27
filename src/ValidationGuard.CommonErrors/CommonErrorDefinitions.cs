@@ -6,7 +6,9 @@ namespace ValidationGuard.CommonErrors;
 /// </summary>
 /// <remarks>
 /// The entity errors (not found, already exists, not unique) are identified by one to three key properties: each comes
-/// in three definitions, by key property count.
+/// in three definitions, by key property count, sharing the code. The four ranges also share one code. Translations
+/// keyed by code (the default <see cref="ValidationOptions.LocalizationKeySelector"/>) are therefore shared by these
+/// variants; key translations by format (<c>entry =&gt; entry.Format</c>) to translate each variant.
 /// </remarks>
 public static class CommonErrorDefinitions
 {
@@ -101,12 +103,12 @@ public static class CommonErrorDefinitions
 
     /// <summary>
     /// A reference by key of type <typeparamref name="T"/> to an entity that does not exist; arguments are the
-    /// referenced entity, then the key value.
+    /// referenced entity's name, then the key value.
     /// </summary>
     public static class Reference<T>
     {
-        public static readonly PropertyErrorDefinition<EntityName, T> NotFound =
-            new(CommonErrorCodes.ReferenceNotFound, CommonErrorFormats.ReferenceNotFound, "referenced_entity", "value");
+        public static readonly ReferenceErrorDefinition<T> NotFound =
+            new(CommonErrorCodes.ReferenceNotFound, CommonErrorFormats.ReferenceNotFound);
     }
 
     /// <summary>A value of type <typeparamref name="T"/> outside its allowed values; arguments are the value, then the allowed values.</summary>

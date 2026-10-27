@@ -27,7 +27,7 @@ public class PropertyErrorTests
     public void AddNull_NestedPropertyAndNestedBuilder_UseFullPath()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
         validation.AddNull("Order", x => x.Address.City);
         using (var address = validation.For(x => x.Address))
         {
@@ -57,7 +57,7 @@ public class PropertyErrorTests
     public void AddNull_InIndexedNestedBuilder_PathIncludesScopeAndIndex()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
         using (var lines = validation.For(x => x.Lines[2]))
         {
             lines.AddNull("Order", x => x.Sku);

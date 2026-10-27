@@ -8,7 +8,7 @@ internal static class TestHelpers
     // Adds entries to a fresh builder (camelCase unless given) and returns its single produced entry.
     public static ValidationEntry SingleEntry(Action<IValidationBuilder<Order>> add, IPathFragmentNameConverter? nameConverter = null)
     {
-        using var validation = ValidationBuilder<Order>.Create(nameConverter ?? NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(nameConverter ?? NameConverters.CamelCase);
         add(validation);
         return Assert.Single(validation.ToValidationEntries());
     }
@@ -28,14 +28,4 @@ internal static class TestHelpers
             (actual.Pointer, actual.Code, actual.Format, actual.Detail));
         Assert.Equal(MetadataJson.Of(expected).GetRawText(), MetadataJson.Of(actual).GetRawText());
     }
-}
-
-// Switches the current culture for the scope of a test: using var _ = new CultureScope("de-DE");
-internal sealed class CultureScope : IDisposable
-{
-    private readonly CultureInfo _previous = CultureInfo.CurrentCulture;
-
-    public CultureScope(string culture) => CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(culture);
-
-    public void Dispose() => CultureInfo.CurrentCulture = _previous;
 }

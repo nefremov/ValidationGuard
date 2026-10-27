@@ -10,7 +10,17 @@ namespace ValidationGuard.CommonErrors;
 internal class PropertyDefinitionValidationMetadata(ErrorDefinition definition, string entity, PathFragment[] property)
     : PropertyValidationMetadata(property)
 {
+    // The entity's name as recorded, and as rendered: localized when a localizer translates it.
+    private readonly string _recordedEntity = entity;
+    private string _entity = entity;
+
     protected ImmutableArray<string> Keys => definition.Keys;
+
+    protected override string RenderDetail(string format, ValidationMessageWriter writer)
+    {
+        _entity = writer.LocalizeEntity(_recordedEntity);
+        return base.RenderDetail(format, writer);
+    }
 
     protected sealed override bool TryWrite(ReadOnlySpan<char> key, ValidationMessageWriter writer)
     {
@@ -33,7 +43,7 @@ internal class PropertyDefinitionValidationMetadata(ErrorDefinition definition, 
         ArgumentNullException.ThrowIfNull(options);
 
         writer.WriteStartObject();
-        writer.WriteString(Keys[0], entity);
+        writer.WriteString(Keys[0], _entity);
         writer.WriteString(Keys[1], Name);
         WriteSlots(writer, options);
         writer.WriteEndObject();
@@ -41,7 +51,7 @@ internal class PropertyDefinitionValidationMetadata(ErrorDefinition definition, 
 
     // Writes the value of the key at position slot into the detail; slots 0 and 1 are the built-in values.
     protected virtual void WriteSlot(int slot, ValidationMessageWriter writer) =>
-        writer.WriteText(slot == 0 ? entity : Name);
+        writer.WriteText(slot == 0 ? _entity : Name);
 
     // Writes the typed values, after the built-in values, as JSON properties.
     protected virtual void WriteSlots(Utf8JsonWriter writer, JsonSerializerOptions options)

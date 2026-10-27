@@ -38,3 +38,16 @@ PUT {{host}}/orders/3f2b8a51-0c7e-4d0b-9a55-6c1d2e3f40e1/email
 Content-Type: application/json
 
 { "email": "ann" }
+
+### The same problems in German: translated formats, entity and member names, culture-formatted values; pointers unchanged
+POST {{host}}/orders?culture=de
+Content-Type: application/json
+
+{
+  "customerId": "00000000-0000-0000-0000-000000000001",
+  "email": "ann",
+  "lines": [
+    { "sku": "CH-12", "quantity": 0 },
+    { "sku": "CH-12", "quantity": 50 }
+  ]
+}

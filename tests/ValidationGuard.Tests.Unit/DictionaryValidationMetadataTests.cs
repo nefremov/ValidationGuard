@@ -6,7 +6,7 @@ public class DictionaryValidationMetadataTests
     public void RenderDetail_FillsPlaceholdersFromValues_MetadataIsKeptAsGiven()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
         var metadata = new DictionaryValidationMetadata(new Dictionary<string, object?> { ["max"] = 5, ["unit"] = "items" });
         validation.Add("C1", "At most {max} {unit} ({missing})", metadata);
 
@@ -32,7 +32,7 @@ public class DictionaryValidationMetadataTests
         // A dictionary without span lookup is read by string key.
 
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create();
+        using var validation = new ValidationBuilder<Order>();
         var values = new System.Collections.ObjectModel.ReadOnlyDictionary<string, object?>(
             new Dictionary<string, object?> { ["max"] = 5 });
         validation.Add("C1", "At most {max} ({missing})", new DictionaryValidationMetadata(values));

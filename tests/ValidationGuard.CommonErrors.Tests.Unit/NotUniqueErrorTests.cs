@@ -77,7 +77,7 @@ public class NotUniqueErrorTests
     public void AddNotUnique_BlankEntity_Throws(string entity)
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create();
+        using var validation = new ValidationBuilder<Order>();
 
         // Act & Assert
         Assert.ThrowsAny<ArgumentException>(() => validation.AddNotUnique(entity, x => x.Name, "x"));

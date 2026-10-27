@@ -23,7 +23,7 @@ public class EntityErrorTests
     public void AddNotFound_PointsAtTheBuilderScopeNotAtTheKeyProperty()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
         using (var line = validation.For(x => x.Lines[2]))
         {
             line.AddNotFound("Product", x => x.Sku, "CH-12");
@@ -110,7 +110,7 @@ public class EntityErrorTests
     public void AddNotFound_BlankEntity_Throws(string entity)
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create();
+        using var validation = new ValidationBuilder<Order>();
 
         // Act & Assert
         Assert.ThrowsAny<ArgumentException>(() => validation.AddNotFound(entity, x => x.CustomerId, Id1));

@@ -22,7 +22,7 @@ whether a value is invalid.
 ```csharp
 using ValidationGuard.CommonErrors;
 
-using var validation = ValidationBuilder<CreateOrder>.Create(NameConverters.CamelCase);
+using var validation = new ValidationBuilder<CreateOrder>(NameConverters.CamelCase);
 
 if (!customers.Exists(request.CustomerId))
     validation.AddNotFound("Customer", x => x.CustomerId, request.CustomerId);
@@ -73,7 +73,8 @@ produces
 - `{name}` is the property's path from the root in the builder's naming convention, e.g. `customerId`,
   `address.city`, `lines[2].sku` or `tags["a/b"]`; it includes the scope of nested builders.
 - Range methods take the offending value and the bound, e.g. `AddLessThan("Order", x => x.Quantity, request.Quantity, 1)`;
-  both appear in `detail` and `metadata`. Values in `detail` are formatted with the invariant culture.
+  both appear in `detail` and `metadata`. Values in `detail` are formatted with the current culture (see
+  [Localization](#localization)).
 - Length methods take the string but report only its `{length}`, so user input never appears in the response.
 - `AddOutOfRange("Order", x => x.Quantity, quantity, 1, 100, RangeBounds.MinInclusive)` reports `min <= x < max` as
   `must be in the range [1, 100)`; one code covers all four bound combinations, and the format shows which ends are in.
@@ -95,7 +96,7 @@ produces
 ### Defining your own errors
 
 Libraries can define errors with the same conventions as the built-in ones: `{name}` as the property path, typed
-culture-invariant rendering, and one metadata value per placeholder. Define each error once as an
+rendering, and one metadata value per placeholder. Define each error once as an
 `ErrorDefinition` and add it with `validation.Add(...)`:
 
 ```csharp
@@ -119,6 +120,7 @@ validation.Add(AcmeErrors.SlugTaken, "Article", x => x.Slug, request.Slug);
 |------|-----------------------|--------------------|
 | `EntityErrorDefinition` (1, 2 or 3 key properties) | `{entity}`, passed to `Add` | a `{name}`/`{value}` pair per key property (`{name1}`, `{value1}` ... for 2 or 3), typed by its accessor |
 | `PropertyErrorDefinition`, `PropertyErrorDefinition<T1>` ... `<T1, T2, T3>` (derive from `EntityErrorDefinition`) | `{entity}`, passed to `Add`, optional in the format; `{name}`, from the accessor | 0-3 typed arguments with declared keys |
+| `ReferenceErrorDefinition<T>` (derives from `EntityErrorDefinition`) | as a property error, plus `{referenced_entity}`, the referenced entity's name passed to `Add` | the key value of type `T` (`{value}`, or the key passed to the constructor) |
 
 - Every placeholder must be a built-in or declared key, and every key must appear in the format (except a property
   error's `{entity}`). This is not
@@ -138,19 +140,36 @@ validation.Add(AcmeErrors.SlugTaken, "Article", x => x.Slug, request.Slug);
 
 ### Metadata and rendering
 
-`ValidationBuilder<T>.Create(options)` takes `ValidationOptions`:
+`new ValidationBuilder<T>(options)` takes `ValidationOptions`; `new ValidationBuilder<T>()` uses the defaults. It is a
+plain options class, so in an application configure it once with the options pattern and inject
+`IOptions<ValidationOptions>`:
 
-- `NameConverter`: the naming convention of paths; `Create(NameConverters.CamelCase)` keeps the other defaults.
-- `WriteValue`: a `ValueFormatter` delegate, `(object? value, string? format) => string`, writing each placeholder
+```csharp
+builder.Services.Configure<ValidationOptions>(options => options.NameConverter = NameConverters.CamelCase);
+
+app.MapPost("/orders", (CreateOrder order, IOptions<ValidationOptions> options) =>
+{
+    using var validation = new ValidationBuilder<CreateOrder>(options.Value);
+    // ...
+});
+```
+
+- `NameConverter`: the naming convention of paths; `new ValidationBuilder<T>(NameConverters.CamelCase)` keeps the
+  other defaults.
+- `WriteValue`: a `Func<object?, string?, string>`, `(value, format) => text`, writing each placeholder
   value; `ValidationOptions.DefaultWriteValue` (`FormatValue`) by default, and also when set to `null`. It
   double-quotes strings and `Guid`s (escaping `"` and `\`), so `Value "XX" for country must be one of "CH", "DE"`
-  shows empty strings and tells the string `"null"` from `null`; other values use the invariant culture and the format
+  shows empty strings and tells the string `"null"` from `null`; other values use the current culture and the format
   specifier. With the default the writer applies these rules itself, without boxing. Set another delegate to change
   quoting or the format of any type, falling back to `ValidationOptions.FormatValue` for the rest; values are then
   boxed.
-- `WriteText`: a `Func<string, string>` for text written by metadata, such as paths and entity names;
-  `ValidationOptions.DefaultWriteText` (as is) by default, and also when set to `null`. The format's own text is never
-  passed to it.
+- `WriteText`: a `Func<string, string>`, `text => text`, for text written by metadata, such as paths and
+  entity names; `ValidationOptions.DefaultWriteText` (as is) by default, and also when set to `null`. The format's own
+  text is never passed to it.
+- `Localizers`: the `IStringLocalizer`s translating formats, entity names and member names (see
+  [Localization](#localization)); none by default.
+- `LocalizationKeySelector`: the key a format is looked up by, `entry => entry.Code` by default, or for example
+  `entry => entry.Format`.
 
 An entry's `metadata` is a `ValidationMetadata`, not a dictionary. A metadata type keeps its values typed, decides
 how the entry's detail is rendered, and writes itself to JSON as a map:
@@ -166,6 +185,9 @@ public abstract class ValidationMetadata
 
 - Builders record entries as they are added and render them only in `ToValidationEntries()`: pointers, property
   paths (`{name}`), and every detail are produced there, from the builder hierarchy.
+- `ToValidationEntries()` completes the builder: each entry is rendered once, later calls return the same entries,
+  and adding an entry or a nested builder afterwards throws `InvalidOperationException`. To check for errors without
+  completing, use `validation.Valid` (no entry in the builder or its nested builders).
 - An entry about a property carries it in a `PropertyValidationMetadata`, which the entry's pointer comes from. It fills
   `{name}` with the property's readable path and writes it to JSON as `name`, whether or not the format uses it.
   `validation.AddProperty(x => x.Age, "AGE001", "Age is required")` creates one for you; a custom type derives from it and
@@ -180,8 +202,11 @@ public abstract class ValidationMetadata
   so values are not boxed.
 - In `TryWrite`, `writer.WriteValue(value)` writes a value (formatted, and quoted if it is a string or `Guid`), while
   `writer.WriteText(text)` writes text as is. A value implementing `IRenderableValue` writes itself, as `ValueList<T>`
-  (each item quoted) and `EntityName` (unquoted) do.
-- A placeholder may carry a format specifier after `:`, applied with the invariant culture to values written with
+  (each item quoted) does.
+- Names are text, values are values: entity names (`{entity}`, `{referenced_entity}`) and property paths (`{name}`,
+  `{name1}` ...) are written with `WriteText`, unquoted; argument values with `WriteValue`, so a string argument is
+  quoted. Write a name with `WriteText` in custom metadata too.
+- A placeholder may carry a format specifier after `:`, applied with the current culture to values written with
   `writer.WriteValue`: `{value:N2}`, `{date:yyyy-MM-dd}`, `{at:HH:mm}`. `TryWrite` receives only the key; an invalid
   specifier throws `FormatException` when entries are rendered, and an unknown key is kept literally with its
   specifier.
@@ -191,6 +216,151 @@ public abstract class ValidationMetadata
 - `DictionaryValidationMetadata` wraps an `IReadOnlyDictionary<string, object?>` for arbitrary values; it is also what
   deserialized `errors` entries carry, with values as `JsonElement`.
 - Overrides in another assembly are declared `protected override`.
+
+### Localization
+
+Messages are localized with the standard `IStringLocalizer` (`Microsoft.Extensions.Localization`) when entries are
+rendered (`ToValidationEntries()`), under the ambient cultures: `CultureInfo.CurrentCulture` formats values, and
+`ValidationOptions.Localizers` translate for `CultureInfo.CurrentUICulture`. In ASP.NET Core, request localization
+sets both per request, and the localizers come from dependency injection:
+
+```csharp
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+builder.Services.AddOptions<ValidationOptions>()
+    .Configure<IStringLocalizer<AppMessages>, IStringLocalizer<AcmeMessages>>((options, app, acme) =>
+    {
+        options.Localizers.Add(app);   // asked first: the first translation found wins
+        options.Localizers.Add(acme);
+    });
+
+app.UseRequestLocalization(options => options
+    .SetDefaultCulture("en")
+    .AddSupportedCultures("en", "de")
+    .AddSupportedUICultures("en", "de"));
+```
+
+- The entry's `format` is the translation, and its `detail` is rendered from it: `Wert 0,5 für Preis muss mindestens
+  1,25 sein`. Without a translation the defined format is kept, but values still follow the culture.
+- Entity names (`{entity}`, `{referenced_entity}`) and the member names of readable paths (`{name}`) are translated in
+  the detail and in the serialized metadata. Pointers are never localized: `/lines/0/quantity` is the same in every
+  culture.
+- Values are formatted with the culture, including format specifiers: `{amount:N2}` renders `1.234,50` in German.
+  Outside a request (a worker, a test) set `CultureInfo.CurrentCulture` and `CurrentUICulture`, or
+  `CultureInfo.InvariantCulture` for culture-independent details.
+
+Resource keys:
+
+| Translated | Key | Example |
+|------------|-----|---------|
+| A format | `ValidationOptions.LocalizationKeySelector(entry)`: the code by default | `ACME0001`, or with `entry => entry.Format`, `Value for {name} is required` |
+| An entity name | the name | `Product` |
+| A member name in a path | the CLR member name | `Sku` (the translation is written as is, without `NameConverter`) |
+
+- `LocalizationKeySelector` is a `Func<IValidationEntryBase, string>`; `IValidationEntryBase` exposes the entry's
+  `Code` and `Format`. The default, `ValidationOptions.DefaultLocalizationKeySelector`, also applies when it is set to
+  `null`. Codes are stable across rewordings; formats as keys suit entries added with ad-hoc formats.
+- With code keys, formats sharing a code share a translation, so it must fit each of them: the 1-, 2- and 3-key
+  variants of `NotFound`, `AlreadyExists` and `NotUnique`, and the four `OutOfRange` variants. Key by format to
+  translate each variant on its own.
+- An entity and a member of the same name share a translation.
+- `localizer.Translate(key)` performs these lookups, returning `null` when the resource is not found.
+- A localized format may use specifiers and reorder placeholders, but must use the same keys.
+  `ErrorDefinitionValidator.ValidateLocalizedFormat(definition, translation)` checks one translation;
+  `ValidateLocalizations` checks a whole set (see below).
+- In a custom metadata type, `writer.LocalizeEntity(name)` returns an entity's translation (or the name itself), and
+  `writer.Culture` the culture values are formatted with.
+
+#### Localizing a library that extends ValidationGuard
+
+A library with its own errors (like the `Acme.Validation` sample) ships their translations, and applications plug
+them in next to their own. The library translates what it owns: the formats of its codes and the entity names it
+passes to `Add` (such as `Product`). Applications translate their own codes, the common errors, and their own entity
+and member names.
+
+**What to ship.** Resources for `IStringLocalizer<T>`: a marker type naming them, `.resx` files, and the resource
+location, so the lookup does not depend on the `ResourcesPath` the application configures for its own resources:
+
+```text
+Acme.Validation/
+  AcmeMessages.cs                  marker type + [assembly: ResourceLocation("Resources")]
+  Resources/AcmeMessages.resx      neutral: empty, so cultures without a translation keep the defined (English) formats
+  Resources/AcmeMessages.de.resx   German: ACME0001 ... by code, Product by name
+```
+
+```csharp
+using Microsoft.Extensions.Localization;
+
+[assembly: ResourceLocation("Resources")]
+
+namespace Acme.Validation;
+
+/// <summary>The resources of Acme's messages, for IStringLocalizer&lt;AcmeMessages&gt;.</summary>
+public sealed class AcmeMessages;
+```
+
+- Reference `Microsoft.Extensions.Localization` for `[ResourceLocation]`; nothing else is needed at run time. The
+  `.resx` files compile into satellite assemblies (`de/Acme.Validation.resources.dll`) that `dotnet pack` includes in
+  the package.
+- Without `[ResourceLocation]`, the resources are looked up under the application's `ResourcesPath` inside the
+  library's assembly, and are found only if the folder names happen to match.
+- The marker type's namespace and the folder make the resource name (`Acme.Validation.Resources.AcmeMessages`). If
+  the library's root namespace differs from its assembly name, also add `[assembly: RootNamespace("...")]`.
+
+**Keys.** Key formats by code, the default `LocalizationKeySelector`, and document it: codes are stable across
+rewordings, while format keys break whenever the English text changes.
+
+- The selector is one per `ValidationOptions` and applies to every localizer. An application that switches to
+  `entry => entry.Format` no longer finds code-keyed library translations; a library that wants to support both ships
+  each translation under both keys.
+- Definitions sharing a code share a code-keyed translation, which must then fit each of their formats. Give each
+  format its own code if it needs its own translation.
+- Entity names are keyed by the name as passed to `Add` (`Product`). Member names are keyed by the CLR member name;
+  a library translates them only for model types of its own (they are written into paths as is, without the
+  `NameConverter`).
+
+**Custom metadata.** Formats are translated before the metadata renders them, so a custom metadata type needs no
+localization code of its own except for names: write entity names as `writer.WriteText(writer.LocalizeEntity(name))`,
+store the localized name if `WriteTo` writes it to JSON, and write values with `writer.WriteValue` so they follow the
+culture. `{name}` (`PropertyValidationMetadata.Name`) is already localized.
+
+**Test every translation** with the localizer an application would get, built from the real resource factory; giving
+it a `ResourcesPath` of its own also proves `[ResourceLocation]`:
+
+```csharp
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+
+private static readonly IStringLocalizer Localizer = new StringLocalizer<AcmeMessages>(
+    new ResourceManagerStringLocalizerFactory(
+        Options.Create(new LocalizationOptions { ResourcesPath = "Translations" }), NullLoggerFactory.Instance));
+
+[Fact]
+public void GermanTranslations_AreValid() => ErrorDefinitionValidator.ValidateLocalizations(
+    typeof(AcmeErrors), Localizer, CultureInfo.GetCultureInfo("de-DE"), requireAll: true);
+```
+
+`ValidateLocalizations` looks up every public static `ErrorDefinition` of the type and its nested types under the
+given culture (set as the current UI culture meanwhile), by the code or the key `localizationKeySelector` chooses. It
+returns the number of translations found and reports, all at once, every translation whose placeholders differ from
+its definition's, and with `requireAll` every missing one. Call it once per holder type, including generic holders
+closed over a type (`typeof(AcmeErrors.Range<int>)`), and once per shipped culture. Also render an entry or two with
+`CultureInfo.CurrentCulture` and `CurrentUICulture` set to the culture, to check the result reads well.
+
+**How applications register it.** With `AddLocalization()`, `IStringLocalizer<AcmeMessages>` comes from dependency
+injection; the application adds it after its own localizer, so the application can override any library translation:
+
+```csharp
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+builder.Services.AddOptions<ValidationOptions>()
+    .Configure<IStringLocalizer<AppMessages>, IStringLocalizer<AcmeMessages>>((options, app, acme) =>
+    {
+        options.Localizers.Add(app);   // first: overrides Acme's translations
+        options.Localizers.Add(acme);
+    });
+```
+
+Outside dependency injection, create it as in the test above, or with any other `IStringLocalizer` implementation.
 
 ## HTTP responses with ValidationGuard.Http
 
@@ -221,9 +391,9 @@ using static ValidationGuard.Http.ValidationResults;
 
 app.MapPost("/orders", (Order order) =>
 {
-    using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+    using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
     // ... add entries ...
-    if (validation.ToValidationEntries().Count > 0)
+    if (!validation.Valid)
         return Problem(validation);
     return Results.Ok();
 });

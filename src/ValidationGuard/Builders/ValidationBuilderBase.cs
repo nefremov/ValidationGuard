@@ -17,6 +17,7 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
     // The builder's own fragments, relative to its parent (empty for the root).
     private readonly PathFragment[] _fragments;
     private int _entryCount;
+    private bool _completed;
     private bool _disposed;
 
     /// <summary>Creates a builder for the document root.</summary>
@@ -36,7 +37,7 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
 
     public IValidationBuilder<TChild> For<TChild>(Expression<Func<TContext, TChild>> accessor)
     {
-        EnsureNotDisposed();
+        EnsureWritable();
 
         var child = new NestedValidationBuilder<TChild>(
             _options, AccessorFragmentResolver.ResolveFragments(accessor));
@@ -46,7 +47,7 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
 
     public void Add(string code, string format, ValidationMetadata? metadata = null)
     {
-        EnsureNotDisposed();
+        EnsureWritable();
         ArgumentException.ThrowIfNullOrWhiteSpace(code);
         ArgumentException.ThrowIfNullOrWhiteSpace(format);
 
@@ -76,8 +77,15 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
 
     int IValidationBuilderNode.Render(ValidationEntry[] sink, int position, ValidationMessageWriter writer)
     {
+        // Rendering completes every builder of the hierarchy, including those without entries.
+        _completed = true;
         if (_entryCount == 0)
         {
+            foreach (var child in _children)
+            {
+                child.Render(sink, position, writer);
+            }
+
             return position;
         }
 
@@ -91,8 +99,11 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
                 ? writer.GetJsonPointer(property)
                 : scopePointer ??= writer.GetJsonPointer([]);
 
-            // Without metadata there is nothing to fill in: the format is the detail.
-            entry.Detail = metadata is null ? entry.Format : metadata.RenderDetail(entry.Format, writer);
+            // Each entry is rendered once, so its format is replaced by its localization; without metadata there is
+            // nothing to fill in.
+            var format = writer.LocalizeFormat(entry);
+            entry.Format = format;
+            entry.Detail = metadata is null ? format : metadata.RenderDetail(format, writer);
         }
 
         foreach (var child in _children)
@@ -115,6 +126,17 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
         if (_disposed)
         {
             throw new ObjectDisposedException(GetType().Name);
+        }
+    }
+
+    // Entries and nested builders can be added until the root builder produces its entries.
+    private void EnsureWritable()
+    {
+        EnsureNotDisposed();
+        if (_completed)
+        {
+            throw new InvalidOperationException(
+                "The entries were already produced by ToValidationEntries; no more can be added.");
         }
     }
 }

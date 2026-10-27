@@ -4,7 +4,7 @@ namespace ValidationGuard.CommonErrors;
 
 /// <summary>
 /// A list of values used as one placeholder value, such as the allowed values of a property. In a detail it writes
-/// each value like any other placeholder value (invariant culture, the placeholder's format specifier, strings quoted
+/// each value like any other placeholder value (current culture, the placeholder's format specifier, strings quoted
 /// by default), separated by <c>", "</c>; in JSON it is an array of the values.
 /// </summary>
 public sealed class ValueList<T> : IReadOnlyList<T>, IRenderableValue

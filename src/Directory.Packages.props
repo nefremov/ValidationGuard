@@ -8,4 +8,8 @@
     <!-- Keep in sync with tests/Directory.Packages.props: the analyzer tests compile against the same Roslyn version. -->
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
   </ItemGroup>
+
+  <ItemGroup Label="Localization">
+    <PackageVersion Include="Microsoft.Extensions.Localization.Abstractions" Version="10.0.12" />
+  </ItemGroup>
 </Project>

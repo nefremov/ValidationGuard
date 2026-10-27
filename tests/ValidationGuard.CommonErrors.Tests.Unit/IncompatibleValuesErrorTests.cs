@@ -26,7 +26,7 @@ public class IncompatibleValuesErrorTests
     public void AddIncompatibleValues_InNestedBuilder_PointsAtTheNestedEntity()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
         using (var address = validation.For(x => x.Address))
         {
             address.AddIncompatibleValues("Address", x => x.City, "Riga", x => x.Street, null);

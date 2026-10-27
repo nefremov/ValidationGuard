@@ -5,7 +5,7 @@ namespace ValidationGuard.CommonErrors;
 /// <summary>
 /// Adds an <see cref="ErrorDefinition"/> to a builder. The entry gets the definition's code and format; its detail
 /// and metadata (one value per placeholder) are rendered when the builder produces its entries. Values are rendered
-/// with their static types and the invariant culture; <see langword="null"/> renders as <c>null</c>.
+/// with their static types and the current culture; <see langword="null"/> renders as <c>null</c>.
 /// </summary>
 public static class ErrorDefinitionExtensions
 {
@@ -20,6 +20,25 @@ public static class ErrorDefinitionExtensions
         Expression<Func<TContext, TValue>> property) =>
         AddDefinition(validation, error,
             new PropertyDefinitionValidationMetadata(error, RequireEntity(entity), Resolve(validation, property)));
+
+    /// <summary>
+    /// Adds an error about a property referring to another entity, such as <c>x => x.CustomerId</c> referring to
+    /// <c>Customer</c>. The entry points at the property; <paramref name="entity"/> fills <c>{entity}</c>,
+    /// <paramref name="referencedEntity"/> <c>{referenced_entity}</c>, and <paramref name="value"/> the key value.
+    /// </summary>
+    public static void Add<TContext, TValue>(
+        this IValidationBuilder<TContext> validation,
+        ReferenceErrorDefinition<TValue> error,
+        string entity,
+        Expression<Func<TContext, TValue>> property,
+        string referencedEntity,
+        TValue value)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(referencedEntity);
+        AddDefinition(validation, error,
+            new ReferenceValidationMetadata<TValue>(
+                error, RequireEntity(entity), Resolve(validation, property), referencedEntity, value));
+    }
 
     /// <inheritdoc cref="Add{TContext, TValue}(IValidationBuilder{TContext}, PropertyErrorDefinition, string, Expression{Func{TContext, TValue}})"/>
     public static void Add<TContext, TValue, T1>(

@@ -11,7 +11,7 @@ public class AcmeValidationExtensionsTests
     public void AddInvalidFormat_RendersPattern()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
 
         // Act
         validation.AddInvalidFormat("Order", x => x.Email, "^.+@.+$");
@@ -26,7 +26,7 @@ public class AcmeValidationExtensionsTests
     public void AddNotBetween_InNestedBuilder_RendersValueAndBounds()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
         using var line = validation.For(x => x.Lines[0]);
 
         // Act
@@ -42,7 +42,7 @@ public class AcmeValidationExtensionsTests
     public void AddSkuRetired_RendersProductAndSku()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
         using var line = validation.For(x => x.Lines[0]);
 
         // Act
@@ -58,7 +58,7 @@ public class AcmeValidationExtensionsTests
     public void AddInsufficientFunds_RendersWithFormatSpecifiersAndWritesTypedMetadata()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
 
         // Act
         validation.AddInsufficientFunds(x => x.Total, 1234.5m, 100m, "EUR");

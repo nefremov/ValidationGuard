@@ -220,7 +220,7 @@ public static class CommonErrorExtensions
             CommonErrorDefinitions.Reference<TValue>.NotFound,
             entity,
             accessor,
-            new EntityName(referencedEntity),
+            referencedEntity,
             value);
 
     /// <summary>

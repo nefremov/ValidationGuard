@@ -15,7 +15,7 @@ namespace ValidationGuard.CommonErrors;
 /// This is not checked at construction, to keep definitions free at run time: verify your definitions in a unit test
 /// with <see cref="ErrorDefinitionValidator"/>.
 /// </remarks>
-public abstract class ErrorDefinition
+public abstract class ErrorDefinition : IValidationEntryBase
 {
     private protected ErrorDefinition(string code, string format, int builtInKeyCount, string[] keys)
     {
@@ -135,4 +135,23 @@ public sealed class PropertyErrorDefinition<T1, T2, T3>(string code, string form
     : EntityErrorDefinition(code, format, 2, [EntityKey, PropertyErrorDefinition.NameKey, key1, key2, key3])
 {
     internal override bool IsEntityPlaceholderOptional => true;
+}
+
+/// <summary>
+/// An error about a property of an entity that refers, by a key of type <typeparamref name="T"/>, to another entity,
+/// such as a foreign key. Besides <c>{entity}</c> and <c>{name}</c> it has the built-in <c>{referenced_entity}</c>,
+/// the referenced entity's name, written as text and localized like <c>{entity}</c>, then the key value under
+/// <paramref name="valueKey"/>. The entry points at the property.
+/// </summary>
+public sealed class ReferenceErrorDefinition<T>(string code, string format, string valueKey = "value")
+    : EntityErrorDefinition(
+        code, format, 3, [EntityKey, PropertyErrorDefinition.NameKey, ReferenceErrorDefinition.ReferencedEntityKey, valueKey])
+{
+    internal override bool IsEntityPlaceholderOptional => true;
+}
+
+// The built-in key of reference errors, shared by every ReferenceErrorDefinition<T>.
+internal static class ReferenceErrorDefinition
+{
+    public const string ReferencedEntityKey = "referenced_entity";
 }

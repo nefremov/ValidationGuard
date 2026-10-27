@@ -7,7 +7,7 @@ public class PropertyValidationMetadataTests
     public void RenderDetail_FillsNameAndCapturesIt()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
         validation.Add("C1", "{name} is bad", new ProbeMetadata(validation.Resolve(x => x.Customer.FirstName)));
 
         // Act
@@ -23,7 +23,7 @@ public class PropertyValidationMetadataTests
     public void GetClrPath_RendersAnotherPropertyAfterTheBuilderPath()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
         using (var line = validation.For(x => x.Lines[2]))
         {
             var metadata = new ProbeMetadata(line.Resolve(x => x.Sku), line.Resolve(x => x.Detail.Note));
@@ -49,7 +49,7 @@ public class PropertyValidationMetadataTests
     public void WriteTo_WritesThePropertyPathAsName()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
         validation.AddProperty(x => x.Customer.FirstName, "C1", "f");
         var metadata = Assert.Single(validation.ToValidationEntries()).Metadata!;
 
@@ -64,7 +64,7 @@ public class PropertyValidationMetadataTests
     public void GetClrPath_OfNull_IsEmpty()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create();
+        using var validation = new ValidationBuilder<Order>();
         validation.Add("C1", "[{other}]", new ProbeMetadata(validation.Resolve(x => x.Customer)));
 
         // Act
@@ -78,7 +78,7 @@ public class PropertyValidationMetadataTests
     public void MetadataWithoutTryWrite_KeepsEveryPlaceholderLiterally()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create();
+        using var validation = new ValidationBuilder<Order>();
         validation.Add("C1", "{a} and {b:N2}", new EmptyMetadata());
 
         // Act

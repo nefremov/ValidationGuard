@@ -24,7 +24,7 @@ public class ReferenceErrorTests
     public void AddReferenceNotFound_InNestedBuilderWithNonGuidKey_UsesTheFullPath()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
         using (var line = validation.For(x => x.Lines[1]))
         {
             line.AddReferenceNotFound("OrderLine", x => x.Sku, "Product", "CH-12");
@@ -44,7 +44,7 @@ public class ReferenceErrorTests
     public void AddReferenceNotFound_BlankReferencedEntity_Throws(string referencedEntity)
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create();
+        using var validation = new ValidationBuilder<Order>();
 
         // Act & Assert
         Assert.ThrowsAny<ArgumentException>(
@@ -52,7 +52,7 @@ public class ReferenceErrorTests
     }
 
     [Fact]
-    public void EntityName_IsTextInTheDetailAndAStringInJson()
+    public void ReferencedEntity_IsTextInTheDetailAndAStringInJson()
     {
         // Act
         var entry = SingleEntry(v => v.AddReferenceNotFound("Order", x => x.Sku, "Product", "CH-12"));
@@ -63,25 +63,49 @@ public class ReferenceErrorTests
     }
 
     [Fact]
-    public void EntityName_RoundTripsThroughJsonAndPrintsItsValue()
+    public void CustomReferenceDefinition_IsValidAndUsesItsValueKey()
     {
         // Arrange
-        var name = new EntityName("Customer");
+        var error = new ReferenceErrorDefinition<int>("X1", "{name} = {id} refers to no {referenced_entity}", "id");
+        ErrorDefinitionValidator.Validate(error);
 
         // Act
-        var json = System.Text.Json.JsonSerializer.Serialize(name);
-        var restored = System.Text.Json.JsonSerializer.Deserialize<EntityName>(json);
+        var entry = SingleEntry(v => v.Add(error, "Order", x => x.Quantity, "Warehouse", 7));
 
         // Assert
-        Assert.Equal("\"Customer\"", json);
-        Assert.Equal(name, restored);
-        Assert.Equal("Customer", name.ToString());
+        Assert.Equal("quantity = 7 refers to no Warehouse", entry.Detail);
+        MetadataJson.AssertEntries(entry,
+            ("entity", "Order"), ("name", "quantity"), ("referenced_entity", "Warehouse"), ("id", 7));
+    }
+
+    [Theory]
+    [InlineData("{name} = {value} is missing", "Format does not use '{referenced_entity}'")]
+    [InlineData("{name} = {value} refers to no {referenced_entity}", null)]
+    public void ReferenceDefinition_RequiresTheReferencedEntityPlaceholder(string format, string? expectedProblem)
+    {
+        // Act
+        var exception = Record.Exception(() => ErrorDefinitionValidator.Validate(new ReferenceErrorDefinition<int>("X1", format)));
+
+        // Assert
+        if (expectedProblem is null)
+        {
+            Assert.Null(exception);
+        }
+        else
+        {
+            Assert.Contains(expectedProblem, Assert.IsType<ArgumentException>(exception).Message);
+        }
     }
 
     [Fact]
-    public void EntityName_RenderWithNullWriter_Throws()
+    public void Add_BlankReferencedEntity_Throws()
     {
+        // Arrange
+        using var validation = new ValidationBuilder<Order>();
+
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new EntityName("Customer").Render(null!));
+        var exception = Assert.Throws<ArgumentException>(
+            () => validation.AddReferenceNotFound("Order", x => x.Sku, " ", "CH-12"));
+        Assert.Equal("referencedEntity", exception.ParamName);
     }
 }

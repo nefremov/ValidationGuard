@@ -23,7 +23,7 @@ var order = new Order
 };
 
 // The builder is disposable: once disposed, it rejects further entries.
-using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
 
 // Common errors: stable codes, typed values, {name} filled with the property path.
 validation.AddNotFound("Customer", x => x.CustomerId, order.CustomerId);

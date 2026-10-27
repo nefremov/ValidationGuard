@@ -3,4 +3,15 @@
   <PropertyGroup>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <!--
+    Tests run under the invariant culture; a test that needs another switches to it with CultureScope.
+    DictionaryStringLocalizer is an IStringLocalizer over in-memory resources.
+  -->
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Shared\*.cs" Link="Shared\%(Filename)%(Extension)" />
+    <PackageReference Include="Microsoft.Extensions.Localization" />
+    <Content Include="$(MSBuildThisFileDirectory)Shared\xunit.runner.json" Link="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+    <Using Include="ValidationGuard.Testing" />
+  </ItemGroup>
 </Project>

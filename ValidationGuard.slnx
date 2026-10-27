@@ -45,4 +45,9 @@
     <Project Path="tests/ValidationGuard.Http.Tests.Unit/ValidationGuard.Http.Tests.Unit.csproj" />
     <Project Path="tests/ValidationGuard.Tests.Unit/ValidationGuard.Tests.Unit.csproj" />
   </Folder>
+  <Folder Name="/tests/Shared/">
+    <File Path="tests/Shared/CultureScope.cs" />
+    <File Path="tests/Shared/DictionaryStringLocalizer.cs" />
+    <File Path="tests/Shared/xunit.runner.json" />
+  </Folder>
 </Solution>

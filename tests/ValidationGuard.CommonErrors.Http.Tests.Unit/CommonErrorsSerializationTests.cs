@@ -11,7 +11,7 @@ public class CommonErrorsSerializationTests
     {
         // Arrange
         var customerId = Guid.Parse("11111111-1111-1111-1111-111111111111");
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
         validation.AddNotFound("Customer", x => x.CustomerId, customerId);
         using (var line = validation.For(x => x.Lines[2]))
         {
