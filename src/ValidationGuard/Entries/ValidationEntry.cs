@@ -13,7 +13,7 @@ public sealed record ValidationEntry(
     string Code,
     string Format,
     string Detail,
-    ValidationMetadata? Metadata = null) : IValidationEntryBase
+    ValidationMetadata? Metadata = null)
 {
     /// <summary>
     /// The RFC 6901 JSON Pointer of what the entry is about, such as <c>/lines/2/sku</c>, in the builders' naming

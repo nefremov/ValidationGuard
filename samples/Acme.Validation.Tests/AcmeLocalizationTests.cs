@@ -1,4 +1,3 @@
-using System.Globalization;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -10,8 +9,6 @@ namespace Acme.Validation.Tests;
 // The German translations Acme ships: every definition translated with the right placeholders, and rendered.
 public class AcmeLocalizationTests
 {
-    private static readonly CultureInfo German = CultureInfo.GetCultureInfo("de-DE");
-
     // As an application gets it from dependency injection (AddLocalization), with a ResourcesPath of its own: Acme's
     // [ResourceLocation] still finds Acme's resources.
     private static readonly IStringLocalizer Localizer = new StringLocalizer<AcmeMessages>(
@@ -19,12 +16,12 @@ public class AcmeLocalizationTests
             Options.Create(new LocalizationOptions { ResourcesPath = "Translations" }), NullLoggerFactory.Instance));
 
     [Fact]
-    public void GermanTranslations_CoverEveryDefinitionWithTheirPlaceholders()
+    public void ShippedTranslations_CoverEveryDefinitionWithTheirPlaceholders()
     {
-        // Act
-        var plain = ErrorDefinitionValidator.ValidateLocalizations(typeof(AcmeErrors), Localizer, German, requireAll: true);
+        // Act: every culture Acme ships a satellite resource assembly for (German only, so far).
+        var plain = ErrorDefinitionValidator.ValidateLocalizations(typeof(AcmeErrors), Localizer, requireAll: true);
         var generic = ErrorDefinitionValidator.ValidateLocalizations(
-            typeof(AcmeErrors.Range<int>), Localizer, German, requireAll: true);
+            typeof(AcmeErrors.Range<int>), Localizer, requireAll: true);
 
         // Assert
         Assert.Equal((2, 1), (plain, generic));
@@ -47,9 +44,9 @@ public class AcmeLocalizationTests
         var details = validation.ToValidationEntries().ToDictionary(e => e.Pointer, e => e.Detail);
 
         // Assert
-        Assert.Equal("Produkt mit lines[0].sku = \"CH-12\" wird nicht mehr geführt", details["/lines/0"]);
+        Assert.Equal("Produkt mit Lines[0].Sku = \"CH-12\" wird nicht mehr geführt", details["/lines/0"]);
         Assert.Equal(
-            "Wert 1.234,50 EUR für total übersteigt das verfügbare Guthaben von 100,00 EUR", details["/total"]);
+            "Wert 1.234,50 EUR für Total übersteigt das verfügbare Guthaben von 100,00 EUR", details["/total"]);
     }
 
     [Fact]

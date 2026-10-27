@@ -11,7 +11,7 @@ internal static class Accessor
     {
         using var validation = nameConverter is null
             ? new ValidationBuilder<Root>()
-            : new ValidationBuilder<Root>(nameConverter);
+            : new ValidationBuilder<Root>(new ValidationOptions { NameConverter = nameConverter });
         validation.AddProperty(accessor, "C1", "f");
         return Assert.Single(validation.ToValidationEntries()).Pointer;
     }

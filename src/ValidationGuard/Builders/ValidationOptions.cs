@@ -3,7 +3,7 @@ using Microsoft.Extensions.Localization;
 namespace ValidationGuard;
 
 /// <summary>
-/// How a builder renders its entries: the naming convention of paths, how text and values are written into a detail,
+/// How a builder renders its entries: the naming convention of pointers, how text and values are written into a detail,
 /// and the localizers of the messages.
 /// </summary>
 /// <remarks>
@@ -22,8 +22,9 @@ namespace ValidationGuard;
 public sealed class ValidationOptions
 {
     /// <summary>
-    /// The naming convention of member names in pointers and property paths, for example
-    /// <see cref="NameConverters.CamelCase"/>; the default is <see cref="NameConverters.PascalCase"/>.
+    /// The naming convention of member names in JSON pointers, for example <see cref="NameConverters.CamelCase"/>; the
+    /// default is <see cref="NameConverters.PascalCase"/>. Readable property paths (<c>{name}</c>) keep the names as
+    /// declared in C#, or their translations.
     /// </summary>
     public IPathFragmentNameConverter NameConverter
     {
@@ -33,23 +34,13 @@ public sealed class ValidationOptions
 
     /// <summary>
     /// The localizers of the rendered messages, asked in order for the current UI culture: the first that translates a
-    /// format, an entity or a member name wins. A format is looked up by the key <see cref="LocalizationKeySelector"/>
-    /// chooses; entity and member names by the names themselves. Empty by default: messages are rendered as
-    /// defined. A library ships resources for its codes and entities, and an application adds its own localizer for
-    /// its codes, entities and members, typically <c>IStringLocalizer&lt;T&gt;</c> from dependency injection.
+    /// format, an entity or a member name wins. Each is looked up by its own text: a format such as
+    /// <c>Value for {name} is required</c>, an entity name such as <c>Customer</c>, a member name such as
+    /// <c>FirstName</c>. Empty by default: messages are rendered as defined. A library ships resources for its formats
+    /// and entities, and an application adds its own localizer for its formats, entities and members, typically
+    /// <c>IStringLocalizer&lt;T&gt;</c> from dependency injection.
     /// </summary>
     public IList<IStringLocalizer> Localizers { get; } = new List<IStringLocalizer>();
-
-    /// <summary>The default <see cref="LocalizationKeySelector"/>: the entry's code.</summary>
-    public static Func<IValidationEntryBase, string> DefaultLocalizationKeySelector { get; } = static entry => entry.Code;
-
-    /// <summary>
-    /// Chooses the key an entry's format is looked up by in <see cref="Localizers"/>:
-    /// <see cref="DefaultLocalizationKeySelector"/> (the code) by default, also when set to <see langword="null"/>, or
-    /// for example <c>entry =&gt; entry.Format</c> for resources keyed by the formats themselves. With the code, formats
-    /// sharing a code (such as the 1-, 2- and 3-key variants of an entity error) share one translation.
-    /// </summary>
-    public Func<IValidationEntryBase, string> LocalizationKeySelector { get; set; } = DefaultLocalizationKeySelector;
 
     /// <summary>The default <see cref="WriteText"/>: text as is.</summary>
     public static Func<string, string> DefaultWriteText { get; } = static text => text;

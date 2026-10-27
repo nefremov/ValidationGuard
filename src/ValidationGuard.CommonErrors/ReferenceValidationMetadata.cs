@@ -11,13 +11,12 @@ internal sealed class ReferenceValidationMetadata<T>(
     string referencedEntity,
     T value) : PropertyDefinitionValidationMetadata(definition, entity, property)
 {
-    // The referenced entity's name as recorded, and as rendered: localized when a localizer translates it.
-    private readonly string _recordedReferencedEntity = referencedEntity;
+    // The referenced entity's name as passed to Add, localized when the entry is rendered (once), as the entity's.
     private string _referencedEntity = referencedEntity;
 
     protected override string RenderDetail(string format, ValidationMessageWriter writer)
     {
-        _referencedEntity = writer.LocalizeEntity(_recordedReferencedEntity);
+        _referencedEntity = writer.Localize(_referencedEntity);
         return base.RenderDetail(format, writer);
     }
 
@@ -39,6 +38,7 @@ internal sealed class ReferenceValidationMetadata<T>(
 
     protected override void WriteSlots(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
+        base.WriteSlots(writer, options);
         writer.WriteString(Keys[2], _referencedEntity);
         WriteValue(writer, Keys[3], value, options);
     }

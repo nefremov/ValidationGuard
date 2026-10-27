@@ -37,7 +37,7 @@ public class ValidationResultsTests
     {
         // Arrange
         ValidationProblemResult result;
-        using (var validation = new ValidationBuilder<Order>(NameConverters.CamelCase))
+        using (var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase }))
         {
             validation.AddProperty(x => x.Sku, "A409", "SKU is retired.");
             result = Problem(validation);
@@ -127,7 +127,7 @@ public class ValidationResultsTests
 
     internal static ValidationBuilder<Order> BuilderWithEntry(string code, string detail)
     {
-        var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
+        var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         validation.AddProperty(x => x.Sku, code, detail);
         return validation;
     }

@@ -13,6 +13,11 @@ namespace ValidationGuard;
 /// (<see cref="ValidationBuilder{TContext}.ToValidationEntries"/>), by calling <see cref="RenderDetail"/> once per
 /// entry. The metadata type decides how: by default it fills the format's placeholders through
 /// <see cref="TryWrite"/>.
+/// <para>
+/// A metadata instance belongs to one entry: create a new one for each <c>Add</c>. Metadata keeps what it captures
+/// while rendering (such as <see cref="PropertyValidationMetadata.Name"/> or a localized entity name) for
+/// <see cref="WriteTo"/>, so an instance shared by two entries writes the last rendered entry's state for both.
+/// </para>
 /// </remarks>
 public abstract class ValidationMetadata
 {

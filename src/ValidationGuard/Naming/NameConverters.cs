@@ -1,7 +1,7 @@
 namespace ValidationGuard;
 
 /// <summary>
-/// The built-in naming conventions for member names in pointers and property paths. Pass one to a
+/// The built-in naming conventions for member names in JSON pointers. Pass one to a
 /// <see cref="ValidationBuilder{TContext}"/> constructor or set it as <see cref="ValidationOptions.NameConverter"/>, or
 /// implement <see cref="IPathFragmentNameConverter"/> for another.
 /// </summary>

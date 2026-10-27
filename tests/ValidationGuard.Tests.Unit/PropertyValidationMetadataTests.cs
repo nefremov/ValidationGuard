@@ -7,7 +7,7 @@ public class PropertyValidationMetadataTests
     public void RenderDetail_FillsNameAndCapturesIt()
     {
         // Arrange
-        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         validation.Add("C1", "{name} is bad", new ProbeMetadata(validation.Resolve(x => x.Customer.FirstName)));
 
         // Act
@@ -15,15 +15,15 @@ public class PropertyValidationMetadataTests
 
         // Assert
         Assert.Equal("/customer/firstName", entry.Pointer);
-        Assert.Equal(("C1", "{name} is bad", "customer.firstName is bad"), (entry.Code, entry.Format, entry.Detail));
-        Assert.Equal("customer.firstName", Assert.IsType<ProbeMetadata>(entry.Metadata).Name);
+        Assert.Equal(("C1", "{name} is bad", "Customer.FirstName is bad"), (entry.Code, entry.Format, entry.Detail));
+        Assert.Equal("Customer.FirstName", Assert.IsType<ProbeMetadata>(entry.Metadata).Name);
     }
 
     [Fact]
     public void GetClrPath_RendersAnotherPropertyAfterTheBuilderPath()
     {
         // Arrange
-        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         using (var line = validation.For(x => x.Lines[2]))
         {
             var metadata = new ProbeMetadata(line.Resolve(x => x.Sku), line.Resolve(x => x.Detail.Note));
@@ -35,7 +35,7 @@ public class PropertyValidationMetadataTests
 
         // Assert
         Assert.Equal("/lines/2/sku", entry.Pointer);
-        Assert.Equal("lines[2].sku conflicts with lines[2].detail.note", entry.Detail);
+        Assert.Equal("Lines[2].Sku conflicts with Lines[2].Detail.Note", entry.Detail);
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public class PropertyValidationMetadataTests
     public void WriteTo_WritesThePropertyPathAsName()
     {
         // Arrange
-        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         validation.AddProperty(x => x.Customer.FirstName, "C1", "f");
         var metadata = Assert.Single(validation.ToValidationEntries()).Metadata!;
 
@@ -57,7 +57,7 @@ public class PropertyValidationMetadataTests
         var json = ToJson(metadata);
 
         // Assert
-        Assert.Equal("""{"name":"customer.firstName"}""", json);
+        Assert.Equal("""{"name":"Customer.FirstName"}""", json);
     }
 
     [Fact]

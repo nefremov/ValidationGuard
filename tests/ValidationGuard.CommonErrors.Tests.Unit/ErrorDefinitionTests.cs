@@ -16,7 +16,7 @@ public class ErrorDefinitionTests
         Assert.Equal("/age", entry.Pointer);
         Assert.Equal("ACME0001", entry.Code);
         Assert.Equal("Value {value} for {name} must be between {min} and {max}", entry.Format);
-        Assert.Equal("Value 12 for age must be between 18 and 65", entry.Detail);
+        Assert.Equal("Value 12 for Age must be between 18 and 65", entry.Detail);
         Assert.Equal(["entity", "name", "value", "min", "max"], MetadataJson.Keys(entry));
         MetadataJson.AssertValue(entry, "value", 12);
         MetadataJson.AssertValue(entry, "max", 65);
@@ -33,8 +33,8 @@ public class ErrorDefinitionTests
 
         // Assert
         Assert.Equal("/email", entry.Pointer);
-        Assert.Equal("Value for Customer email is required", entry.Detail);
-        MetadataJson.AssertEntries(entry, ("entity", "Customer"), ("name", "email"));
+        Assert.Equal("Value for Customer Email is required", entry.Detail);
+        MetadataJson.AssertEntries(entry, ("entity", "Customer"), ("name", "Email"));
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public class ErrorDefinitionTests
         var entry = SingleEntry(v => v.Add(SampleErrors.Required, "Order", x => x.Email));
 
         // Assert
-        Assert.Equal("Value for email is required", entry.Detail);
+        Assert.Equal("Value for Email is required", entry.Detail);
         Assert.Equal(["entity", "name"], MetadataJson.Keys(entry));
     }
 
@@ -71,7 +71,7 @@ public class ErrorDefinitionTests
         var entry = SingleEntry(v => v.Add(SampleErrors.InvalidFormat, "Order", x => x.Email, "^.+@.+$"));
 
         // Assert
-        Assert.Equal("Value for email does not match \"^.+@.+$\"", entry.Detail);
+        Assert.Equal("Value for Email does not match \"^.+@.+$\"", entry.Detail);
         MetadataJson.AssertValue(entry, "pattern", "^.+@.+$");
     }
 
@@ -85,7 +85,7 @@ public class ErrorDefinitionTests
         var entry = SingleEntry(v => v.Add(SampleErrors.TooHeavy, "Order", x => x.Weight, 12.5m, "kg"));
 
         // Assert
-        Assert.Equal("Value 12,5 \"kg\" for weight is too heavy", entry.Detail);
+        Assert.Equal("Value 12,5 \"kg\" for Weight is too heavy", entry.Detail);
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public class ErrorDefinitionTests
         var entry = SingleEntry(v => v.Add(error, "Order", x => x.Weight, 12.5m));
 
         // Assert
-        Assert.Equal("Value 12.50 for weight is invalid", entry.Detail);
+        Assert.Equal("Value 12.50 for Weight is invalid", entry.Detail);
         MetadataJson.AssertValue(entry, "value", 12.5m);
     }
 
@@ -112,7 +112,7 @@ public class ErrorDefinitionTests
         // Assert
         Assert.Equal(string.Empty, entry.Pointer);
         Assert.Equal("ACME0004", entry.Code);
-        Assert.Equal("Article with slug = \"hello-world\" is taken", entry.Detail);
+        Assert.Equal("Article with Slug = \"hello-world\" is taken", entry.Detail);
         Assert.Equal(["entity", "name", "value"], MetadataJson.Keys(entry));
     }
 
@@ -291,7 +291,7 @@ public class ErrorDefinitionTests
         var entry = SingleEntry(v => v.Add(error, "Order", x => x.Email));
 
         // Assert
-        Assert.Equal("Value for email is {bogus}", entry.Detail);
+        Assert.Equal("Value for Email is {bogus}", entry.Detail);
     }
 
     [Fact]
@@ -304,6 +304,6 @@ public class ErrorDefinitionTests
         var entry = SingleEntry(v => v.Add(error, "Order", x => x.Slug, "s"));
 
         // Assert
-        Assert.Equal("Order with slug = \"s\" is {bogus}", entry.Detail);
+        Assert.Equal("Order with Slug = \"s\" is {bogus}", entry.Detail);
     }
 }

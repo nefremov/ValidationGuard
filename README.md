@@ -22,7 +22,8 @@ whether a value is invalid.
 ```csharp
 using ValidationGuard.CommonErrors;
 
-using var validation = new ValidationBuilder<CreateOrder>(NameConverters.CamelCase);
+var options = new ValidationOptions { NameConverter = NameConverters.CamelCase }; // or IOptions<ValidationOptions>.Value
+using var validation = new ValidationBuilder<CreateOrder>(options);
 
 if (!customers.Exists(request.CustomerId))
     validation.AddNotFound("Customer", x => x.CustomerId, request.CustomerId);
@@ -36,8 +37,8 @@ produces
 ```json
 { "pointer": "", "code": "VG0001",
   "format": "{entity} with {name} = {value} does not exist",
-  "detail": "Customer with customerId = \"3f2b...e1\" does not exist",
-  "metadata": { "entity": "Customer", "name": "customerId", "value": "3f2b...e1" } }
+  "detail": "Customer with CustomerId = \"3f2b...e1\" does not exist",
+  "metadata": { "entity": "Customer", "name": "CustomerId", "value": "3f2b...e1" } }
 ```
 
 | Code | Method | Format | HTTP |
@@ -61,17 +62,18 @@ produces
 
 - Entity errors take the entity first, then one to three key property/value pairs, each with its own type:
   `AddNotFound("OrderLine", x => x.OrderId, orderId, x => x.LineId, lineId)` produces
-  `OrderLine with orderId = "3f2b...e1" and lineId = "9c1d...07" does not exist`;
+  `OrderLine with OrderId = "3f2b...e1" and LineId = "9c1d...07" does not exist`;
   `AddNotUnique("Product", x => x.Sku, sku, x => x.VendorId, vendorId)` produces
-  `Product with sku = "CH-12" and vendorId = "3f2b...e1" already exists`. The key properties are symmetric: the entry points
+  `Product with Sku = "CH-12" and VendorId = "3f2b...e1" already exists`. The key properties are symmetric: the entry points
   at the builder's scope (the entity), and every property's path and value appear in the message and metadata.
   Both "already exists" messages read alike, but the codes differ so clients can tell them apart:
   `AddAlreadyExists` reports a primary-key conflict (`VG0010`), `AddNotUnique` a unique-constraint
   conflict (`VG0011`).
 - Every error is about an entity, passed first: property errors too, e.g. `AddNull("Customer", x => x.Email)`. The
   entity is always in `metadata` (`"entity": "Customer"`); the built-in property formats do not show it.
-- `{name}` is the property's path from the root in the builder's naming convention, e.g. `customerId`,
-  `address.city`, `lines[2].sku` or `tags["a/b"]`; it includes the scope of nested builders.
+- `{name}` is the property's path from the root with member names as declared in C#, e.g. `CustomerId`,
+  `Address.City`, `Lines[2].Sku` or `Tags["a/b"]`, or as translated (see [Localization](#localization)); it includes
+  the scope of nested builders. The naming convention (`NameConverter`) applies to pointers only: `/lines/2/sku`.
 - Range methods take the offending value and the bound, e.g. `AddLessThan("Order", x => x.Quantity, request.Quantity, 1)`;
   both appear in `detail` and `metadata`. Values in `detail` are formatted with the current culture (see
   [Localization](#localization)).
@@ -111,16 +113,16 @@ public static class AcmeErrors
 }
 
 validation.Add(AcmeErrors.NotBetween, "Customer", x => x.Age, request.Age, 18, 65);
-// "Value 12 for age must be between 18 and 65"   metadata: entity, name, value, min, max
+// "Value 12 for Age must be between 18 and 65"   metadata: entity, name, value, min, max
 validation.Add(AcmeErrors.SlugTaken, "Article", x => x.Slug, request.Slug);
-// "Article with slug = \"hello-world\" is taken"             metadata: entity, name, value
+// "Article with Slug = \"hello-world\" is taken"             metadata: entity, name, value
 ```
 
 | Type | Built-in placeholders | Other placeholders |
 |------|-----------------------|--------------------|
 | `EntityErrorDefinition` (1, 2 or 3 key properties) | `{entity}`, passed to `Add` | a `{name}`/`{value}` pair per key property (`{name1}`, `{value1}` ... for 2 or 3), typed by its accessor |
 | `PropertyErrorDefinition`, `PropertyErrorDefinition<T1>` ... `<T1, T2, T3>` (derive from `EntityErrorDefinition`) | `{entity}`, passed to `Add`, optional in the format; `{name}`, from the accessor | 0-3 typed arguments with declared keys |
-| `ReferenceErrorDefinition<T>` (derives from `EntityErrorDefinition`) | as a property error, plus `{referenced_entity}`, the referenced entity's name passed to `Add` | the key value of type `T` (`{value}`, or the key passed to the constructor) |
+| `ReferenceErrorDefinition<T>` (derives from `EntityErrorDefinition`) | as a property error, plus `{referenced_entity}`, the referenced entity's name passed to `Add` | the key value of type `T` (`{value}`, or the key passed to the constructor), which may differ from the property's type (`int` for an `int?` property) |
 
 - Every placeholder must be a built-in or declared key, and every key must appear in the format (except a property
   error's `{entity}`). This is not
@@ -154,11 +156,11 @@ app.MapPost("/orders", (CreateOrder order, IOptions<ValidationOptions> options) 
 });
 ```
 
-- `NameConverter`: the naming convention of paths; `new ValidationBuilder<T>(NameConverters.CamelCase)` keeps the
-  other defaults.
+- `NameConverter`: the naming convention of member names in JSON pointers (`/customerId`); readable paths keep the
+  declared names (`CustomerId`). PascalCase by default.
 - `WriteValue`: a `Func<object?, string?, string>`, `(value, format) => text`, writing each placeholder
   value; `ValidationOptions.DefaultWriteValue` (`FormatValue`) by default, and also when set to `null`. It
-  double-quotes strings and `Guid`s (escaping `"` and `\`), so `Value "XX" for country must be one of "CH", "DE"`
+  double-quotes strings and `Guid`s (escaping `"` and `\`), so `Value "XX" for Country must be one of "CH", "DE"`
   shows empty strings and tells the string `"null"` from `null`; other values use the current culture and the format
   specifier. With the default the writer applies these rules itself, without boxing. Set another delegate to change
   quoting or the format of any type, falling back to `ValidationOptions.FormatValue` for the rest; values are then
@@ -168,11 +170,11 @@ app.MapPost("/orders", (CreateOrder order, IOptions<ValidationOptions> options) 
   text is never passed to it.
 - `Localizers`: the `IStringLocalizer`s translating formats, entity names and member names (see
   [Localization](#localization)); none by default.
-- `LocalizationKeySelector`: the key a format is looked up by, `entry => entry.Code` by default, or for example
-  `entry => entry.Format`.
 
 An entry's `metadata` is a `ValidationMetadata`, not a dictionary. A metadata type keeps its values typed, decides
-how the entry's detail is rendered, and writes itself to JSON as a map:
+how the entry's detail is rendered, and writes itself to JSON as a map. A metadata instance belongs to one entry: it
+keeps what it captures while rendering (the property path, localized names) for its JSON, so create a new one for each
+`Add`; an instance shared by two entries writes the last rendered entry's state for both.
 
 ```csharp
 public abstract class ValidationMetadata
@@ -186,8 +188,12 @@ public abstract class ValidationMetadata
 - Builders record entries as they are added and render them only in `ToValidationEntries()`: pointers, property
   paths (`{name}`), and every detail are produced there, from the builder hierarchy.
 - `ToValidationEntries()` completes the builder: each entry is rendered once, later calls return the same entries,
-  and adding an entry or a nested builder afterwards throws `InvalidOperationException`. To check for errors without
-  completing, use `validation.Valid` (no entry in the builder or its nested builders).
+  and adding an entry or a nested builder afterwards throws `InvalidOperationException`. This holds even if rendering
+  fails (a custom metadata type or `WriteText` throwing): later calls rethrow that exception instead of rendering
+  again. To check for errors without completing, use `validation.Valid` (no entry in the builder or its nested
+  builders); `ThrowIfInvalid()` completes the builder only when it throws.
+- Entries are ordered by pointer, code, then format as added (before translation), so the order is the same in every
+  culture; entries equal in all three keep the order they were added in.
 - An entry about a property carries it in a `PropertyValidationMetadata`, which the entry's pointer comes from. It fills
   `{name}` with the property's readable path and writes it to JSON as `name`, whether or not the format uses it.
   `validation.AddProperty(x => x.Age, "AGE001", "Age is required")` creates one for you; a custom type derives from it and
@@ -207,8 +213,9 @@ public abstract class ValidationMetadata
   `{name1}` ...) are written with `WriteText`, unquoted; argument values with `WriteValue`, so a string argument is
   quoted. Write a name with `WriteText` in custom metadata too.
 - A placeholder may carry a format specifier after `:`, applied with the current culture to values written with
-  `writer.WriteValue`: `{value:N2}`, `{date:yyyy-MM-dd}`, `{at:HH:mm}`. `TryWrite` receives only the key; an invalid
-  specifier throws `FormatException` when entries are rendered, and an unknown key is kept literally with its
+  `writer.WriteValue`: `{value:N2}`, `{date:yyyy-MM-dd}`, `{at:HH:mm}`. `TryWrite` receives only the key, and
+  `writer.FormatSpecifier` the specifier, for metadata writing a value its own way. A specifier that is not valid for
+  the value (`{value:Q}`) is ignored, and the value written as without one; an unknown key is kept literally with its
   specifier.
 - `ErrorDefinitionValidator.GetPlaceholders(format)` (in `ValidationGuard.CommonErrors`) returns a format's placeholder
   keys, without specifiers, read by rendering the format with the builder's own grammar (`{` up to the next `}`), for
@@ -252,22 +259,24 @@ Resource keys:
 
 | Translated | Key | Example |
 |------------|-----|---------|
-| A format | `ValidationOptions.LocalizationKeySelector(entry)`: the code by default | `ACME0001`, or with `entry => entry.Format`, `Value for {name} is required` |
+| A format | the format as defined, in English | `Value for {name} is required` |
 | An entity name | the name | `Product` |
 | A member name in a path | the CLR member name | `Sku` (the translation is written as is, without `NameConverter`) |
 
-- `LocalizationKeySelector` is a `Func<IValidationEntryBase, string>`; `IValidationEntryBase` exposes the entry's
-  `Code` and `Format`. The default, `ValidationOptions.DefaultLocalizationKeySelector`, also applies when it is set to
-  `null`. Codes are stable across rewordings; formats as keys suit entries added with ad-hoc formats.
-- With code keys, formats sharing a code share a translation, so it must fit each of them: the 1-, 2- and 3-key
-  variants of `NotFound`, `AlreadyExists` and `NotUnique`, and the four `OutOfRange` variants. Key by format to
-  translate each variant on its own.
+- A format is its own key, so every format gets its own translation: the 1-, 2- and 3-key variants of `NotFound`, the
+  four `OutOfRange` variants, and different ad-hoc formats added under one code. The built-in formats are the
+  constants of `CommonErrorFormats`.
+- Rewording a format changes its key, so its translations must be re-keyed; `ValidateLocalizations` with `requireAll`
+  reports the ones left behind.
 - An entity and a member of the same name share a translation.
 - `localizer.Translate(key)` performs these lookups, returning `null` when the resource is not found.
+- Localization never fails a response: a localizer that throws leaves the text untranslated, and a translated
+  specifier that is not valid for the value is ignored.
 - A localized format may use specifiers and reorder placeholders, but must use the same keys.
   `ErrorDefinitionValidator.ValidateLocalizedFormat(definition, translation)` checks one translation;
-  `ValidateLocalizations` checks a whole set (see below).
-- In a custom metadata type, `writer.LocalizeEntity(name)` returns an entity's translation (or the name itself), and
+  `ValidateLocalizations` checks a whole set (see below). Specifiers are checked where the value's type is known (the
+  typed values of property and reference definitions); an entity error's key values are typed only where it is added.
+- In a custom metadata type, `writer.Localize(name)` returns an entity name's translation (or the name itself), and
   `writer.Culture` the culture values are formatted with.
 
 #### Localizing a library that extends ValidationGuard
@@ -284,7 +293,7 @@ location, so the lookup does not depend on the `ResourcesPath` the application c
 Acme.Validation/
   AcmeMessages.cs                  marker type + [assembly: ResourceLocation("Resources")]
   Resources/AcmeMessages.resx      neutral: empty, so cultures without a translation keep the defined (English) formats
-  Resources/AcmeMessages.de.resx   German: ACME0001 ... by code, Product by name
+  Resources/AcmeMessages.de.resx   German: formats keyed by their English text, Product by name
 ```
 
 ```csharp
@@ -306,20 +315,17 @@ public sealed class AcmeMessages;
 - The marker type's namespace and the folder make the resource name (`Acme.Validation.Resources.AcmeMessages`). If
   the library's root namespace differs from its assembly name, also add `[assembly: RootNamespace("...")]`.
 
-**Keys.** Key formats by code, the default `LocalizationKeySelector`, and document it: codes are stable across
-rewordings, while format keys break whenever the English text changes.
+**Keys.** Formats are keyed by their English text, exactly as defined (`Value {value} for {name} must be between {min}
+and {max}`), so each definition has its own translation.
 
-- The selector is one per `ValidationOptions` and applies to every localizer. An application that switches to
-  `entry => entry.Format` no longer finds code-keyed library translations; a library that wants to support both ships
-  each translation under both keys.
-- Definitions sharing a code share a code-keyed translation, which must then fit each of their formats. Give each
-  format its own code if it needs its own translation.
+- Rewording a format in a new version changes its key: re-key its translations in the same change. The translation
+  test below (with `requireAll`) fails until every definition is translated again.
 - Entity names are keyed by the name as passed to `Add` (`Product`). Member names are keyed by the CLR member name;
-  a library translates them only for model types of its own (they are written into paths as is, without the
-  `NameConverter`).
+  a library translates them only for model types of its own (they are written into paths as is, like untranslated
+  names).
 
 **Custom metadata.** Formats are translated before the metadata renders them, so a custom metadata type needs no
-localization code of its own except for names: write entity names as `writer.WriteText(writer.LocalizeEntity(name))`,
+localization code of its own except for names: write entity names as `writer.WriteText(writer.Localize(name))`,
 store the localized name if `WriteTo` writes it to JSON, and write values with `writer.WriteValue` so they follow the
 culture. `{name}` (`PropertyValidationMetadata.Name`) is already localized.
 
@@ -336,16 +342,19 @@ private static readonly IStringLocalizer Localizer = new StringLocalizer<AcmeMes
         Options.Create(new LocalizationOptions { ResourcesPath = "Translations" }), NullLoggerFactory.Instance));
 
 [Fact]
-public void GermanTranslations_AreValid() => ErrorDefinitionValidator.ValidateLocalizations(
-    typeof(AcmeErrors), Localizer, CultureInfo.GetCultureInfo("de-DE"), requireAll: true);
+public void Translations_AreValid() => ErrorDefinitionValidator.ValidateLocalizations(
+    typeof(AcmeErrors), Localizer, requireAll: true);
 ```
 
-`ValidateLocalizations` looks up every public static `ErrorDefinition` of the type and its nested types under the
-given culture (set as the current UI culture meanwhile), by the code or the key `localizationKeySelector` chooses. It
-returns the number of translations found and reports, all at once, every translation whose placeholders differ from
-its definition's, and with `requireAll` every missing one. Call it once per holder type, including generic holders
-closed over a type (`typeof(AcmeErrors.Range<int>)`), and once per shipped culture. Also render an entry or two with
-`CultureInfo.CurrentCulture` and `CurrentUICulture` set to the culture, to check the result reads well.
+Without a culture, `ValidateLocalizations` validates every language the library ships: the cultures of the satellite
+resource assemblies next to the type's assembly (`de/Acme.Validation.resources.dll` ...), so a language added later is
+checked without changing the test; it throws when it finds none. Pass a culture, or a list of them, to check those
+only. For each culture (set as the current UI culture meanwhile) it looks up every public static `ErrorDefinition` of
+the type and its nested types, by its format. It returns the number of
+translations found and reports, all at once, every translation whose placeholders differ from its definition's or
+whose specifier is not valid for a value of known type, and with `requireAll` every missing one. Call it once per
+holder type, including generic holders closed over a type (`typeof(AcmeErrors.Range<int>)`). Also render an entry or
+two with `CultureInfo.CurrentCulture` and `CurrentUICulture` set to a culture, to check the result reads well.
 
 **How applications register it.** With `AddLocalization()`, `IStringLocalizer<AcmeMessages>` comes from dependency
 injection; the application adds it after its own localizer, so the application can override any library translation:
@@ -389,9 +398,9 @@ Endpoints return the root builder as a response with `Problem(validation)`, impo
 ```csharp
 using static ValidationGuard.Http.ValidationResults;
 
-app.MapPost("/orders", (Order order) =>
+app.MapPost("/orders", (Order order, IOptions<ValidationOptions> options) =>
 {
-    using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
+    using var validation = new ValidationBuilder<Order>(options.Value);
     // ... add entries ...
     if (!validation.Valid)
         return Problem(validation);
@@ -405,8 +414,24 @@ app.MapPost("/orders", (Order order) =>
   already produced.
 - With `builder.Services.AddProblemDetails(...)`, the response goes through ASP.NET Core's `IProblemDetailsService`, so
   `CustomizeProblemDetails` (a `traceId`, an `instance`) applies to validation problems too.
+- ValidationGuard localizes `detail` and `errors`, not `title`: neither the declared titles (`Title = "Duplicate SKU"`)
+  nor ASP.NET Core's default status titles (`"Not Found"`) are translated. Translate them in `CustomizeProblemDetails`,
+  which runs under the request's culture with the title already set, for example keyed by the English title in the
+  application's resources:
+
+  ```csharp
+  builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = context =>
+  {
+      var titles = context.HttpContext.RequestServices.GetRequiredService<IStringLocalizer<AppMessages>>();
+      if (context.ProblemDetails.Title is { } title && titles.Translate(title) is { } localized)
+      {
+          context.ProblemDetails.Title = localized;
+      }
+  });
+  ```
 - Code that cannot return a result, such as a service, calls `validation.ThrowIfInvalid()`, which throws a
-  `ValidationFailedException` with the entries when there are any. `AddValidationProblems` registers an
+  `ValidationFailedException` with the entries when there are any, and otherwise leaves the builder open for further
+  checks. `AddValidationProblems` registers an
   `IExceptionHandler` that writes the same response; enable it with `app.UseExceptionHandler()` (which needs
   `AddProblemDetails()` when no error path is set).
 - `ValidationProblemFactory.Create(entries)` and `CreateResult(entries)` remain for building the `ProblemDetails`

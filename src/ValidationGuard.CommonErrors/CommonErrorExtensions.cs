@@ -10,9 +10,9 @@ namespace ValidationGuard.CommonErrors;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <c>{name}</c> is a property's path from the document root in the builder's
-/// naming convention (<see cref="NameConverters"/>), for example <c>customerId</c>, <c>address.city</c>,
-/// <c>lines[2].sku</c> or <c>tags["a/b"]</c> under camelCase. It includes the scope of nested builders.
+/// <c>{name}</c> is a property's path from the document root with member names as declared in C# (or translated), for
+/// example <c>CustomerId</c>, <c>Address.City</c>, <c>Lines[2].Sku</c> or <c>Tags["a/b"]</c>; the naming convention
+/// (<see cref="NameConverters"/>) applies to pointers only. It includes the scope of nested builders.
 /// </para>
 /// <para>
 /// Most methods are thin wrappers over <see cref="CommonErrorDefinitions"/>; define your own errors the same way with

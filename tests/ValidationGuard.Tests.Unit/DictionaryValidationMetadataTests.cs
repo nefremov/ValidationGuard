@@ -6,7 +6,7 @@ public class DictionaryValidationMetadataTests
     public void RenderDetail_FillsPlaceholdersFromValues_MetadataIsKeptAsGiven()
     {
         // Arrange
-        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         var metadata = new DictionaryValidationMetadata(new Dictionary<string, object?> { ["max"] = 5, ["unit"] = "items" });
         validation.Add("C1", "At most {max} {unit} ({missing})", metadata);
 

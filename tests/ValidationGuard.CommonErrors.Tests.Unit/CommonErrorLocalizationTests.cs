@@ -8,12 +8,12 @@ public class CommonErrorLocalizationTests
 {
     private static readonly CultureInfo German = CultureInfo.GetCultureInfo("de-DE");
 
-    // German resources keyed by code (the default localization key) and by entity and member names.
+    // German resources keyed by the English format, and by entity and member names.
     private static readonly Dictionary<string, string> GermanResources = new()
     {
-        [CommonErrorCodes.NotFound] = "{entity} mit {name1} = {value1} und {name2} = {value2} existiert nicht",
-        [CommonErrorCodes.LessThan] = "Wert {value} für {name} muss mindestens {min_value} sein",
-        [CommonErrorCodes.ReferenceNotFound] = "Wert {value} für {name} verweist auf kein vorhandenes {referenced_entity}",
+        [CommonErrorFormats.NotFound2] = "{entity} mit {name1} = {value1} und {name2} = {value2} existiert nicht",
+        [CommonErrorFormats.LessThan] = "Wert {value} für {name} muss mindestens {min_value} sein",
+        [CommonErrorFormats.ReferenceNotFound] = "Wert {value} für {name} verweist auf kein vorhandenes {referenced_entity}",
         ["OrderLine"] = "Auftragsposition",
         ["Customer"] = "Kunde",
         ["OrderId"] = "AuftragsId",
@@ -95,7 +95,7 @@ public class CommonErrorLocalizationTests
     }
 
     [Fact]
-    public void FormatKeySelector_TranslatesEachFormatOfASharedCode()
+    public void FormatsSharingACode_AreTranslatedEachByItsText()
     {
         // Arrange
         using var culture = new CultureScope("de-DE");
@@ -104,7 +104,7 @@ public class CommonErrorLocalizationTests
             [CommonErrorFormats.NotFound] = "{entity} mit {name} = {value} existiert nicht",
             [CommonErrorFormats.NotFound2] = "{entity} mit {name1} = {value1} und {name2} = {value2} existiert nicht",
         });
-        var options = new ValidationOptions { LocalizationKeySelector = entry => entry.Format, Localizers = { localizer } };
+        var options = new ValidationOptions { Localizers = { localizer } };
         using var validation = new ValidationBuilder<Order>(options);
         validation.AddNotFound("OrderLine", x => x.OrderId, Id1);
         validation.AddNotFound("OrderLine", x => x.OrderId, Id1, x => x.LineId, Id2);
@@ -136,20 +136,7 @@ public class CommonErrorLocalizationTests
     }
 
     [Fact]
-    public void ValidateLocalizations_SharedCode_TranslationMustFitEveryFormat()
-    {
-        // Act: the VG0001 translation is for two key properties.
-        var exception = Assert.Throws<ArgumentException>(
-            () => ErrorDefinitionValidator.ValidateLocalizations(typeof(CommonErrorDefinitions), Localizer, German));
-
-        // Assert
-        Assert.Contains("CommonErrorDefinitions.NotFound (VG0001)", exception.Message);
-        Assert.Contains("CommonErrorDefinitions.NotFound3 (VG0001)", exception.Message);
-        Assert.DoesNotContain("CommonErrorDefinitions.NotFound2 (VG0001)", exception.Message);
-    }
-
-    [Fact]
-    public void ValidateLocalizations_FormatKeySelector_LooksDefinitionsUpByFormat()
+    public void ValidateLocalizations_LooksEachDefinitionUpByItsFormat()
     {
         // Arrange
         var localizer = new DictionaryStringLocalizer(new Dictionary<string, string>
@@ -158,8 +145,7 @@ public class CommonErrorLocalizationTests
         });
 
         // Act
-        var translated = ErrorDefinitionValidator.ValidateLocalizations(
-            typeof(CommonErrorDefinitions), localizer, German, localizationKeySelector: entry => entry.Format);
+        var translated = ErrorDefinitionValidator.ValidateLocalizations(typeof(CommonErrorDefinitions), localizer, German);
 
         // Assert
         Assert.Equal(1, translated);
@@ -181,7 +167,7 @@ public class CommonErrorLocalizationTests
     public void ValidateLocalizations_InvalidTranslation_IsReported()
     {
         // Arrange
-        var broken = new DictionaryStringLocalizer(new Dictionary<string, string> { ["VG0002"] = "Wert für {nme} fehlt" });
+        var broken = new DictionaryStringLocalizer(new Dictionary<string, string> { [CommonErrorFormats.Null] = "Wert für {nme} fehlt" });
 
         // Act
         var exception = Assert.Throws<ArgumentException>(
@@ -231,7 +217,135 @@ public class CommonErrorLocalizationTests
         Assert.Throws<ArgumentNullException>(
             () => ErrorDefinitionValidator.ValidateLocalizations(typeof(CommonErrorDefinitions), null!, German));
         Assert.Throws<ArgumentNullException>(
-            () => ErrorDefinitionValidator.ValidateLocalizations(typeof(CommonErrorDefinitions), Localizer, null!));
+            () => ErrorDefinitionValidator.ValidateLocalizations(typeof(CommonErrorDefinitions), Localizer, (CultureInfo)null!));
+        Assert.Throws<ArgumentNullException>(() => ErrorDefinitionValidator.ValidateLocalizations(
+            typeof(CommonErrorDefinitions), Localizer, (IEnumerable<CultureInfo>)null!));
+        Assert.Throws<ArgumentNullException>(
+            () => ErrorDefinitionValidator.ValidateLocalizations(typeof(CommonErrorDefinitions), Localizer, [German, null!]));
+        Assert.Throws<ArgumentNullException>(() => ErrorDefinitionValidator.ValidateLocalizations(null!, Localizer));
+    }
+
+    [Fact]
+    public void ValidateLocalizations_SeveralCultures_ReportsEach()
+    {
+        // Act
+        var exception = Assert.Throws<ArgumentException>(() => ErrorDefinitionValidator.ValidateLocalizations(
+            typeof(CommonErrorDefinitions.Comparison<int>), Localizer, [German, CultureInfo.GetCultureInfo("fr-FR")],
+            requireAll: true));
+        var counted = ErrorDefinitionValidator.ValidateLocalizations(
+            typeof(CommonErrorDefinitions.Reference<int>), Localizer, [German, CultureInfo.GetCultureInfo("fr-FR")]);
+
+        // Assert
+        Assert.Contains("LessThan (VG0004): not translated to fr-FR", exception.Message);
+        Assert.DoesNotContain("LessThan (VG0004): not translated to de-DE", exception.Message);
+        Assert.Equal(1, counted);
+    }
+
+    [Fact]
+    public void ValidateLocalizations_ShippedCultures_ValidatesEachSatelliteCulture()
+    {
+        // Arrange: this test assembly ships German resources (Resources/SampleMessages.de.resx).
+        var localizer = new DictionaryStringLocalizer(
+            new Dictionary<string, string> { ["Value for {name} is required"] = "Wert für {name} ist erforderlich" }, culture: "de");
+
+        // Act
+        var translated = ErrorDefinitionValidator.ValidateLocalizations(typeof(SampleErrors), localizer);
+        var exception = Assert.Throws<ArgumentException>(
+            () => ErrorDefinitionValidator.ValidateLocalizations(typeof(SampleErrors), localizer, requireAll: true));
+
+        // Assert
+        Assert.Equal(1, translated);
+        Assert.Contains("SampleErrors.NotBetween (ACME0001): not translated to de.", exception.Message);
+    }
+
+    [Fact]
+    public void ValidateLocalizations_ShippedCultures_RequireSatelliteAssemblies()
+    {
+        // Act: this assembly ships no satellite resource assemblies.
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => ErrorDefinitionValidator.ValidateLocalizations(typeof(CommonErrorDefinitions), Localizer));
+
+        // Assert
+        Assert.Contains("No satellite resource assembly of ValidationGuard.CommonErrors", exception.Message);
+    }
+
+    [Fact]
+    public void FindSatelliteCultures_ReadsCultureDirectoriesHoldingTheAssembly()
+    {
+        // Arrange
+        var directory = Directory.CreateTempSubdirectory().FullName;
+        try
+        {
+            foreach (var (name, withAssembly) in new[] { ("fr-FR", true), ("de", true), ("es", false), ("not-a-Culture", true) })
+            {
+                var subdirectory = Directory.CreateDirectory(Path.Combine(directory, name)).FullName;
+                if (withAssembly)
+                {
+                    File.WriteAllText(Path.Combine(subdirectory, "Lib.resources.dll"), string.Empty);
+                }
+            }
+
+            // Act
+            var cultures = ErrorDefinitionValidator.FindSatelliteCultures(directory, "Lib");
+
+            // Assert
+            Assert.Equal(["de", "fr-FR"], cultures.Select(culture => culture.Name));
+            Assert.Empty(ErrorDefinitionValidator.FindSatelliteCultures(null, "Lib"));
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Theory]
+    [InlineData("Value {value:Q} for {name} must be at least {min_value}", "Format specifier '{value:Q}' is not valid for Int32.")]
+    [InlineData("Value {value:N2} for {name} must be at least {min_value:D3}", null)]
+    [InlineData("Value {value} for {name:Q} must be at least {min_value}", null)]
+    public void ValidateLocalizedFormat_ChecksSpecifiersOfTypedValues(string translation, string? expectedProblem)
+    {
+        // Act
+        var exception = Record.Exception(() => ErrorDefinitionValidator.ValidateLocalizedFormat(
+            CommonErrorDefinitions.Comparison<int>.LessThan, translation));
+
+        // Assert
+        if (expectedProblem is null)
+        {
+            Assert.Null(exception);
+        }
+        else
+        {
+            Assert.Contains(expectedProblem, Assert.IsType<ArgumentException>(exception).Message);
+        }
+    }
+
+    public static TheoryData<ErrorDefinition, string?> SpecifierDefinitions => new()
+    {
+        { new PropertyErrorDefinition<decimal?>("X1", "{name} {value:Q}", "value"), "not valid for Nullable`1" },
+        { new PropertyErrorDefinition<ValueList<int>>("X1", "{name} {allowed:Q}", "allowed"), "not valid for ValueList`1" },
+        { new PropertyErrorDefinition<Guid>("X1", "{name} {id:N}", "id"), null },
+        { new PropertyErrorDefinition<string>("X1", "{name} {value:Q}", "value"), null },
+        { new PropertyErrorDefinition<Uri>("X1", "{name} {value:Q}", "value"), null },
+        { new ReferenceErrorDefinition<int>("X1", "{name} {value:Q} {referenced_entity}"), "'{value:Q}' is not valid for Int32" },
+        { new EntityErrorDefinition("X1", "{entity} {name} {value:Q}"), null },
+    };
+
+    [Theory]
+    [MemberData(nameof(SpecifierDefinitions))]
+    public void Validate_ChecksSpecifiersWhereTheValueTypeIsKnown(ErrorDefinition definition, string? expectedProblem)
+    {
+        // Act
+        var exception = Record.Exception(() => ErrorDefinitionValidator.Validate(definition));
+
+        // Assert
+        if (expectedProblem is null)
+        {
+            Assert.Null(exception);
+        }
+        else
+        {
+            Assert.Contains(expectedProblem, Assert.IsType<ArgumentException>(exception).Message);
+        }
     }
 
     private static ValidationOptions GermanOptions() =>

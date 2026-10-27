@@ -8,10 +8,10 @@ public class RangeErrorTests
     public static TheoryData<string, string, string> ComparisonCases =>
         new()
         {
-            { "LessThan", CommonErrorCodes.LessThan, "Value 0 for quantity must be at least 1" },
-            { "LessThanOrEqual", CommonErrorCodes.LessThanOrEqual, "Value 0 for quantity must be greater than 0" },
-            { "GreaterThan", CommonErrorCodes.GreaterThan, "Value 150 for quantity must be at most 100" },
-            { "GreaterThanOrEqual", CommonErrorCodes.GreaterThanOrEqual, "Value 101 for quantity must be less than 101" },
+            { "LessThan", CommonErrorCodes.LessThan, "Value 0 for Quantity must be at least 1" },
+            { "LessThanOrEqual", CommonErrorCodes.LessThanOrEqual, "Value 0 for Quantity must be greater than 0" },
+            { "GreaterThan", CommonErrorCodes.GreaterThan, "Value 150 for Quantity must be at most 100" },
+            { "GreaterThanOrEqual", CommonErrorCodes.GreaterThanOrEqual, "Value 101 for Quantity must be less than 101" },
         };
 
     [Theory]
@@ -41,7 +41,7 @@ public class RangeErrorTests
         var entry = SingleEntry(v => v.AddLessThan("Order", x => x.Quantity, 0, 1));
 
         // Assert
-        MetadataJson.AssertEntries(entry, ("entity", "Order"), ("name", "quantity"), ("value", 0), ("min_value", 1));
+        MetadataJson.AssertEntries(entry, ("entity", "Order"), ("name", "Quantity"), ("value", 0), ("min_value", 1));
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public class RangeErrorTests
         var entry = SingleEntry(v => v.AddGreaterThan("Order", x => x.Quantity, 150, 100));
 
         // Assert
-        MetadataJson.AssertEntries(entry, ("entity", "Order"), ("name", "quantity"), ("value", 150), ("max_value", 100));
+        MetadataJson.AssertEntries(entry, ("entity", "Order"), ("name", "Quantity"), ("value", 150), ("max_value", 100));
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public class RangeErrorTests
         var entry = SingleEntry(v => v.AddGreaterThan("Order", x => x.Discount, 0.75m, 0.5m));
 
         // Assert
-        Assert.Equal("Value 0.75 for discount must be at most 0.5", entry.Detail);
+        Assert.Equal("Value 0.75 for Discount must be at most 0.5", entry.Detail);
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class RangeErrorTests
         var entry = SingleEntry(v => v.AddLessThan("Order", x => x.Discount, null, 0m));
 
         // Assert
-        Assert.Equal("Value null for discount must be at least 0", entry.Detail);
+        Assert.Equal("Value null for Discount must be at least 0", entry.Detail);
         MetadataJson.AssertValue(entry, "value", null);
     }
 
@@ -83,7 +83,7 @@ public class RangeErrorTests
             v => v.AddLessThan("Order", x => x.DeliveryDate, new DateOnly(2026, 1, 1), new DateOnly(2026, 1, 31)));
 
         // Assert
-        Assert.Equal("Value 01/01/2026 for deliveryDate must be at least 01/31/2026", entry.Detail);
+        Assert.Equal("Value 01/01/2026 for DeliveryDate must be at least 01/31/2026", entry.Detail);
     }
 
     [Fact]
@@ -96,16 +96,16 @@ public class RangeErrorTests
         var entry = SingleEntry(v => v.AddLessThan("Order", x => x.Price, 999.25m, 1234.5m));
 
         // Assert
-        Assert.Equal("Value 999,25 for price must be at least 1234,5", entry.Detail);
+        Assert.Equal("Value 999,25 for Price must be at least 1234,5", entry.Detail);
     }
 
     public static TheoryData<RangeBounds, int, string> OutOfRangeCases =>
         new()
         {
-            { RangeBounds.Inclusive, 0, "Value 0 for quantity must be in the range [1, 10]" },
-            { RangeBounds.Exclusive, 10, "Value 10 for quantity must be in the range (1, 10)" },
-            { RangeBounds.MinInclusive, 10, "Value 10 for quantity must be in the range [1, 10)" },
-            { RangeBounds.MaxInclusive, 1, "Value 1 for quantity must be in the range (1, 10]" },
+            { RangeBounds.Inclusive, 0, "Value 0 for Quantity must be in the range [1, 10]" },
+            { RangeBounds.Exclusive, 10, "Value 10 for Quantity must be in the range (1, 10)" },
+            { RangeBounds.MinInclusive, 10, "Value 10 for Quantity must be in the range [1, 10)" },
+            { RangeBounds.MaxInclusive, 1, "Value 1 for Quantity must be in the range (1, 10]" },
         };
 
     [Theory]
@@ -120,7 +120,7 @@ public class RangeErrorTests
         Assert.Equal("/quantity", entry.Pointer);
         Assert.Equal(expectedDetail, entry.Detail);
         MetadataJson.AssertEntries(entry,
-            ("entity", "Order"), ("name", "quantity"), ("value", value), ("min_value", 1), ("max_value", 10));
+            ("entity", "Order"), ("name", "Quantity"), ("value", value), ("min_value", 1), ("max_value", 10));
     }
 
     [Fact]
@@ -145,6 +145,6 @@ public class RangeErrorTests
             v => v.AddOutOfRange("Order", x => x.Price, 0.5m, 1.25m, 99.5m, RangeBounds.MinInclusive));
 
         // Assert
-        Assert.Equal("Value 0,5 for price must be in the range [1,25, 99,5)", entry.Detail);
+        Assert.Equal("Value 0,5 for Price must be in the range [1,25, 99,5)", entry.Detail);
     }
 }

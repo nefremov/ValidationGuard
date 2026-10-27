@@ -1,3 +1,5 @@
+using System.Runtime.ExceptionServices;
+
 namespace ValidationGuard;
 
 /// <summary>
@@ -14,6 +16,10 @@ public sealed class ValidationBuilder<TContext> : ValidationBuilderBase<TContext
     // The produced entries: rendered once, by the first ToValidationEntries call.
     private ValidationEntry[]? _produced;
 
+    // The failure of that call, if rendering failed: entries rendered before it were changed in place, so they are not
+    // rendered again.
+    private ExceptionDispatchInfo? _failure;
+
     /// <summary>Creates a root builder with the default <see cref="ValidationOptions"/>.</summary>
     public ValidationBuilder()
         : base(DefaultOptions)
@@ -25,15 +31,6 @@ public sealed class ValidationBuilder<TContext> : ValidationBuilderBase<TContext
     /// </summary>
     public ValidationBuilder(ValidationOptions options)
         : base(options)
-    {
-    }
-
-    /// <summary>
-    /// Creates a root builder with the default options and <paramref name="nameConverter"/> as the naming convention
-    /// of member names in pointers and property paths, for example <see cref="NameConverters.CamelCase"/>.
-    /// </summary>
-    public ValidationBuilder(IPathFragmentNameConverter nameConverter)
-        : base(new ValidationOptions { NameConverter = nameConverter })
     {
     }
 
@@ -52,39 +49,72 @@ public sealed class ValidationBuilder<TContext> : ValidationBuilderBase<TContext
 
     /// <summary>
     /// Completes the builder: renders every entry of this builder and its nested builders (pointer, localized format
-    /// and detail, under the current culture and UI culture) and returns them in deterministic order. Afterwards no
-    /// entry or nested builder can be added; later calls return the same entries.
+    /// and detail, under the current culture and UI culture) and returns them ordered by pointer, code and the format
+    /// as added (before translation, so the order is the same in every culture), in the order they were added otherwise.
+    /// Afterwards no entry or nested builder can be added, even if rendering fails; later calls return the same entries,
+    /// or throw the same exception.
     /// </summary>
     public IReadOnlyList<ValidationEntry> ToValidationEntries()
     {
         EnsureNotDisposed();
+        _failure?.Throw();
         if (_produced is not null)
         {
             return _produced;
         }
 
         IValidationBuilderNode root = this;
-        var entries = new ValidationEntry[root.CountEntries()];
-        var written = root.Render(entries, 0, new ValidationMessageWriter(Options));
-        System.Diagnostics.Debug.Assert(written == entries.Length);
+        root.Complete();
+        var count = root.CountEntries();
+        var entries = new ValidationEntry[count];
+        var formats = new string[count];
+        try
+        {
+            var written = root.Render(entries, formats, 0, new ValidationMessageWriter(Options));
+            System.Diagnostics.Debug.Assert(written == count);
+        }
+        catch (Exception exception)
+        {
+            _failure = ExceptionDispatchInfo.Capture(exception);
+            throw;
+        }
 
-        Array.Sort(entries, ValidationEntryComparer.Instance);
+        // Ordered while the entries still hold the formats they were added with; equal entries keep the order they were
+        // added in. Only then are the formats replaced by their localizations.
+        var order = new int[count];
+        for (var i = 0; i < count; i++)
+        {
+            order[i] = i;
+        }
 
-        return _produced = entries;
+        Array.Sort(order, (left, right) =>
+        {
+            var result = ValidationEntryComparer.Instance.Compare(entries[left], entries[right]);
+            return result != 0 ? result : left.CompareTo(right);
+        });
+
+        var produced = new ValidationEntry[count];
+        for (var i = 0; i < count; i++)
+        {
+            var entry = entries[order[i]];
+            entry.Format = formats[order[i]];
+            produced[i] = entry;
+        }
+
+        return _produced = produced;
     }
 
     /// <summary>
-    /// Throws a <see cref="ValidationFailedException"/> with the produced entries if any were added; otherwise does
-    /// nothing. For code that cannot return a result; ValidationGuard.Http turns the exception into a Problem Details
-    /// response.
+    /// Throws a <see cref="ValidationFailedException"/> with the produced entries if any were added. Otherwise it does
+    /// nothing and the builder stays open, so it can serve as a checkpoint before further checks. For code that cannot
+    /// return a result; ValidationGuard.Http turns the exception into a Problem Details response.
     /// </summary>
     /// <exception cref="ValidationFailedException">Entries were added.</exception>
     public void ThrowIfInvalid()
     {
-        var entries = ToValidationEntries();
-        if (entries.Count > 0)
+        if (!Valid)
         {
-            throw new ValidationFailedException(entries);
+            throw new ValidationFailedException(ToValidationEntries());
         }
     }
 }

@@ -32,7 +32,7 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
         _fragments = fragments;
     }
 
-    /// <summary>How entries are rendered: the naming convention of paths and the quoting of string values.</summary>
+    /// <summary>How entries are rendered: the naming convention of pointers, localization, and how values are written.</summary>
     protected ValidationOptions Options => _options;
 
     /// <inheritdoc />
@@ -81,17 +81,19 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
         return _entryCount = count;
     }
 
-    int IValidationBuilderNode.Render(ValidationEntry[] sink, int position, ValidationMessageWriter writer)
+    void IValidationBuilderNode.Complete()
     {
-        // Rendering completes every builder of the hierarchy, including those without entries.
         _completed = true;
+        foreach (var child in _children)
+        {
+            child.Complete();
+        }
+    }
+
+    int IValidationBuilderNode.Render(ValidationEntry[] sink, string[] formats, int position, ValidationMessageWriter writer)
+    {
         if (_entryCount == 0)
         {
-            foreach (var child in _children)
-            {
-                child.Render(sink, position, writer);
-            }
-
             return position;
         }
 
@@ -99,22 +101,21 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
         string? scopePointer = null;
         foreach (var entry in _entries)
         {
-            sink[position++] = entry;
             var metadata = entry.Metadata;
             entry.Pointer = metadata is PropertyValidationMetadata { Property: var property }
                 ? writer.GetJsonPointer(property)
                 : scopePointer ??= writer.GetJsonPointer([]);
 
-            // Each entry is rendered once, so its format is replaced by its localization; without metadata there is
-            // nothing to fill in.
-            var format = writer.LocalizeFormat(entry);
-            entry.Format = format;
+            // The detail is rendered from the localized format; without metadata there is nothing to fill in.
+            var format = writer.Localize(entry.Format);
             entry.Detail = metadata is null ? format : metadata.RenderDetail(format, writer);
+            sink[position] = entry;
+            formats[position++] = format;
         }
 
         foreach (var child in _children)
         {
-            position = child.Render(sink, position, writer);
+            position = child.Render(sink, formats, position, writer);
         }
 
         writer.Exit(_fragments);

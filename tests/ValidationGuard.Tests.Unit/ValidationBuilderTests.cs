@@ -3,16 +3,26 @@ namespace ValidationGuard.Tests.Unit;
 // Recording entries, producing them (ordering, deferred rendering, identity), and disposal.
 public class ValidationBuilderTests
 {
+    // Fails while its entry is rendered.
+    private sealed class ThrowingMetadata : ValidationMetadata
+    {
+        protected override bool TryWrite(ReadOnlySpan<char> key, ValidationMessageWriter writer) =>
+            throw new InvalidOperationException("Rendering failed.");
+
+        public override void WriteTo(System.Text.Json.Utf8JsonWriter writer, System.Text.Json.JsonSerializerOptions options) =>
+            throw new NotSupportedException();
+    }
+
     [Fact]
     public void ToValidationEntries_FlattensHierarchyAndSortsDeterministically()
     {
         // Arrange
         using var validation = new ValidationBuilder<Order>();
-        validation.Add("B2", "fmt-b", new FixedDetail(validation.Resolve(x => x.Customer), "detail-b"));
-        validation.Add("A1", "fmt-a", new FixedDetail(validation.Resolve(x => x.Customer), "detail-a"));
+        validation.Add("B2", "fmt-b", new FixedDetail(validation.Resolve(x => x.Customer), "Detail-b"));
+        validation.Add("A1", "fmt-a", new FixedDetail(validation.Resolve(x => x.Customer), "Detail-a"));
         using (var address = validation.For(x => x.HomeAddress))
         {
-            address.Add("A1", "fmt-a", new FixedDetail(address.Resolve(x => x.PostalCode), "detail-a"));
+            address.Add("A1", "fmt-a", new FixedDetail(address.Resolve(x => x.PostalCode), "Detail-a"));
         }
 
         // Act
@@ -21,9 +31,9 @@ public class ValidationBuilderTests
         // Assert
         Assert.Equal(
             [
-                ("/Customer", "A1", "fmt-a", "detail-a"),
-                ("/Customer", "B2", "fmt-b", "detail-b"),
-                ("/HomeAddress/PostalCode", "A1", "fmt-a", "detail-a"),
+                ("/Customer", "A1", "fmt-a", "Detail-a"),
+                ("/Customer", "B2", "fmt-b", "Detail-b"),
+                ("/HomeAddress/PostalCode", "A1", "fmt-a", "Detail-a"),
             ],
             entries.Select(e => (e.Pointer, e.Code, e.Format, e.Detail)));
     }
@@ -32,7 +42,7 @@ public class ValidationBuilderTests
     public void AddProperty_CreatesPropertyMetadataForTheProperty()
     {
         // Arrange
-        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
 
         // Act
         validation.AddProperty(x => x.Customer.FirstName, "C1", "Customer name is invalid");
@@ -41,14 +51,14 @@ public class ValidationBuilderTests
         var entry = Assert.Single(validation.ToValidationEntries());
         Assert.Equal("/customer/firstName", entry.Pointer);
         Assert.Equal("Customer name is invalid", entry.Detail);
-        Assert.Equal("customer.firstName", Assert.IsType<PropertyValidationMetadata>(entry.Metadata).Name);
+        Assert.Equal("Customer.FirstName", Assert.IsType<PropertyValidationMetadata>(entry.Metadata).Name);
     }
 
     [Fact]
     public void Add_WithoutMetadata_PointsAtScopeAndDetailIsTheFormat()
     {
         // Arrange
-        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         using var line = validation.For(x => x.Lines[2]);
 
         // Act
@@ -98,6 +108,58 @@ public class ValidationBuilderTests
         Assert.Equal(0, writesAfterAdd);
         Assert.Equal(1, probe.NameWrites);
         Assert.Same(first, second);
+    }
+
+    [Fact]
+    public void FailedRendering_CompletesTheHierarchy_AndLaterCallsRethrow()
+    {
+        // Arrange
+        using var validation = new ValidationBuilder<Order>();
+        var line = validation.For(x => x.Lines[0]);
+        validation.Add("C1", "{boom}", new ThrowingMetadata());
+        line.Add("C2", "f");
+
+        // Act
+        var first = Assert.Throws<InvalidOperationException>(() => validation.ToValidationEntries());
+        var second = Assert.Throws<InvalidOperationException>(() => validation.ToValidationEntries());
+
+        // Assert
+        Assert.Same(first, second);
+        Assert.Throws<InvalidOperationException>(() => line.Add("C3", "f"));
+        Assert.Throws<InvalidOperationException>(() => validation.For(x => x.Customer));
+        Assert.False(validation.Valid);
+    }
+
+    [Fact]
+    public void ThrowIfInvalid_WithoutEntries_KeepsTheBuilderOpen()
+    {
+        // Arrange
+        using var validation = new ValidationBuilder<Order>();
+        validation.ThrowIfInvalid();
+
+        // Act
+        validation.Add("C1", "f");
+        var exception = Assert.Throws<ValidationFailedException>(validation.ThrowIfInvalid);
+
+        // Assert
+        Assert.Equal("C1", Assert.Single(exception.Entries).Code);
+    }
+
+    [Fact]
+    public void Entries_OrderedByPointerCodeAndFormat_EqualOnesInTheOrderAdded()
+    {
+        // Arrange
+        using var validation = new ValidationBuilder<Order>();
+        validation.Add("C2", "a");
+        validation.Add("C1", "{n} b", new DictionaryValidationMetadata(new Dictionary<string, object?> { ["n"] = 2 }));
+        validation.Add("C1", "{n} b", new DictionaryValidationMetadata(new Dictionary<string, object?> { ["n"] = 1 }));
+        validation.Add("C1", "{n} a", new DictionaryValidationMetadata(new Dictionary<string, object?> { ["n"] = 3 }));
+
+        // Act
+        var details = validation.ToValidationEntries().Select(e => e.Detail);
+
+        // Assert
+        Assert.Equal(["3 a", "2 b", "1 b", "a"], details);
     }
 
     [Fact]
@@ -154,7 +216,7 @@ public class ValidationBuilderTests
     public void ToValidationEntries_CompletesTheSameEntriesInPlace()
     {
         // Arrange
-        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         validation.Add("C1", "{name}", new ProbeMetadata(validation.Resolve(x => x.Customer)));
 
         // Act
@@ -163,14 +225,14 @@ public class ValidationBuilderTests
 
         // Assert
         Assert.Same(first, second);
-        Assert.Equal("customer", second.Detail);
+        Assert.Equal("Customer", second.Detail);
     }
 
     [Fact]
     public void ProducedEntry_EqualsEntryBuiltFromSameValues()
     {
         // Arrange
-        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         using (var customer = validation.For(x => x.Customer))
         {
             customer.Add("C1", "Customer is invalid");
@@ -241,7 +303,7 @@ public class ValidationBuilderTests
     public void ToValidationEntries_NestedBuildersWithoutEntries_AreSkippedWithoutGaps()
     {
         // Arrange
-        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         using (validation.For(x => x.Customer))
         {
         }
@@ -269,7 +331,7 @@ public class ValidationBuilderTests
         // The scope holds nine fragments, more than the writer's initial path buffer.
 
         // Arrange
-        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         using (var outer = validation.For(x => x.Tree.Next!.Next!.Next!))
         using (var inner = outer.For(x => x.Next!.Next!.Next!.Next!.Next!))
         {
@@ -281,14 +343,14 @@ public class ValidationBuilderTests
 
         // Assert
         Assert.Equal("/tree" + string.Concat(Enumerable.Repeat("/next", 8)) + "/value", entry.Pointer);
-        Assert.Equal("tree" + string.Concat(Enumerable.Repeat(".next", 8)) + ".value", entry.Detail);
+        Assert.Equal("Tree" + string.Concat(Enumerable.Repeat(".Next", 8)) + ".Value", entry.Detail);
     }
 
     [Fact]
     public void ThrowIfInvalid_WithEntries_ThrowsWithTheProducedEntries()
     {
         // Arrange
-        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         validation.AddProperty(x => x.Customer, "C2", "second");
         validation.AddProperty(x => x.Customer, "C1", "first");
 
@@ -297,7 +359,7 @@ public class ValidationBuilderTests
 
         // Assert
         Assert.Equal(["C1", "C2"], exception.Entries.Select(e => e.Code));
-        Assert.Equal("Validation failed: C1 at '/customer': first (and 1 more)", exception.Message);
+        Assert.Equal("Validation failed: C1 at '/customer' (and 1 more)", exception.Message);
     }
 
     [Fact]
@@ -311,7 +373,7 @@ public class ValidationBuilderTests
         var exception = Assert.Throws<ValidationFailedException>(validation.ThrowIfInvalid);
 
         // Assert
-        Assert.Equal("Validation failed: C1 at '': Orders are closed", exception.Message);
+        Assert.Equal("Validation failed: C1 at ''", exception.Message);
     }
 
     [Fact]

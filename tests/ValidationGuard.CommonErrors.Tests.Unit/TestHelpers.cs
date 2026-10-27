@@ -8,7 +8,7 @@ internal static class TestHelpers
     // Adds entries to a fresh builder (camelCase unless given) and returns its single produced entry.
     public static ValidationEntry SingleEntry(Action<IValidationBuilder<Order>> add, IPathFragmentNameConverter? nameConverter = null)
     {
-        using var validation = new ValidationBuilder<Order>(nameConverter ?? NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = nameConverter ?? NameConverters.CamelCase });
         add(validation);
         return Assert.Single(validation.ToValidationEntries());
     }

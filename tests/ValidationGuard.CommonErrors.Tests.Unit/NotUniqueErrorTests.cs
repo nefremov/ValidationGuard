@@ -15,8 +15,8 @@ public class NotUniqueErrorTests
         // Assert
         Assert.Equal(CommonErrorCodes.NotUnique, entry.Code);
         Assert.Equal("{entity} with {name} = {value} already exists", entry.Format);
-        Assert.Equal("User with email = \"ann@example.com\" already exists", entry.Detail);
-        MetadataJson.AssertEntries(entry, ("entity", "User"), ("name", "email"), ("value", "ann@example.com"));
+        Assert.Equal("User with Email = \"ann@example.com\" already exists", entry.Detail);
+        MetadataJson.AssertEntries(entry, ("entity", "User"), ("name", "Email"), ("value", "ann@example.com"));
     }
 
     [Fact]
@@ -30,9 +30,9 @@ public class NotUniqueErrorTests
         // Assert
         Assert.Equal(string.Empty, entry.Pointer);
         Assert.Equal(CommonErrorCodes.NotUnique, entry.Code);
-        Assert.Equal($"Product with sku = \"CH-12\" and vendor_id = \"{Id1}\" already exists", entry.Detail);
+        Assert.Equal($"Product with Sku = \"CH-12\" and VendorId = \"{Id1}\" already exists", entry.Detail);
         MetadataJson.AssertEntries(entry,
-            ("entity", "Product"), ("name1", "sku"), ("value1", "CH-12"), ("name2", "vendor_id"), ("value2", Id1));
+            ("entity", "Product"), ("name1", "Sku"), ("value1", "CH-12"), ("name2", "VendorId"), ("value2", Id1));
     }
 
     [Fact]
@@ -49,12 +49,12 @@ public class NotUniqueErrorTests
         Assert.Equal(string.Empty, entry.Pointer);
         Assert.Equal(CommonErrorCodes.NotUnique, entry.Code);
         Assert.Equal(
-            "Booking with address.city = \"Riga\", deliveryDate = 03/01/2026 and discount = null already exists", entry.Detail);
+            "Booking with Address.City = \"Riga\", DeliveryDate = 03/01/2026 and Discount = null already exists", entry.Detail);
         MetadataJson.AssertEntries(entry,
             ("entity", "Booking"),
-            ("name1", "address.city"), ("value1", "Riga"),
-            ("name2", "deliveryDate"), ("value2", new DateOnly(2026, 3, 1)),
-            ("name3", "discount"), ("value3", null));
+            ("name1", "Address.City"), ("value1", "Riga"),
+            ("name2", "DeliveryDate"), ("value2", new DateOnly(2026, 3, 1)),
+            ("name3", "Discount"), ("value3", null));
     }
 
     [Fact]
@@ -65,8 +65,8 @@ public class NotUniqueErrorTests
         var byId = SingleEntry(v => v.AddAlreadyExists("Customer", x => x.CustomerId, Id1));
 
         // Assert
-        Assert.Equal("Customer with name = \"Acme\" already exists", byProperty.Detail);
-        Assert.Equal($"Customer with customerId = \"{Id1}\" already exists", byId.Detail);
+        Assert.Equal("Customer with Name = \"Acme\" already exists", byProperty.Detail);
+        Assert.Equal($"Customer with CustomerId = \"{Id1}\" already exists", byId.Detail);
         Assert.Equal(CommonErrorCodes.NotUnique, byProperty.Code);
         Assert.Equal(CommonErrorCodes.AlreadyExists, byId.Code);
     }

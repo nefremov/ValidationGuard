@@ -23,11 +23,21 @@ builder.Services.AddValidationProblems(codes => codes
     .AddAcmeErrors()
     .AddAssemblyOf<Program>());
 
-// Optional: ASP.NET Core's Problem Details service. Its customizations (here a traceId) apply to validation problems
-// too, and the exception handler middleware below needs it to turn ValidationFailedException into a response.
+// Optional: ASP.NET Core's Problem Details service. Its customizations apply to validation problems too: here a
+// traceId, and the title translated for the request's culture (ValidationGuard localizes the detail and the errors,
+// not the title). The exception handler middleware below also needs it to turn ValidationFailedException into a
+// response.
 builder.Services.AddProblemDetails(options =>
     options.CustomizeProblemDetails = context =>
-        context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier);
+    {
+        context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+
+        var titles = context.HttpContext.RequestServices.GetRequiredService<IStringLocalizer<AppMessages>>();
+        if (context.ProblemDetails.Title is { } title && titles.Translate(title) is { } localized)
+        {
+            context.ProblemDetails.Title = localized;
+        }
+    });
 
 // IStringLocalizer<T> over resources: the application's in Resources/, Acme's wherever Acme declares them.
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");

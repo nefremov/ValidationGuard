@@ -25,8 +25,9 @@ public sealed class ValidationFailedException : Exception
             throw new ArgumentException("A validation failure requires at least one entry.", nameof(entries));
         }
 
+        // Codes and pointers only: the details are localized for the request, while the message goes to logs.
         var first = entries[0];
         var more = entries.Count == 1 ? string.Empty : $" (and {entries.Count - 1} more)";
-        return $"Validation failed: {first.Code} at '{first.Pointer}': {first.Detail}{more}";
+        return $"Validation failed: {first.Code} at '{first.Pointer}'{more}";
     }
 }

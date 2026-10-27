@@ -13,8 +13,8 @@ public sealed partial class ValidationMessageWriter
     private readonly ValidationOptions _options;
     private readonly CultureInfo _culture;
 
-    // Translated entity and member names (null when untranslated), looked up once per rendering.
-    private Dictionary<string, string?>? _names;
+    // Localized texts (formats, entity and member names) by their original text, looked up once per rendering.
+    private Dictionary<string, string>? _localized;
 
     // The fragments from the root to the builder whose entries are rendered: each builder appends its own while it and
     // its children render.
@@ -36,72 +36,65 @@ public sealed partial class ValidationMessageWriter
     public CultureInfo Culture => _culture;
 
     /// <summary>
-    /// The readable path of a property resolved by the builder that added the entry, for example <c>lines[2].sku</c>,
-    /// in the builders' naming convention, with member names localized when a localizer translates them. Empty for
-    /// <see langword="null"/>.
+    /// The format specifier of the placeholder being written, such as <c>N2</c> for <c>{value:N2}</c>, or
+    /// <see langword="null"/> when it has none. <see cref="WriteValue{T}"/> applies it; metadata writing a value its own
+    /// way can read it.
+    /// </summary>
+    public string? FormatSpecifier => _specifier;
+
+    /// <summary>
+    /// The readable path of a property resolved by the builder that added the entry, for example <c>Lines[2].Sku</c>:
+    /// member names as declared in C# (the naming convention applies to pointers only), or localized when a localizer
+    /// translates them. Empty for <see langword="null"/>.
     /// </summary>
     public string GetClrPath(PathFragment[]? property) =>
         property is null ? string.Empty : RenderClrPath(Scope, property);
 
     /// <summary>
-    /// The localized name of <paramref name="entity"/>, or the name itself when no localizer translates it. Metadata
-    /// uses it for the entity names it writes into the detail and into JSON.
+    /// The translation of <paramref name="text"/> for the current UI culture by the first of
+    /// <see cref="ValidationOptions.Localizers"/> that has one, or the text itself: the builders' formats and the member
+    /// names of readable paths go through it, and metadata uses it for the entity names it writes into the detail and
+    /// into JSON. Each text is looked up once per rendering; a failing localizer leaves it as is.
     /// </summary>
-    public string LocalizeEntity(string entity)
+    public string Localize(string text)
     {
-        ArgumentNullException.ThrowIfNull(entity);
-        return TranslateName(entity) ?? entity;
-    }
-
-    // The localized format of an entry, or its recorded format when no localizer translates it.
-    internal string LocalizeFormat(IValidationEntryBase entry)
-    {
-        var localizers = _options.Localizers;
-        if (localizers.Count == 0)
+        ArgumentNullException.ThrowIfNull(text);
+        if (_options.Localizers.Count == 0)
         {
-            return entry.Format;
+            return text;
         }
 
-        var key = (_options.LocalizationKeySelector ?? ValidationOptions.DefaultLocalizationKeySelector)(entry);
-        for (var i = 0; i < localizers.Count; i++)
+        _localized ??= new Dictionary<string, string>(StringComparer.Ordinal);
+        if (!_localized.TryGetValue(text, out var localized))
         {
-            if (localizers[i].Translate(key) is { } localized)
-            {
-                return localized;
-            }
-        }
-
-        return entry.Format;
-    }
-
-    // The localized name of a member in a readable path, or null for its converted name.
-    private string? LocalizeMember(string member) => TranslateName(member);
-
-    // Entity and member names share their keys, so one lookup serves both.
-    private string? TranslateName(string name)
-    {
-        var localizers = _options.Localizers;
-        if (localizers.Count == 0)
-        {
-            return null;
-        }
-
-        _names ??= new Dictionary<string, string?>(StringComparer.Ordinal);
-        if (!_names.TryGetValue(name, out var localized))
-        {
-            for (var i = 0; i < localizers.Count; i++)
-            {
-                localized = localizers[i].Translate(name);
-                if (localized is not null)
-                {
-                    break;
-                }
-            }
-
-            _names[name] = localized;
+            localized = TranslateWithLocalizers(text) ?? text;
+            _localized[text] = localized;
         }
 
         return localized;
+    }
+
+    // The first localizer's translation of key, or null when none translates it. A failing localizer leaves the text
+    // untranslated instead of failing the rendering.
+    private string? TranslateWithLocalizers(string key)
+    {
+        var localizers = _options.Localizers;
+        try
+        {
+            for (var i = 0; i < localizers.Count; i++)
+            {
+                if (localizers[i].Translate(key) is { } localized)
+                {
+                    return localized;
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // Untranslated: a missing or broken resource must not turn a validation response into a failure.
+        }
+
+        return null;
     }
 
     internal string GetJsonPointer(PathFragment[] property) => RenderJsonPointer(Scope, property, _options.NameConverter);
@@ -148,7 +141,10 @@ public sealed partial class ValidationMessageWriter
     /// <see cref="Culture"/>) are applied straight into the detail, without boxing. An <see cref="IRenderableValue"/>
     /// writes itself. To write text, such as a path or a name, use <see cref="WriteText"/>.
     /// </summary>
-    /// <exception cref="FormatException">The format specifier is not valid for the value.</exception>
+    /// <remarks>
+    /// A specifier that is not valid for the value (a translation may carry one written without knowing the value's
+    /// type) is ignored: the value is written as without a specifier.
+    /// </remarks>
     public void WriteValue<T>(T value)
     {
         if (value is IRenderableValue renderable)
@@ -157,10 +153,29 @@ public sealed partial class ValidationMessageWriter
             return;
         }
 
+        if (_specifier is null)
+        {
+            WriteFormatted(value, null);
+            return;
+        }
+
+        // Formatting fails before anything is appended, so the value can be written again without the specifier.
+        try
+        {
+            WriteFormatted(value, _specifier);
+        }
+        catch (FormatException)
+        {
+            WriteFormatted(value, null);
+        }
+    }
+
+    private void WriteFormatted<T>(T value, string? specifier)
+    {
         var writeValue = _options.WriteValue;
         if (!IsDefault(writeValue, ValidationOptions.DefaultWriteValue))
         {
-            _text.Append(writeValue(value, _specifier));
+            _text.Append(writeValue(value, specifier));
             return;
         }
 
@@ -173,13 +188,13 @@ public sealed partial class ValidationMessageWriter
                 AppendQuoted(text);
                 return;
             case Guid guid:
-                AppendQuoted(guid.ToString(_specifier, _culture));
+                AppendQuoted(guid.ToString(specifier, _culture));
                 return;
         }
 
         // The interpolation handler is generic over T, so value types are formatted without boxing.
         var handler = new StringBuilder.AppendInterpolatedStringHandler(0, 1, _text, _culture);
-        handler.AppendFormatted(value, _specifier);
+        handler.AppendFormatted(value, specifier);
         _text.Append(ref handler);
     }
 

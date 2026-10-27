@@ -28,7 +28,8 @@ Adopt a hierarchical builder architecture where:
    hierarchy: entries are rendered once, later calls return the same entries, and no entry or nested builder can be
    added afterwards. `Valid` checks for entries without completing.
 5. Hierarchy traversal uses lazy `IEnumerable<ValidationEntry>` (`GetEntries()`) and allocates an array only at final root materialization.
-6. Deterministic ordering is enforced at finalization with `ValidationEntryComparer`.
+6. Deterministic ordering is enforced at finalization with `ValidationEntryComparer`: by pointer, code, then the
+   format as added (before translation), keeping entries that compare equal in the order they were added.
 
 ## Consequences
 

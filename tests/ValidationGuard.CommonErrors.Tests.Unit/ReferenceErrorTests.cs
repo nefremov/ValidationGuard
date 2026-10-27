@@ -15,16 +15,16 @@ public class ReferenceErrorTests
         // Assert
         Assert.Equal("/customerId", entry.Pointer);
         Assert.Equal(CommonErrorCodes.ReferenceNotFound, entry.Code);
-        Assert.Equal($"Value \"{Id1}\" for customerId does not refer to an existing Customer", entry.Detail);
+        Assert.Equal($"Value \"{Id1}\" for CustomerId does not refer to an existing Customer", entry.Detail);
         MetadataJson.AssertEntries(entry,
-            ("entity", "Order"), ("name", "customerId"), ("referenced_entity", "Customer"), ("value", Id1));
+            ("entity", "Order"), ("name", "CustomerId"), ("referenced_entity", "Customer"), ("value", Id1));
     }
 
     [Fact]
     public void AddReferenceNotFound_InNestedBuilderWithNonGuidKey_UsesTheFullPath()
     {
         // Arrange
-        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         using (var line = validation.For(x => x.Lines[1]))
         {
             line.AddReferenceNotFound("OrderLine", x => x.Sku, "Product", "CH-12");
@@ -35,7 +35,7 @@ public class ReferenceErrorTests
 
         // Assert
         Assert.Equal("/lines/1/sku", entry.Pointer);
-        Assert.Equal("Value \"CH-12\" for lines[1].sku does not refer to an existing Product", entry.Detail);
+        Assert.Equal("Value \"CH-12\" for Lines[1].Sku does not refer to an existing Product", entry.Detail);
     }
 
     [Theory]
@@ -73,9 +73,9 @@ public class ReferenceErrorTests
         var entry = SingleEntry(v => v.Add(error, "Order", x => x.Quantity, "Warehouse", 7));
 
         // Assert
-        Assert.Equal("quantity = 7 refers to no Warehouse", entry.Detail);
+        Assert.Equal("Quantity = 7 refers to no Warehouse", entry.Detail);
         MetadataJson.AssertEntries(entry,
-            ("entity", "Order"), ("name", "quantity"), ("referenced_entity", "Warehouse"), ("id", 7));
+            ("entity", "Order"), ("name", "Quantity"), ("referenced_entity", "Warehouse"), ("id", 7));
     }
 
     [Theory]
@@ -95,6 +95,19 @@ public class ReferenceErrorTests
         {
             Assert.Contains(expectedProblem, Assert.IsType<ArgumentException>(exception).Message);
         }
+    }
+
+    [Fact]
+    public void CustomReferenceDefinition_KeyTypeMayDifferFromThePropertys()
+    {
+        // Arrange
+        var error = new ReferenceErrorDefinition<int>("X1", "{name} = {value} refers to no {referenced_entity}");
+
+        // Act
+        var entry = SingleEntry(v => v.Add(error, "Order", x => x.WarehouseId, "Warehouse", 7));
+
+        // Assert
+        Assert.Equal("WarehouseId = 7 refers to no Warehouse", entry.Detail);
     }
 
     [Fact]

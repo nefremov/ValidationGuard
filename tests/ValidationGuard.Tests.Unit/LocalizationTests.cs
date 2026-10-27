@@ -12,18 +12,18 @@ public class LocalizationTests
     public void WithoutLocalizers_FormatAndDetailAreAsAdded()
     {
         // Arrange
-        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         validation.AddProperty(x => x.Customer.FirstName, "C1", "Value for {name} is required");
 
         // Act
         var entry = Assert.Single(validation.ToValidationEntries());
 
         // Assert
-        Assert.Equal(("Value for {name} is required", "Value for customer.firstName is required"), (entry.Format, entry.Detail));
+        Assert.Equal(("Value for {name} is required", "Value for Customer.FirstName is required"), (entry.Format, entry.Detail));
     }
 
     [Fact]
-    public void FormatKeySelector_TranslatesFormatAndDetail_PointerIsUnchanged()
+    public void Format_TranslatedByItsText_DetailRenderedFromIt_PointerIsUnchanged()
     {
         // Arrange
         using var culture = new CultureScope("de-DE");
@@ -33,7 +33,6 @@ public class LocalizationTests
             ["Customer"] = "Kunde",
             ["FirstName"] = "Vorname",
         });
-        options.LocalizationKeySelector = entry => entry.Format;
         using var validation = new ValidationBuilder<Order>(options);
         validation.AddProperty(x => x.Customer.FirstName, "C1", "Value for {name} is required");
 
@@ -48,13 +47,13 @@ public class LocalizationTests
     }
 
     [Fact]
-    public void CodeKey_TranslatesByCode_MembersWithoutTranslationKeepTheirConvertedName()
+    public void MembersWithoutTranslation_KeepTheirConvertedName()
     {
         // Arrange
         using var culture = new CultureScope("de-DE");
         var options = GermanOptions(new()
         {
-            ["C1"] = "{name} fehlt",
+            ["{name} is missing"] = "{name} fehlt",
             ["Lines"] = "Positionen",
         });
         using var validation = new ValidationBuilder<Order>(options);
@@ -68,7 +67,7 @@ public class LocalizationTests
 
         // Assert
         Assert.Equal("/lines/2/sku", entry.Pointer);
-        Assert.Equal("Positionen[2].sku fehlt", entry.Detail);
+        Assert.Equal("Positionen[2].Sku fehlt", entry.Detail);
     }
 
     [Fact]
@@ -117,7 +116,7 @@ public class LocalizationTests
     {
         // Arrange
         using var culture = new CultureScope("en-US", uiCulture: "de-DE");
-        var options = GermanOptions(new() { ["C1"] = "Preis {price:N2}" });
+        var options = GermanOptions(new() { ["Price {price:N2}"] = "Preis {price:N2}" });
         using var validation = new ValidationBuilder<Order>(options);
         var values = new Dictionary<string, object?> { ["price"] = 1234.5m };
         validation.Add("C1", "Price {price:N2}", new DictionaryValidationMetadata(values));
@@ -153,8 +152,8 @@ public class LocalizationTests
     public void Localizers_FirstTranslationWins_MissesFallThrough()
     {
         // Arrange
-        var library = new DictionaryStringLocalizer(new Dictionary<string, string> { ["C1"] = "Library C1", ["C2"] = "Library C2" }, culture: null);
-        var application = new DictionaryStringLocalizer(new Dictionary<string, string> { ["C1"] = "Application C1" }, culture: null);
+        var library = new DictionaryStringLocalizer(new Dictionary<string, string> { ["c1"] = "Library C1", ["c2"] = "Library C2" }, culture: null);
+        var application = new DictionaryStringLocalizer(new Dictionary<string, string> { ["c1"] = "Application C1" }, culture: null);
         var options = new ValidationOptions { Localizers = { application, library } };
         using var validation = new ValidationBuilder<Order>(options);
         validation.Add("C1", "c1");
@@ -169,45 +168,45 @@ public class LocalizationTests
     }
 
     [Fact]
-    public void DefaultKeySelector_LooksTheCodeUpOnly()
-    {
-        // Arrange
-        var localizer = new DictionaryStringLocalizer(new Dictionary<string, string> { ["c1 text"] = "translated" }, culture: null);
-        var options = new ValidationOptions { Localizers = { localizer } };
-        using var validation = new ValidationBuilder<Order>(options);
-        validation.Add("C1", "c1 text");
-
-        // Act
-        var entry = Assert.Single(validation.ToValidationEntries());
-
-        // Assert
-        Assert.Equal("c1 text", entry.Detail);
-        Assert.Equal(["C1"], localizer.Requests);
-    }
-
-    [Fact]
-    public void KeySelector_ReceivesTheEntry_NullFallsBackToTheCode()
+    public void Formats_AreLookedUpByTheirText_OncePerRendering_NeverByCode()
     {
         // Arrange
         var localizer = new DictionaryStringLocalizer(
-            new Dictionary<string, string> { ["C1/c1"] = "selected", ["C2"] = "by code" }, culture: null);
-        var selecting = new ValidationOptions { LocalizationKeySelector = entry => $"{entry.Code}/{entry.Format}", Localizers = { localizer } };
-        var fallback = new ValidationOptions { LocalizationKeySelector = null!, Localizers = { localizer } };
-        using var first = new ValidationBuilder<Order>(selecting);
-        using var second = new ValidationBuilder<Order>(fallback);
-        first.Add("C1", "c1");
-        second.Add("C2", "c2");
+            new Dictionary<string, string> { ["C1"] = "by code", ["c1 text"] = "translated" }, culture: null);
+        var options = new ValidationOptions { Localizers = { localizer } };
+        using var validation = new ValidationBuilder<Order>(options);
+        validation.Add("C1", "c1 text");
+        validation.Add("C2", "c1 text");
+        validation.Add("C1", "other text");
 
         // Act
-        var details = (Assert.Single(first.ToValidationEntries()).Detail, Assert.Single(second.ToValidationEntries()).Detail);
+        var details = validation.ToValidationEntries().Select(e => e.Detail);
 
         // Assert
-        Assert.Equal(("selected", "by code"), details);
-        Assert.Same(ValidationOptions.DefaultLocalizationKeySelector, new ValidationOptions().LocalizationKeySelector);
+        Assert.Equal(["translated", "other text", "translated"], details);
+        Assert.Equal(["c1 text", "other text"], localizer.Requests);
     }
 
     [Fact]
-    public void LocalizeEntity_TranslatesOrKeepsTheName()
+    public void Entries_AreOrderedByTheFormatsAsAdded_NotByTheirTranslations()
+    {
+        // Arrange
+        var localizer = new DictionaryStringLocalizer(
+            new Dictionary<string, string> { ["a"] = "z", ["b"] = "y" }, culture: null);
+        var options = new ValidationOptions { Localizers = { localizer } };
+        using var validation = new ValidationBuilder<Order>(options);
+        validation.Add("C1", "b");
+        validation.Add("C1", "a");
+
+        // Act
+        var formats = validation.ToValidationEntries().Select(e => e.Format);
+
+        // Assert
+        Assert.Equal(["z", "y"], formats);
+    }
+
+    [Fact]
+    public void Localize_TranslatesOrKeepsTheText()
     {
         // Arrange
         using var culture = new CultureScope("de-DE");
@@ -238,7 +237,7 @@ public class LocalizationTests
 
         // Assert
         Assert.Equal("Kunde|Order|Kunde", entry.Detail);
-        Assert.Equal(["C1", "Customer", "Order"], localizer.Requests);
+        Assert.Equal(["{e}", "Customer", "Order"], localizer.Requests);
     }
 
     [Fact]
@@ -258,7 +257,7 @@ public class LocalizationTests
         // Arrange
         var options = new ValidationOptions();
         var empty = options.Localizers.Count;
-        options.Localizers.Add(new DictionaryStringLocalizer(new Dictionary<string, string> { ["C1"] = "translated" }, culture: null));
+        options.Localizers.Add(new DictionaryStringLocalizer(new Dictionary<string, string> { ["c1"] = "translated" }, culture: null));
         using var validation = new ValidationBuilder<Order>(options);
         validation.Add("C1", "c1");
 
@@ -267,6 +266,34 @@ public class LocalizationTests
 
         // Assert
         Assert.Equal((0, "translated"), (empty, entry.Detail));
+    }
+
+    [Fact]
+    public void FailingLocalizer_LeavesFormatAndNamesUntranslated()
+    {
+        // Arrange
+        var options = new ValidationOptions { NameConverter = NameConverters.CamelCase, Localizers = { new FailingLocalizer() } };
+        using var validation = new ValidationBuilder<Order>(options);
+        validation.AddProperty(x => x.Customer.FirstName, "C1", "Value for {name} is required");
+
+        // Act
+        var entry = Assert.Single(validation.ToValidationEntries());
+
+        // Assert
+        Assert.Equal(("Value for {name} is required", "Value for Customer.FirstName is required"), (entry.Format, entry.Detail));
+    }
+
+    // A localizer whose resources cannot be read.
+    private sealed class FailingLocalizer : Microsoft.Extensions.Localization.IStringLocalizer
+    {
+        public Microsoft.Extensions.Localization.LocalizedString this[string name] =>
+            throw new InvalidOperationException("The resources are missing.");
+
+        public Microsoft.Extensions.Localization.LocalizedString this[string name, params object[] arguments] =>
+            throw new NotSupportedException();
+
+        public IEnumerable<Microsoft.Extensions.Localization.LocalizedString> GetAllStrings(bool includeParentCultures) =>
+            throw new NotSupportedException();
     }
 
     private static ValidationOptions GermanOptions(Dictionary<string, string> resources) =>
@@ -284,7 +311,7 @@ public class LocalizationTests
         protected override bool TryWrite(ReadOnlySpan<char> key, ValidationMessageWriter writer)
         {
             Culture = writer.Culture;
-            writer.WriteText(string.Join("|", entities.Select(writer.LocalizeEntity)));
+            writer.WriteText(string.Join("|", entities.Select(writer.Localize)));
             return true;
         }
 

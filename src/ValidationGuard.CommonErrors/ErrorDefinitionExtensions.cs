@@ -24,19 +24,20 @@ public static class ErrorDefinitionExtensions
     /// <summary>
     /// Adds an error about a property referring to another entity, such as <c>x => x.CustomerId</c> referring to
     /// <c>Customer</c>. The entry points at the property; <paramref name="entity"/> fills <c>{entity}</c>,
-    /// <paramref name="referencedEntity"/> <c>{referenced_entity}</c>, and <paramref name="value"/> the key value.
+    /// <paramref name="referencedEntity"/> <c>{referenced_entity}</c>, and <paramref name="value"/> the key value, whose
+    /// type may differ from the property's (an <see langword="int"/> key of an <see langword="int"/>? property).
     /// </summary>
-    public static void Add<TContext, TValue>(
+    public static void Add<TContext, TValue, TKey>(
         this IValidationBuilder<TContext> validation,
-        ReferenceErrorDefinition<TValue> error,
+        ReferenceErrorDefinition<TKey> error,
         string entity,
         Expression<Func<TContext, TValue>> property,
         string referencedEntity,
-        TValue value)
+        TKey value)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(referencedEntity);
         AddDefinition(validation, error,
-            new ReferenceValidationMetadata<TValue>(
+            new ReferenceValidationMetadata<TKey>(
                 error, RequireEntity(entity), Resolve(validation, property), referencedEntity, value));
     }
 

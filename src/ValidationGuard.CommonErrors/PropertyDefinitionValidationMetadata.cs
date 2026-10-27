@@ -10,15 +10,15 @@ namespace ValidationGuard.CommonErrors;
 internal class PropertyDefinitionValidationMetadata(ErrorDefinition definition, string entity, PathFragment[] property)
     : PropertyValidationMetadata(property)
 {
-    // The entity's name as recorded, and as rendered: localized when a localizer translates it.
-    private readonly string _recordedEntity = entity;
+    // The entity's name as passed to Add, localized when the entry is rendered (once) for the detail and for JSON,
+    // which is written later, without the writer.
     private string _entity = entity;
 
     protected ImmutableArray<string> Keys => definition.Keys;
 
     protected override string RenderDetail(string format, ValidationMessageWriter writer)
     {
-        _entity = writer.LocalizeEntity(_recordedEntity);
+        _entity = writer.Localize(_entity);
         return base.RenderDetail(format, writer);
     }
 

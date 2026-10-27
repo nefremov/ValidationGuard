@@ -136,7 +136,7 @@ public class ValidationOptionsTests
     }
 
     [Fact]
-    public void Options_NameConverter_IsUsedForPathsAndPointers()
+    public void Options_NameConverter_IsUsedForPointersOnly()
     {
         // Arrange
         var options = new ValidationOptions { NameConverter = NameConverters.SnakeCase };
@@ -147,14 +147,14 @@ public class ValidationOptionsTests
         var entry = Assert.Single(validation.ToValidationEntries());
 
         // Assert
-        Assert.Equal(("/customer/first_name", "customer.first_name"), (entry.Pointer, entry.Detail));
+        Assert.Equal(("/customer/first_name", "Customer.FirstName"), (entry.Pointer, entry.Detail));
     }
 
     [Fact]
     public void Create_WithNameConverter_KeepsDefaultQuoting()
     {
         // Arrange
-        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         validation.AddProperty(x => x.Customer, "C1", "{name}");
         validation.Add("C2", "{s}", new DictionaryValidationMetadata(new Dictionary<string, object?> { ["s"] = "XX" }));
 
@@ -162,7 +162,7 @@ public class ValidationOptionsTests
         var details = validation.ToValidationEntries().Select(e => e.Detail);
 
         // Assert
-        Assert.Equal(["\"XX\"", "customer"], details);
+        Assert.Equal(["\"XX\"", "Customer"], details);
     }
 
     [Fact]

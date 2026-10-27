@@ -7,8 +7,7 @@ namespace ValidationGuard.CommonErrors;
 /// <remarks>
 /// The entity errors (not found, already exists, not unique) are identified by one to three key properties: each comes
 /// in three definitions, by key property count, sharing the code. The four ranges also share one code. Translations
-/// keyed by code (the default <see cref="ValidationOptions.LocalizationKeySelector"/>) are therefore shared by these
-/// variants; key translations by format (<c>entry =&gt; entry.Format</c>) to translate each variant.
+/// are looked up by format, so each variant has its own.
 /// </remarks>
 public static class CommonErrorDefinitions
 {

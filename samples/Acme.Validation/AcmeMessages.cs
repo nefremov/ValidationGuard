@@ -6,8 +6,8 @@ using Microsoft.Extensions.Localization;
 namespace Acme.Validation;
 
 /// <summary>
-/// The resources of Acme's messages, for <see cref="IStringLocalizer{T}"/>: translations of its formats keyed by error
-/// code, and of the entity names it uses keyed by the name (<c>Resources/AcmeMessages.de.resx</c>). Applications add
+/// The resources of Acme's messages, for <see cref="IStringLocalizer{T}"/>: translations of its formats keyed by the
+/// English format, and of the entity names it uses keyed by the name (<c>Resources/AcmeMessages.de.resx</c>). Applications add
 /// the localizer to <see cref="ValidationGuard.ValidationOptions.Localizers"/>, after their own:
 /// <code>
 /// services.AddLocalization();

@@ -11,7 +11,7 @@ public class CommonErrorsSerializationTests
     {
         // Arrange
         var customerId = Guid.Parse("11111111-1111-1111-1111-111111111111");
-        using var validation = new ValidationBuilder<Order>(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         validation.AddNotFound("Customer", x => x.CustomerId, customerId);
         using (var line = validation.For(x => x.Lines[2]))
         {
@@ -29,13 +29,13 @@ public class CommonErrorsSerializationTests
         var byPointer = document.RootElement.EnumerateArray()
             .ToDictionary(e => e.GetProperty("pointer").GetString()!, e => e.GetProperty("metadata").GetRawText());
         Assert.Equal(
-            """{"entity":"Customer","name":"customerId","value":"11111111-1111-1111-1111-111111111111"}""",
+            """{"entity":"Customer","name":"CustomerId","value":"11111111-1111-1111-1111-111111111111"}""",
             byPointer[""]);
         Assert.Equal(
-            """{"entity":"OrderLine","name":"lines[2].quantity","value":0,"min_value":1}""",
+            """{"entity":"OrderLine","name":"Lines[2].Quantity","value":0,"min_value":1}""",
             byPointer["/lines/2/quantity"]);
         Assert.Equal(
-            """{"entity":"Line","name1":"lines[2].sku","value1":"CH-12","name2":"lines[2].price","value2":9.5}""",
+            """{"entity":"Line","name1":"Lines[2].Sku","value1":"CH-12","name2":"Lines[2].Price","value2":9.5}""",
             byPointer["/lines/2"]);
     }
 
