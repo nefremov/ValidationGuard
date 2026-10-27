@@ -15,18 +15,18 @@ public class IncompatibleValuesErrorTests
         // Assert
         Assert.Equal(string.Empty, entry.Pointer);
         Assert.Equal(CommonErrorCodes.IncompatibleValues, entry.Code);
-        Assert.Equal("Order cannot have shipping = Express when country = \"CH\"", entry.Detail);
+        Assert.Equal("Order cannot have Shipping = Express when Country = \"CH\"", entry.Detail);
         MetadataJson.AssertEntries(entry,
             ("entity", "Order"),
-            ("name1", "shipping"), ("value1", Shipping.Express),
-            ("name2", "country"), ("value2", "CH"));
+            ("name1", "Shipping"), ("value1", Shipping.Express),
+            ("name2", "Country"), ("value2", "CH"));
     }
 
     [Fact]
     public void AddIncompatibleValues_InNestedBuilder_PointsAtTheNestedEntity()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         using (var address = validation.For(x => x.Address))
         {
             address.AddIncompatibleValues("Address", x => x.City, "Riga", x => x.Street, null);
@@ -37,6 +37,6 @@ public class IncompatibleValuesErrorTests
 
         // Assert
         Assert.Equal("/address", entry.Pointer);
-        Assert.Equal("Address cannot have address.city = \"Riga\" when address.street = null", entry.Detail);
+        Assert.Equal("Address cannot have Address.City = \"Riga\" when Address.Street = null", entry.Detail);
     }
 }

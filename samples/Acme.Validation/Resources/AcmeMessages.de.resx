@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- German translations, keyed by the English format; entity names by the name itself. -->
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Value {value} for {name} must be between {min} and {max}" xml:space="preserve">
+    <value>Wert {value} für {name} muss zwischen {min} und {max} liegen</value>
+  </data>
+  <data name="Value for {name} does not match the pattern {pattern}" xml:space="preserve">
+    <value>Wert für {name} entspricht nicht dem Muster {pattern}</value>
+  </data>
+  <data name="{entity} with {name} = {value} is retired" xml:space="preserve">
+    <value>{entity} mit {name} = {value} wird nicht mehr geführt</value>
+  </data>
+  <data name="Value {amount:N2} {currency} for {name} must not exceed the available {available:N2} {currency}" xml:space="preserve">
+    <value>Wert {amount:N2} {currency} für {name} übersteigt das verfügbare Guthaben von {available:N2} {currency}</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Produkt</value>
+  </data>
+</root>

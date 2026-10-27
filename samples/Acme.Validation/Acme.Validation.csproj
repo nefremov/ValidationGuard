@@ -1,11 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <!--
     A library extending ValidationGuard with its own errors. Like ValidationGuard.CommonErrors it depends only on the
-    core packages; its HTTP statuses live in Acme.Validation.Http. Outside this repository, reference the
-    ValidationGuard and ValidationGuard.CommonErrors packages instead.
+    core packages; its HTTP statuses live in Acme.Validation.Http. Its translations are resources read through
+    IStringLocalizer; Microsoft.Extensions.Localization provides [ResourceLocation]. Outside this repository, reference
+    the ValidationGuard and ValidationGuard.CommonErrors packages instead.
   -->
   <ItemGroup>
     <ProjectReference Include="..\..\src\ValidationGuard\ValidationGuard.csproj" />
     <ProjectReference Include="..\..\src\ValidationGuard.CommonErrors\ValidationGuard.CommonErrors.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Localization" />
   </ItemGroup>
 </Project>

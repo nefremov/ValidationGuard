@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ValidationGuard.Http;
 
+/// <summary>Registers the services that turn validation entries into Problem Details responses.</summary>
 public static class ValidationProblemServiceCollectionExtensions
 {
     /// <summary>

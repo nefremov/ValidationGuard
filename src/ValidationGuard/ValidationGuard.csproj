@@ -8,4 +8,9 @@
     <Description>Typed validation error accumulation with RFC 6901 JSON Pointers and deterministic output ordering.</Description>
     <PackageTags>validation;problem-details;rfc6901;rfc9457;dotnet</PackageTags>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- IStringLocalizer only: applications choose the implementation (resources, a database, ...). -->
+    <PackageReference Include="Microsoft.Extensions.Localization.Abstractions" />
+  </ItemGroup>
 </Project>

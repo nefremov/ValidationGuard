@@ -17,6 +17,8 @@ namespace ValidationGuard.Http;
 /// </summary>
 public sealed class ValidationProblemResult : IResult, IEndpointMetadataProvider
 {
+    /// <summary>Creates the result for <paramref name="entries"/>, already produced.</summary>
+    /// <exception cref="ArgumentException"><paramref name="entries"/> is empty.</exception>
     public ValidationProblemResult(IReadOnlyList<ValidationEntry> entries)
     {
         ArgumentNullException.ThrowIfNull(entries);

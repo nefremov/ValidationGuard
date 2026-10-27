@@ -6,9 +6,9 @@ namespace ValidationGuard.CommonErrors.Tests.Unit;
 public class PropertyErrorTests
 {
     [Theory]
-    [InlineData("CamelCase", "Value for customerId is required", "customerId")]
-    [InlineData("SnakeCase", "Value for customer_id is required", "customer_id")]
-    public void AddNull_NameFollowsNamingConvention(string convention, string expectedDetail, string expectedName)
+    [InlineData("CamelCase", "/customerId")]
+    [InlineData("SnakeCase", "/customer_id")]
+    public void AddNull_PointerFollowsNamingConvention_NameIsDeclared(string convention, string expectedPointer)
     {
         // Arrange
         var nameConverter = convention == "SnakeCase" ? NameConverters.SnakeCase : NameConverters.CamelCase;
@@ -19,15 +19,16 @@ public class PropertyErrorTests
         // Assert
         Assert.Equal(CommonErrorCodes.Null, entry.Code);
         Assert.Equal("Value for {name} is required", entry.Format);
-        Assert.Equal(expectedDetail, entry.Detail);
-        MetadataJson.AssertEntries(entry, ("entity", "Order"), ("name", expectedName));
+        Assert.Equal(expectedPointer, entry.Pointer);
+        Assert.Equal("Value for CustomerId is required", entry.Detail);
+        MetadataJson.AssertEntries(entry, ("entity", "Order"), ("name", "CustomerId"));
     }
 
     [Fact]
     public void AddNull_NestedPropertyAndNestedBuilder_UseFullPath()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         validation.AddNull("Order", x => x.Address.City);
         using (var address = validation.For(x => x.Address))
         {
@@ -38,8 +39,8 @@ public class PropertyErrorTests
         var entries = validation.ToValidationEntries();
 
         // Assert
-        Assert.Contains(entries, e => e.Pointer == "/address/city" && e.Detail == "Value for address.city is required");
-        Assert.Contains(entries, e => e.Pointer == "/address/street" && e.Detail == "Value for address.street is required");
+        Assert.Contains(entries, e => e.Pointer == "/address/city" && e.Detail == "Value for Address.City is required");
+        Assert.Contains(entries, e => e.Pointer == "/address/street" && e.Detail == "Value for Address.Street is required");
     }
 
     [Fact]
@@ -50,14 +51,14 @@ public class PropertyErrorTests
 
         // Assert
         Assert.Equal("/attributes/a~1b~0c", entry.Pointer);
-        Assert.Equal("Value for attributes[\"a/b~c\"] is required", entry.Detail);
+        Assert.Equal("Value for Attributes[\"a/b~c\"] is required", entry.Detail);
     }
 
     [Fact]
     public void AddNull_InIndexedNestedBuilder_PathIncludesScopeAndIndex()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         using (var lines = validation.For(x => x.Lines[2]))
         {
             lines.AddNull("Order", x => x.Sku);
@@ -68,8 +69,8 @@ public class PropertyErrorTests
 
         // Assert
         Assert.Equal("/lines/2/sku", entry.Pointer);
-        Assert.Equal("Value for lines[2].sku is required", entry.Detail);
-        MetadataJson.AssertValue(entry, "name", "lines[2].sku");
+        Assert.Equal("Value for Lines[2].Sku is required", entry.Detail);
+        MetadataJson.AssertValue(entry, "name", "Lines[2].Sku");
     }
 
     [Fact]
@@ -80,7 +81,7 @@ public class PropertyErrorTests
 
         // Assert
         Assert.Equal(CommonErrorCodes.Empty, entry.Code);
-        Assert.Equal("Value for name must not be empty", entry.Detail);
+        Assert.Equal("Value for Name must not be empty", entry.Detail);
     }
 
     [Fact]
@@ -92,7 +93,7 @@ public class PropertyErrorTests
         // Assert
         Assert.Equal("/orderId", entry.Pointer);
         Assert.Equal(CommonErrorCodes.NotModifiable, entry.Code);
-        Assert.Equal("Value for orderId cannot be changed", entry.Detail);
-        MetadataJson.AssertEntries(entry, ("entity", "Order"), ("name", "orderId"));
+        Assert.Equal("Value for OrderId cannot be changed", entry.Detail);
+        MetadataJson.AssertEntries(entry, ("entity", "Order"), ("name", "OrderId"));
     }
 }

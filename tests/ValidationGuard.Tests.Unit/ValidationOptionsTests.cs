@@ -9,7 +9,7 @@ public class ValidationOptionsTests
     public void Default_QuotesStringAndGuidValuesButNotOtherValuesOrText()
     {
         // Act
-        var detail = Render(ValidationOptions.Default, "{name}: {s} {g} {n} {missing}", ("s", "XX"), ("g", Id), ("n", 1.5m));
+        var detail = Render(new ValidationOptions(), "{name}: {s} {g} {n} {missing}", ("s", "XX"), ("g", Id), ("n", 1.5m));
 
         // Assert
         Assert.Equal("Customer: \"XX\" \"11111111-2222-3333-4444-555555555555\" 1.5 {missing}", detail);
@@ -19,7 +19,7 @@ public class ValidationOptionsTests
     public void Default_EscapesQuotesAndBackslashes()
     {
         // Act
-        var detail = Render(ValidationOptions.Default, "{s}", ("s", "say \"hi\" \\ bye"));
+        var detail = Render(new ValidationOptions(), "{s}", ("s", "say \"hi\" \\ bye"));
 
         // Assert
         Assert.Equal("\"say \\\"hi\\\" \\\\ bye\"", detail);
@@ -29,7 +29,7 @@ public class ValidationOptionsTests
     public void GuidValue_UsesTheFormatSpecifierThenQuotes()
     {
         // Act
-        var detail = Render(ValidationOptions.Default, "{g:N}", ("g", Id));
+        var detail = Render(new ValidationOptions(), "{g:N}", ("g", Id));
 
         // Assert
         Assert.Equal("\"11111111222233334444555555555555\"", detail);
@@ -39,12 +39,12 @@ public class ValidationOptionsTests
     public void WriteValue_CustomFormatter_WritesEveryValueWithTheSpecifier()
     {
         // Arrange
-        var options = ValidationOptions.Default with
+        var options = new ValidationOptions
         {
             WriteValue = (value, format) => value switch
             {
                 string text => $"«{text}»",
-                DateOnly date => date.ToString(format ?? "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
+                DateOnly date => date.ToString(format ?? "yyyy-MM-dd", null),
                 _ => ValidationOptions.FormatValue(value, format),
             },
         };
@@ -61,7 +61,7 @@ public class ValidationOptionsTests
     public void WriteValue_WithoutQuoting_WritesValuesUnquoted()
     {
         // Arrange
-        var options = ValidationOptions.Default with
+        var options = new ValidationOptions
         {
             WriteValue = (value, format) => value is string text ? text : ValidationOptions.FormatValue(value, format),
         };
@@ -77,7 +77,7 @@ public class ValidationOptionsTests
     public void WriteText_IsUsedForTextButNotForValuesOrTheFormat()
     {
         // Arrange
-        var options = ValidationOptions.Default with { WriteText = text => text.ToUpperInvariant() };
+        var options = new ValidationOptions { WriteText = text => text.ToUpperInvariant() };
 
         // Act
         var detail = Render(options, "{name} is {s}", ("s", "xx"));
@@ -114,8 +114,8 @@ public class ValidationOptionsTests
     public void WriteText_Null_WritesNothing()
     {
         // Arrange
-        var options = ValidationOptions.Default with { WriteText = text => $"[{text}]" };
-        using var validation = ValidationBuilder<Order>.Create(options);
+        var options = new ValidationOptions { WriteText = text => $"[{text}]" };
+        using var validation = new ValidationBuilder<Order>(options);
         validation.Add("C1", "<{t}>", new NullTextMetadata());
 
         // Act
@@ -136,25 +136,25 @@ public class ValidationOptionsTests
     }
 
     [Fact]
-    public void Options_NameConverter_IsUsedForPathsAndPointers()
+    public void Options_NameConverter_IsUsedForPointersOnly()
     {
         // Arrange
-        var options = ValidationOptions.Default with { NameConverter = NameConverters.SnakeCase };
-        using var validation = ValidationBuilder<Order>.Create(options);
+        var options = new ValidationOptions { NameConverter = NameConverters.SnakeCase };
+        using var validation = new ValidationBuilder<Order>(options);
         validation.AddProperty(x => x.Customer.FirstName, "C1", "{name}");
 
         // Act
         var entry = Assert.Single(validation.ToValidationEntries());
 
         // Assert
-        Assert.Equal(("/customer/first_name", "customer.first_name"), (entry.Pointer, entry.Detail));
+        Assert.Equal(("/customer/first_name", "Customer.FirstName"), (entry.Pointer, entry.Detail));
     }
 
     [Fact]
     public void Create_WithNameConverter_KeepsDefaultQuoting()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         validation.AddProperty(x => x.Customer, "C1", "{name}");
         validation.Add("C2", "{s}", new DictionaryValidationMetadata(new Dictionary<string, object?> { ["s"] = "XX" }));
 
@@ -162,11 +162,11 @@ public class ValidationOptionsTests
         var details = validation.ToValidationEntries().Select(e => e.Detail);
 
         // Assert
-        Assert.Equal(["\"XX\"", "customer"], details);
+        Assert.Equal(["\"XX\"", "Customer"], details);
     }
 
     [Fact]
-    public void Init_NullNameConverter_Throws()
+    public void Set_NullNameConverter_Throws()
     {
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new ValidationOptions { NameConverter = null! });
@@ -190,7 +190,7 @@ public class ValidationOptionsTests
     public void NullDelegates_FallBackToTheDefaults()
     {
         // Arrange
-        var options = ValidationOptions.Default with { WriteText = null!, WriteValue = null! };
+        var options = new ValidationOptions { WriteText = null!, WriteValue = null! };
 
         // Act
         var detail = Render(options, "{name} {s} {n:N1}", ("s", "XX"), ("n", 1.25m));
@@ -222,13 +222,13 @@ public class ValidationOptionsTests
         // Arrange
         var placeholder = format is null ? "{v}" : $"{{v:{format}}}";
         // A lambda is not the default delegate, so it is called, with the value boxed.
-        var explicitOptions = ValidationOptions.Default with
+        var explicitOptions = new ValidationOptions
         {
             WriteValue = (value, format) => ValidationOptions.FormatValue(value, format),
         };
 
         // Act
-        var builtIn = Render(ValidationOptions.Default, placeholder, ("v", value));
+        var builtIn = Render(new ValidationOptions(), placeholder, ("v", value));
         var viaDelegate = Render(explicitOptions, placeholder, ("v", value));
 
         // Assert
@@ -239,7 +239,7 @@ public class ValidationOptionsTests
     // Renders format on the root Customer property with the given placeholder values.
     private static string Render(ValidationOptions options, string format, params (string Key, object? Value)[] values)
     {
-        using var validation = ValidationBuilder<Order>.Create(options);
+        using var validation = new ValidationBuilder<Order>(options);
         var metadata = new ValuesMetadata(validation.Resolve(x => x.Customer), values.ToDictionary(v => v.Key, v => v.Value));
         validation.Add("C1", format, metadata);
         return Assert.Single(validation.ToValidationEntries()).Detail;

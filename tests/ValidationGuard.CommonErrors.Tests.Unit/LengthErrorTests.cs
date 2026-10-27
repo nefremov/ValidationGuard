@@ -13,8 +13,8 @@ public class LengthErrorTests
 
         // Assert
         Assert.Equal(CommonErrorCodes.TooShort, entry.Code);
-        Assert.Equal("Value for name must be at least 3 characters long, but has 2", entry.Detail);
-        MetadataJson.AssertEntries(entry, ("entity", "Order"), ("name", "name"), ("length", 2), ("min_length", 3));
+        Assert.Equal("Value for Name must be at least 3 characters long, but has 2", entry.Detail);
+        MetadataJson.AssertEntries(entry, ("entity", "Order"), ("name", "Name"), ("length", 2), ("min_length", 3));
     }
 
     [Fact]
@@ -25,8 +25,8 @@ public class LengthErrorTests
 
         // Assert
         Assert.Equal(CommonErrorCodes.TooLong, entry.Code);
-        Assert.Equal("Value for name must be at most 50 characters long, but has 51", entry.Detail);
-        MetadataJson.AssertEntries(entry, ("entity", "Order"), ("name", "name"), ("length", 51), ("max_length", 50));
+        Assert.Equal("Value for Name must be at most 50 characters long, but has 51", entry.Detail);
+        MetadataJson.AssertEntries(entry, ("entity", "Order"), ("name", "Name"), ("length", 51), ("max_length", 50));
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public class LengthErrorTests
         var entry = SingleEntry(v => v.AddTooShort("Order", x => x.Name, null, 1));
 
         // Assert
-        Assert.Equal("Value for name must be at least 1 characters long, but has 0", entry.Detail);
+        Assert.Equal("Value for Name must be at least 1 characters long, but has 0", entry.Detail);
     }
 
     [Fact]
@@ -60,6 +60,6 @@ public class LengthErrorTests
         var entry = SingleEntry(v => v.AddTooLong("Order", x => x.Name, null, 0));
 
         // Assert
-        Assert.Equal("Value for name must be at most 0 characters long, but has 0", entry.Detail);
+        Assert.Equal("Value for Name must be at most 0 characters long, but has 0", entry.Detail);
     }
 }

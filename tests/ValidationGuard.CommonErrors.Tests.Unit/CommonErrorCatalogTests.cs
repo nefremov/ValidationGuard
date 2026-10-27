@@ -20,7 +20,7 @@ public class CommonErrorCatalogTests
     public void EveryFormatAndCode_IsUsed_AndEveryPlaceholderHasMatchingMetadata()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         validation.AddNotFound("E", x => x.OrderId, Id1);
         validation.AddNotFound("E", x => x.OrderId, Id1, x => x.LineId, Id2);
         validation.AddNotFound("E", x => x.OrderId, Id1, x => x.LineId, Id2, x => x.VendorId, Id3);

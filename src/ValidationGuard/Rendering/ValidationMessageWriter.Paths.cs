@@ -23,20 +23,20 @@ public sealed partial class ValidationMessageWriter
         });
     }
 
-    // The readable path of the scope's fragments followed by local.
-    private static string RenderClrPath(
-        ArraySegment<PathFragment> scope, PathFragment[] local, IPathFragmentNameConverter converter)
+    // The readable path of the scope's fragments followed by local: member names as declared in C#, or localized when a
+    // localizer translates them.
+    private string RenderClrPath(ArraySegment<PathFragment> scope, PathFragment[] local)
     {
-        var length = ClrPathLength(local, converter, ClrPathLength(scope.AsSpan(), converter, 0));
+        var length = ClrPathLength(local, ClrPathLength(scope.AsSpan(), 0));
         if (length == 0)
         {
             return string.Empty;
         }
 
-        return string.Create(length, (scope, local, converter), static (span, state) =>
+        return string.Create(length, (writer: this, scope, local), static (span, state) =>
         {
-            var written = WriteClrPath(state.scope.AsSpan(), state.converter, span, 0);
-            written = WriteClrPath(state.local, state.converter, span, written);
+            var written = state.writer.WriteClrPath(state.scope.AsSpan(), span, 0);
+            written = state.writer.WriteClrPath(state.local, span, written);
             System.Diagnostics.Debug.Assert(written == span.Length);
         });
     }
@@ -103,11 +103,11 @@ public sealed partial class ValidationMessageWriter
 
     // Readable path: members joined with ".", indices as [2], keys as ["a/b"] (with " and \ escaped). length is what
     // precedes the fragments, so a member is preceded by "." only when something was written before it.
-    private static int ClrPathLength(ReadOnlySpan<PathFragment> fragments, IPathFragmentNameConverter converter, int length)
+    private int ClrPathLength(ReadOnlySpan<PathFragment> fragments, int length)
     {
         foreach (var fragment in fragments)
         {
-            var textLength = TextLength(fragment, converter);
+            var textLength = ClrTextLength(fragment);
             if (textLength == 0)
             {
                 continue;
@@ -124,12 +124,11 @@ public sealed partial class ValidationMessageWriter
         return length;
     }
 
-    private static int WriteClrPath(
-        ReadOnlySpan<PathFragment> fragments, IPathFragmentNameConverter converter, Span<char> destination, int written)
+    private int WriteClrPath(ReadOnlySpan<PathFragment> fragments, Span<char> destination, int written)
     {
         foreach (var fragment in fragments)
         {
-            var textLength = TextLength(fragment, converter);
+            var textLength = ClrTextLength(fragment);
             if (textLength == 0)
             {
                 continue;
@@ -143,7 +142,8 @@ public sealed partial class ValidationMessageWriter
                         destination[written++] = '.';
                     }
 
-                    converter.WriteConverted(fragment.ClrName, destination.Slice(written, textLength));
+                    Localize(fragment.ClrName).AsSpan().CopyTo(destination[written..]);
+
                     written += textLength;
                     break;
                 case PathFragmentKind.Index:
@@ -173,6 +173,11 @@ public sealed partial class ValidationMessageWriter
 
         return written;
     }
+
+    // A fragment's length in a readable path: a member's localized name's, or its name as declared; an index's or a
+    // key's text. The naming convention applies to pointers only.
+    private int ClrTextLength(in PathFragment fragment) =>
+        fragment.Kind == PathFragmentKind.Member ? Localize(fragment.ClrName).Length : fragment.ClrName.Length;
 
     private static int TextLength(in PathFragment fragment, IPathFragmentNameConverter converter) =>
         fragment.Kind == PathFragmentKind.Member

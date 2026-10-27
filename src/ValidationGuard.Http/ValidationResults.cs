@@ -4,11 +4,11 @@ namespace ValidationGuard.Http;
 /// Results for Minimal API handlers. Import them with <c>using static ValidationGuard.Http.ValidationResults;</c> to
 /// write <c>return Problem(validation);</c>:
 /// <code>
-/// app.MapPost("/orders", (CreateOrder order) =>
+/// app.MapPost("/orders", (CreateOrder order, IOptions&lt;ValidationOptions&gt; options) =>
 /// {
-///     using var validation = ValidationBuilder&lt;CreateOrder&gt;.Create(NameConverters.CamelCase);
+///     using var validation = new ValidationBuilder&lt;CreateOrder&gt;(options.Value);
 ///     // ... add entries ...
-///     return validation.ToValidationEntries().Count == 0 ? Results.Ok() : Problem(validation);
+///     return validation.Valid ? Results.Ok() : Problem(validation);
 /// });
 /// </code>
 /// </summary>

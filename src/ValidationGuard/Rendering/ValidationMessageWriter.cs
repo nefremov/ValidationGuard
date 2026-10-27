@@ -10,10 +10,11 @@ namespace ValidationGuard;
 public sealed partial class ValidationMessageWriter
 {
     private readonly StringBuilder _text = new(128);
-    private readonly IPathFragmentNameConverter _converter;
-    // The options' delegates, or null for their defaults, which the writer applies itself.
-    private readonly Func<string, string>? _writeText;
-    private readonly ValueFormatter? _writeValue;
+    private readonly ValidationOptions _options;
+    private readonly CultureInfo _culture;
+
+    // Localized texts (formats, entity and member names) by their original text, looked up once per rendering.
+    private Dictionary<string, string>? _localized;
 
     // The fragments from the root to the builder whose entries are rendered: each builder appends its own while it and
     // its children render.
@@ -25,19 +26,79 @@ public sealed partial class ValidationMessageWriter
 
     internal ValidationMessageWriter(ValidationOptions options)
     {
-        _converter = options.NameConverter;
-        _writeText = IsDefault(options.WriteText, ValidationOptions.DefaultWriteText) ? null : options.WriteText;
-        _writeValue = IsDefault(options.WriteValue, ValidationOptions.DefaultWriteValue) ? null : options.WriteValue;
+        _options = options;
+        _culture = CultureInfo.CurrentCulture;
     }
 
     /// <summary>
-    /// The readable path of a property resolved by the builder that added the entry, for example <c>lines[2].sku</c>,
-    /// in the builders' naming convention. Empty for <see langword="null"/>.
+    /// The culture values are formatted with: <see cref="CultureInfo.CurrentCulture"/> when rendering started.
+    /// </summary>
+    public CultureInfo Culture => _culture;
+
+    /// <summary>
+    /// The format specifier of the placeholder being written, such as <c>N2</c> for <c>{value:N2}</c>, or
+    /// <see langword="null"/> when it has none. <see cref="WriteValue{T}"/> applies it; metadata writing a value its own
+    /// way can read it.
+    /// </summary>
+    public string? FormatSpecifier => _specifier;
+
+    /// <summary>
+    /// The readable path of a property resolved by the builder that added the entry, for example <c>Lines[2].Sku</c>:
+    /// member names as declared in C# (the naming convention applies to pointers only), or localized when a localizer
+    /// translates them. Empty for <see langword="null"/>.
     /// </summary>
     public string GetClrPath(PathFragment[]? property) =>
-        property is null ? string.Empty : RenderClrPath(Scope, property, _converter);
+        property is null ? string.Empty : RenderClrPath(Scope, property);
 
-    internal string GetJsonPointer(PathFragment[] property) => RenderJsonPointer(Scope, property, _converter);
+    /// <summary>
+    /// The translation of <paramref name="text"/> for the current UI culture by the first of
+    /// <see cref="ValidationOptions.Localizers"/> that has one, or the text itself: the builders' formats and the member
+    /// names of readable paths go through it, and metadata uses it for the entity names it writes into the detail and
+    /// into JSON. Each text is looked up once per rendering; a failing localizer leaves it as is.
+    /// </summary>
+    public string Localize(string text)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        if (_options.Localizers.Count == 0)
+        {
+            return text;
+        }
+
+        _localized ??= new Dictionary<string, string>(StringComparer.Ordinal);
+        if (!_localized.TryGetValue(text, out var localized))
+        {
+            localized = TranslateWithLocalizers(text) ?? text;
+            _localized[text] = localized;
+        }
+
+        return localized;
+    }
+
+    // The first localizer's translation of key, or null when none translates it. A failing localizer leaves the text
+    // untranslated instead of failing the rendering.
+    private string? TranslateWithLocalizers(string key)
+    {
+        var localizers = _options.Localizers;
+        try
+        {
+            for (var i = 0; i < localizers.Count; i++)
+            {
+                if (localizers[i].Translate(key) is { } localized)
+                {
+                    return localized;
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // Untranslated: a missing or broken resource must not turn a validation response into a failure.
+        }
+
+        return null;
+    }
+
+    internal string GetJsonPointer(PathFragment[] property) => RenderJsonPointer(Scope, property, _options.NameConverter);
+
 
     // Called by a builder before rendering its entries and its children's: appends its own fragments to its parents'.
     internal void Enter(PathFragment[] fragments)
@@ -63,23 +124,27 @@ public sealed partial class ValidationMessageWriter
     /// </summary>
     public void WriteText(string? text)
     {
-        if (_writeText is null)
+        var writeText = _options.WriteText;
+        if (IsDefault(writeText, ValidationOptions.DefaultWriteText))
         {
             _text.Append(text);
             return;
         }
 
-        _text.Append(_writeText(text ?? string.Empty));
+        _text.Append(writeText(text ?? string.Empty));
     }
 
     /// <summary>
     /// Writes a value with <see cref="ValidationOptions.WriteValue"/> and the placeholder's format specifier, if any
     /// (for example <c>N2</c> in <c>{value:N2}</c>). With the default, the rules of
-    /// <see cref="ValidationOptions.FormatValue"/> (strings and <see cref="Guid"/>s quoted, other values with the
-    /// invariant culture) are applied straight into the detail, without boxing. An <see cref="IRenderableValue"/> writes
-    /// itself. To write text, such as a path or a name, use <see cref="WriteText"/>.
+    /// <see cref="ValidationOptions.FormatValue"/> (strings and <see cref="Guid"/>s quoted, other values with
+    /// <see cref="Culture"/>) are applied straight into the detail, without boxing. An <see cref="IRenderableValue"/>
+    /// writes itself. To write text, such as a path or a name, use <see cref="WriteText"/>.
     /// </summary>
-    /// <exception cref="FormatException">The format specifier is not valid for the value.</exception>
+    /// <remarks>
+    /// A specifier that is not valid for the value (a translation may carry one written without knowing the value's
+    /// type) is ignored: the value is written as without a specifier.
+    /// </remarks>
     public void WriteValue<T>(T value)
     {
         if (value is IRenderableValue renderable)
@@ -88,9 +153,29 @@ public sealed partial class ValidationMessageWriter
             return;
         }
 
-        if (_writeValue is not null)
+        if (_specifier is null)
         {
-            _text.Append(_writeValue(value, _specifier));
+            WriteFormatted(value, null);
+            return;
+        }
+
+        // Formatting fails before anything is appended, so the value can be written again without the specifier.
+        try
+        {
+            WriteFormatted(value, _specifier);
+        }
+        catch (FormatException)
+        {
+            WriteFormatted(value, null);
+        }
+    }
+
+    private void WriteFormatted<T>(T value, string? specifier)
+    {
+        var writeValue = _options.WriteValue;
+        if (!IsDefault(writeValue, ValidationOptions.DefaultWriteValue))
+        {
+            _text.Append(writeValue(value, specifier));
             return;
         }
 
@@ -103,18 +188,18 @@ public sealed partial class ValidationMessageWriter
                 AppendQuoted(text);
                 return;
             case Guid guid:
-                AppendQuoted(guid.ToString(_specifier, CultureInfo.InvariantCulture));
+                AppendQuoted(guid.ToString(specifier, _culture));
                 return;
         }
 
         // The interpolation handler is generic over T, so value types are formatted without boxing.
-        var handler = new StringBuilder.AppendInterpolatedStringHandler(0, 1, _text, CultureInfo.InvariantCulture);
-        handler.AppendFormatted(value, _specifier);
+        var handler = new StringBuilder.AppendInterpolatedStringHandler(0, 1, _text, _culture);
+        handler.AppendFormatted(value, specifier);
         _text.Append(ref handler);
     }
 
-    // A delegate the writer replaces with its own default: none, or one equal to the default (the same method).
-    private static bool IsDefault(Delegate? configured, Delegate @default) =>
+    // An option the writer applies its own default for: none, or a delegate equal to the default (the same method).
+    private static bool IsDefault([System.Diagnostics.CodeAnalysis.NotNullWhen(false)] Delegate? configured, Delegate @default) =>
         configured is null || configured.Equals(@default);
 
     // The default quoting, as ValidationOptions.DoubleQuote, written straight into the detail.

@@ -11,7 +11,7 @@ public class AcmeValidationExtensionsTests
     public void AddInvalidFormat_RendersPattern()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
 
         // Act
         validation.AddInvalidFormat("Order", x => x.Email, "^.+@.+$");
@@ -19,14 +19,14 @@ public class AcmeValidationExtensionsTests
         // Assert
         var entry = Assert.Single(validation.ToValidationEntries());
         Assert.Equal("/email", entry.Pointer);
-        Assert.Equal("Value for email does not match the pattern \"^.+@.+$\"", entry.Detail);
+        Assert.Equal("Value for Email does not match the pattern \"^.+@.+$\"", entry.Detail);
     }
 
     [Fact]
     public void AddNotBetween_InNestedBuilder_RendersValueAndBounds()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         using var line = validation.For(x => x.Lines[0]);
 
         // Act
@@ -35,14 +35,14 @@ public class AcmeValidationExtensionsTests
         // Assert
         var entry = Assert.Single(validation.ToValidationEntries());
         Assert.Equal("/lines/0/quantity", entry.Pointer);
-        Assert.Equal("Value 0 for lines[0].quantity must be between 1 and 100", entry.Detail);
+        Assert.Equal("Value 0 for Lines[0].Quantity must be between 1 and 100", entry.Detail);
     }
 
     [Fact]
     public void AddSkuRetired_RendersProductAndSku()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         using var line = validation.For(x => x.Lines[0]);
 
         // Act
@@ -51,14 +51,14 @@ public class AcmeValidationExtensionsTests
         // Assert
         var entry = Assert.Single(validation.ToValidationEntries());
         Assert.Equal("/lines/0", entry.Pointer);
-        Assert.Equal("Product with lines[0].sku = \"CH-12\" is retired", entry.Detail);
+        Assert.Equal("Product with Lines[0].Sku = \"CH-12\" is retired", entry.Detail);
     }
 
     [Fact]
     public void AddInsufficientFunds_RendersWithFormatSpecifiersAndWritesTypedMetadata()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
 
         // Act
         validation.AddInsufficientFunds(x => x.Total, 1234.5m, 100m, "EUR");
@@ -66,10 +66,10 @@ public class AcmeValidationExtensionsTests
         // Assert
         var entry = Assert.Single(validation.ToValidationEntries());
         Assert.Equal("/total", entry.Pointer);
-        Assert.Equal("Value 1,234.50 EUR for total must not exceed the available 100.00 EUR", entry.Detail);
+        Assert.Equal("Value 1,234.50 EUR for Total must not exceed the available 100.00 EUR", entry.Detail);
         var metadata = Assert.IsType<FundsMetadata>(entry.Metadata);
         Assert.Equal((1234.5m, 100m, "EUR"), (metadata.Amount, metadata.Available, metadata.Currency));
-        Assert.Equal("""{"name":"total","amount":1234.5,"available":100,"currency":"EUR"}""", ToJson(metadata));
+        Assert.Equal("""{"name":"Total","amount":1234.5,"available":100,"currency":"EUR"}""", ToJson(metadata));
     }
 
     private static string ToJson(ValidationMetadata metadata)

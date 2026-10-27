@@ -10,8 +10,12 @@
     <PackageReference Include="xunit.v3.mtp-v2" />
   </ItemGroup>
 
+  <!-- Tests run under the invariant culture; a test that needs another switches to it with CultureScope. -->
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="ValidationGuard.Testing" />
+    <Compile Include="..\..\tests\Shared\CultureScope.cs" Link="Shared\CultureScope.cs" />
+    <Content Include="..\..\tests\Shared\xunit.runner.json" Link="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

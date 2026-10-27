@@ -47,6 +47,10 @@ public abstract class ErrorDefinition
 
     // Whether the format must use every key; a property error may leave out {entity}.
     internal virtual bool IsEntityPlaceholderOptional => false;
+
+    // The types of the values of the keys after the built-in ones, in order, when the definition declares them; empty
+    // when their types are only known where the error is added (an entity error's key values).
+    internal virtual Type[] ValueTypes => [];
 }
 
 /// <summary>
@@ -120,19 +124,54 @@ public sealed class PropertyErrorDefinition(string code, string format)
 public sealed class PropertyErrorDefinition<T1>(string code, string format, string key1)
     : EntityErrorDefinition(code, format, 2, [EntityKey, PropertyErrorDefinition.NameKey, key1])
 {
+    private static readonly Type[] s_valueTypes = [typeof(T1)];
+
     internal override bool IsEntityPlaceholderOptional => true;
+
+    internal override Type[] ValueTypes => s_valueTypes;
 }
 
 /// <summary>An error about a property of an entity, with the built-in keys and two typed values.</summary>
 public sealed class PropertyErrorDefinition<T1, T2>(string code, string format, string key1, string key2)
     : EntityErrorDefinition(code, format, 2, [EntityKey, PropertyErrorDefinition.NameKey, key1, key2])
 {
+    private static readonly Type[] s_valueTypes = [typeof(T1), typeof(T2)];
+
     internal override bool IsEntityPlaceholderOptional => true;
+
+    internal override Type[] ValueTypes => s_valueTypes;
 }
 
 /// <summary>An error about a property of an entity, with the built-in keys and three typed values.</summary>
 public sealed class PropertyErrorDefinition<T1, T2, T3>(string code, string format, string key1, string key2, string key3)
     : EntityErrorDefinition(code, format, 2, [EntityKey, PropertyErrorDefinition.NameKey, key1, key2, key3])
 {
+    private static readonly Type[] s_valueTypes = [typeof(T1), typeof(T2), typeof(T3)];
+
     internal override bool IsEntityPlaceholderOptional => true;
+
+    internal override Type[] ValueTypes => s_valueTypes;
+}
+
+/// <summary>
+/// An error about a property of an entity that refers, by a key of type <typeparamref name="T"/>, to another entity,
+/// such as a foreign key. Besides <c>{entity}</c> and <c>{name}</c> it has the built-in <c>{referenced_entity}</c>,
+/// the referenced entity's name, written as text and localized like <c>{entity}</c>, then the key value under
+/// <paramref name="valueKey"/>. The entry points at the property.
+/// </summary>
+public sealed class ReferenceErrorDefinition<T>(string code, string format, string valueKey = "value")
+    : EntityErrorDefinition(
+        code, format, 3, [EntityKey, PropertyErrorDefinition.NameKey, ReferenceErrorDefinition.ReferencedEntityKey, valueKey])
+{
+    private static readonly Type[] s_valueTypes = [typeof(T)];
+
+    internal override bool IsEntityPlaceholderOptional => true;
+
+    internal override Type[] ValueTypes => s_valueTypes;
+}
+
+// The built-in key of reference errors, shared by every ReferenceErrorDefinition<T>.
+internal static class ReferenceErrorDefinition
+{
+    public const string ReferencedEntityKey = "referenced_entity";
 }

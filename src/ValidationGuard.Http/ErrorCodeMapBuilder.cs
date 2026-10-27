@@ -4,6 +4,14 @@ using Microsoft.AspNetCore.Http;
 
 namespace ValidationGuard.Http;
 
+/// <summary>
+/// Builds an <see cref="ErrorCodeMap"/> from codes registered in code
+/// (<see cref="Add(string, int, string, string)"/>) and declared by assemblies (<see cref="HttpErrorCodeAttribute"/>,
+/// read by <see cref="AddAssembly"/>). A code can be registered once; an application replaces a mapping with
+/// <see cref="Override(string, int, string, string)"/> or <see cref="HttpErrorCodeOverrideAttribute"/>.
+/// Conflicts are reported by <see cref="Build"/> and the methods that detect them, naming where each registration
+/// came from.
+/// </summary>
 public sealed class ErrorCodeMapBuilder
 {
     private readonly Dictionary<string, Registration> _codes = new(StringComparer.Ordinal);
@@ -11,12 +19,25 @@ public sealed class ErrorCodeMapBuilder
     private int _fallbackStatus = StatusCodes.Status422UnprocessableEntity;
     private bool _built;
 
+    /// <summary>
+    /// Registers <paramref name="code"/> with its status and optional problem <c>type</c> and <c>title</c>.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The code is already registered, or the map was built.</exception>
     public ErrorCodeMapBuilder Add(string code, int status, string? type = null, string? title = null) =>
         Add(code, status, type, title, source: null);
 
+    /// <summary>
+    /// Replaces the mapping of a registered <paramref name="code"/>, wherever it was registered; applied by
+    /// <see cref="Build"/>, so it may come before the registration.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The code is already overridden, or the map was built.</exception>
     public ErrorCodeMapBuilder Override(string code, int status, string? type = null, string? title = null) =>
         Override(code, status, type, title, source: null);
 
+    /// <summary>
+    /// Registers the codes <paramref name="assembly"/> declares with <see cref="HttpErrorCodeAttribute"/>, and applies
+    /// its <see cref="HttpErrorCodeOverrideAttribute"/>s.
+    /// </summary>
     public ErrorCodeMapBuilder AddAssembly(Assembly assembly)
     {
         ArgumentNullException.ThrowIfNull(assembly);
@@ -36,8 +57,12 @@ public sealed class ErrorCodeMapBuilder
         return this;
     }
 
+    /// <summary>
+    /// Registers the codes declared by the assembly of <typeparamref name="TMarker"/>, as <see cref="AddAssembly"/>.
+    /// </summary>
     public ErrorCodeMapBuilder AddAssemblyOf<TMarker>() => AddAssembly(typeof(TMarker).Assembly);
 
+    /// <summary>Sets the status of unregistered codes; 422 by default.</summary>
     public ErrorCodeMapBuilder UseFallbackStatus(int status)
     {
         EnsureNotBuilt();
@@ -45,6 +70,8 @@ public sealed class ErrorCodeMapBuilder
         return this;
     }
 
+    /// <summary>Applies the overrides and builds the map; the builder cannot be used afterwards.</summary>
+    /// <exception cref="InvalidOperationException">A code is overridden but not registered, or the map was built.</exception>
     public ErrorCodeMap Build()
     {
         EnsureNotBuilt();

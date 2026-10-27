@@ -37,7 +37,7 @@ public class ValidationResultsTests
     {
         // Arrange
         ValidationProblemResult result;
-        using (var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase))
+        using (var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase }))
         {
             validation.AddProperty(x => x.Sku, "A409", "SKU is retired.");
             result = Problem(validation);
@@ -88,7 +88,7 @@ public class ValidationResultsTests
     public void Problem_WithoutEntries_Throws()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create();
+        using var validation = new ValidationBuilder<Order>();
 
         // Act & Assert
         Assert.Throws<ArgumentException>(() => Problem(validation));
@@ -127,7 +127,7 @@ public class ValidationResultsTests
 
     internal static ValidationBuilder<Order> BuilderWithEntry(string code, string detail)
     {
-        var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         validation.AddProperty(x => x.Sku, code, detail);
         return validation;
     }

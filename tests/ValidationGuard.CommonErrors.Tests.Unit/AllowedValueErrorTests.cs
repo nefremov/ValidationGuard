@@ -14,9 +14,9 @@ public class AllowedValueErrorTests
         // Assert
         Assert.Equal("/country", entry.Pointer);
         Assert.Equal(CommonErrorCodes.NotAllowedValue, entry.Code);
-        Assert.Equal("Value \"XX\" for country must be one of \"CH\", \"DE\", \"LV\"", entry.Detail);
+        Assert.Equal("Value \"XX\" for Country must be one of \"CH\", \"DE\", \"LV\"", entry.Detail);
         MetadataJson.AssertEntries(entry,
-            ("entity", "Order"), ("name", "country"), ("value", "XX"), ("allowed_values", new[] { "CH", "DE", "LV" }));
+            ("entity", "Order"), ("name", "Country"), ("value", "XX"), ("allowed_values", new[] { "CH", "DE", "LV" }));
     }
 
     [Fact]
@@ -26,10 +26,10 @@ public class AllowedValueErrorTests
         var entry = SingleEntry(v => v.AddNotAllowed("Order", x => x.Shipping, (Shipping)7));
 
         // Assert
-        Assert.Equal("Value 7 for shipping must be one of Standard, Express", entry.Detail);
+        Assert.Equal("Value 7 for Shipping must be one of Standard, Express", entry.Detail);
         MetadataJson.AssertEntries(entry,
             ("entity", "Order"),
-            ("name", "shipping"),
+            ("name", "Shipping"),
             ("value", (Shipping)7),
             ("allowed_values", new[] { Shipping.Standard, Shipping.Express }));
     }
@@ -43,16 +43,16 @@ public class AllowedValueErrorTests
         // Assert
         Assert.Equal("/shippingCode", entry.Pointer);
         Assert.Equal(CommonErrorCodes.NotAllowedValue, entry.Code);
-        Assert.Equal("Value 7 for shippingCode must be one of 0, 1", entry.Detail);
+        Assert.Equal("Value 7 for ShippingCode must be one of 0, 1", entry.Detail);
         MetadataJson.AssertEntries(entry,
-            ("entity", "Order"), ("name", "shippingCode"), ("value", 7), ("allowed_values", new[] { 0, 1 }));
+            ("entity", "Order"), ("name", "ShippingCode"), ("value", 7), ("allowed_values", new[] { 0, 1 }));
     }
 
     [Fact]
     public void AddNotAllowed_IntWithNonEnumType_Throws()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create();
+        using var validation = new ValidationBuilder<Order>();
 
         // Act & Assert
         Assert.Throws<ArgumentException>(
@@ -65,7 +65,7 @@ public class AllowedValueErrorTests
     public void AddNotAllowed_IntWithEnumValueBeyondInt_Throws()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create();
+        using var validation = new ValidationBuilder<Order>();
 
         // Act & Assert
         Assert.Throws<OverflowException>(
@@ -73,7 +73,7 @@ public class AllowedValueErrorTests
     }
 
     [Fact]
-    public void AddNotAllowed_NumbersUnderAnotherCulture_UseInvariantCultureAndNull()
+    public void AddNotAllowed_NumbersUnderAnotherCulture_UseThatCultureAndNull()
     {
         // Arrange
         using var culture = new CultureScope("de-DE");
@@ -82,14 +82,14 @@ public class AllowedValueErrorTests
         var entry = SingleEntry(v => v.AddNotAllowed("Order", x => x.Discount, 0.3m, [0.1m, 0.25m, null]));
 
         // Assert
-        Assert.Equal("Value 0.3 for discount must be one of 0.1, 0.25, null", entry.Detail);
+        Assert.Equal("Value 0,3 for Discount must be one of 0,1, 0,25, null", entry.Detail);
     }
 
     [Fact]
     public void AddNotAllowed_NullAllowedValues_Throws()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create();
+        using var validation = new ValidationBuilder<Order>();
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => validation.AddNotAllowed("Order", x => x.Country, "XX", null!));
@@ -138,7 +138,7 @@ public class AllowedValueErrorTests
     // Renders format with placeholder {v} filled with value.
     private static string RenderPlaceholder(object value, string format)
     {
-        using var validation = ValidationBuilder<Order>.Create();
+        using var validation = new ValidationBuilder<Order>();
         validation.Add("C1", format, new DictionaryValidationMetadata(new Dictionary<string, object?> { ["v"] = value }));
         return Assert.Single(validation.ToValidationEntries()).Detail;
     }

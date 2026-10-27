@@ -4,6 +4,11 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace ValidationGuard.Http;
 
+/// <summary>
+/// Writes <see cref="ValidationErrors"/> as a JSON array of entries, each metadata written by its own
+/// <see cref="ValidationMetadata.WriteTo"/>, and reads such an array back with metadata as
+/// <see cref="DictionaryValidationMetadata"/> of <see cref="JsonElement"/> values.
+/// </summary>
 public sealed class ValidationErrorsJsonConverter : JsonConverter<ValidationErrors>
 {
     private static readonly JsonEncodedText PointerName = JsonEncodedText.Encode("pointer");
@@ -12,6 +17,7 @@ public sealed class ValidationErrorsJsonConverter : JsonConverter<ValidationErro
     private static readonly JsonEncodedText DetailName = JsonEncodedText.Encode("detail");
     private static readonly JsonEncodedText MetadataName = JsonEncodedText.Encode("metadata");
 
+    /// <inheritdoc />
     public override void Write(Utf8JsonWriter writer, ValidationErrors value, JsonSerializerOptions options)
     {
         var entries = value.Entries;
@@ -41,6 +47,7 @@ public sealed class ValidationErrorsJsonConverter : JsonConverter<ValidationErro
         writer.WriteEndArray();
     }
 
+    /// <inheritdoc />
     public override ValidationErrors Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         if (reader.TokenType != JsonTokenType.StartArray)

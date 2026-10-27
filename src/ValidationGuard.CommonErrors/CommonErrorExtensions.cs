@@ -10,9 +10,9 @@ namespace ValidationGuard.CommonErrors;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <c>{name}</c> is a property's path from the document root in the builder's
-/// naming convention (<see cref="NameConverters"/>), for example <c>customerId</c>, <c>address.city</c>,
-/// <c>lines[2].sku</c> or <c>tags["a/b"]</c> under camelCase. It includes the scope of nested builders.
+/// <c>{name}</c> is a property's path from the document root with member names as declared in C# (or translated), for
+/// example <c>CustomerId</c>, <c>Address.City</c>, <c>Lines[2].Sku</c> or <c>Tags["a/b"]</c>; the naming convention
+/// (<see cref="NameConverters"/>) applies to pointers only. It includes the scope of nested builders.
 /// </para>
 /// <para>
 /// Most methods are thin wrappers over <see cref="CommonErrorDefinitions"/>; define your own errors the same way with
@@ -126,18 +126,25 @@ public static class CommonErrorExtensions
         T3 value3) =>
         validation.Add(CommonErrorDefinitions.NotUnique3, entity, property1, value1, property2, value2, property3, value3);
 
+    /// <summary>
+    /// A required property is <see langword="null"/>, for example <c>AddNull("Order", x =&gt; x.CustomerId)</c>.
+    /// </summary>
     public static void AddNull<TContext, TValue>(
         this IValidationBuilder<TContext> validation,
         string entity,
         Expression<Func<TContext, TValue>> accessor) =>
         validation.Add(CommonErrorDefinitions.Null, entity, accessor);
 
+    /// <summary>A string property is empty, for example <c>AddEmpty("Order", x =&gt; x.Email)</c>.</summary>
     public static void AddEmpty<TContext>(
         this IValidationBuilder<TContext> validation,
         string entity,
         Expression<Func<TContext, string?>> accessor) =>
         validation.Add(CommonErrorDefinitions.Empty, entity, accessor);
 
+    /// <summary>
+    /// <paramref name="value"/> is below <paramref name="minValue"/>: the property must be at least the minimum.
+    /// </summary>
     public static void AddLessThan<TContext, TValue>(
         this IValidationBuilder<TContext> validation,
         string entity,
@@ -146,6 +153,9 @@ public static class CommonErrorExtensions
         TValue minValue) =>
         validation.Add(CommonErrorDefinitions.Comparison<TValue>.LessThan, entity, accessor, value, minValue);
 
+    /// <summary>
+    /// <paramref name="value"/> is not above the exclusive minimum <paramref name="minValue"/>.
+    /// </summary>
     public static void AddLessThanOrEqual<TContext, TValue>(
         this IValidationBuilder<TContext> validation,
         string entity,
@@ -154,6 +164,9 @@ public static class CommonErrorExtensions
         TValue minValue) =>
         validation.Add(CommonErrorDefinitions.Comparison<TValue>.LessThanOrEqual, entity, accessor, value, minValue);
 
+    /// <summary>
+    /// <paramref name="value"/> is above <paramref name="maxValue"/>: the property must be at most the maximum.
+    /// </summary>
     public static void AddGreaterThan<TContext, TValue>(
         this IValidationBuilder<TContext> validation,
         string entity,
@@ -162,6 +175,9 @@ public static class CommonErrorExtensions
         TValue maxValue) =>
         validation.Add(CommonErrorDefinitions.Comparison<TValue>.GreaterThan, entity, accessor, value, maxValue);
 
+    /// <summary>
+    /// <paramref name="value"/> is not below the exclusive maximum <paramref name="maxValue"/>.
+    /// </summary>
     public static void AddGreaterThanOrEqual<TContext, TValue>(
         this IValidationBuilder<TContext> validation,
         string entity,
@@ -170,6 +186,7 @@ public static class CommonErrorExtensions
         TValue maxValue) =>
         validation.Add(CommonErrorDefinitions.Comparison<TValue>.GreaterThanOrEqual, entity, accessor, value, maxValue);
 
+    /// <summary>A string property is shorter than <paramref name="minLength"/>.</summary>
     /// <remarks>The message reports the value's length, not the value, so user input never appears in it.</remarks>
     public static void AddTooShort<TContext>(
         this IValidationBuilder<TContext> validation,
@@ -179,6 +196,7 @@ public static class CommonErrorExtensions
         int minLength) =>
         validation.Add(CommonErrorDefinitions.TooShort, entity, accessor, value?.Length ?? 0, minLength);
 
+    /// <summary>A string property is longer than <paramref name="maxLength"/>.</summary>
     /// <remarks>The message reports the value's length, not the value, so user input never appears in it.</remarks>
     public static void AddTooLong<TContext>(
         this IValidationBuilder<TContext> validation,
@@ -220,7 +238,7 @@ public static class CommonErrorExtensions
             CommonErrorDefinitions.Reference<TValue>.NotFound,
             entity,
             accessor,
-            new EntityName(referencedEntity),
+            referencedEntity,
             value);
 
     /// <summary>

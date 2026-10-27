@@ -9,8 +9,10 @@ namespace ValidationGuard;
 /// </summary>
 public sealed class DictionaryValidationMetadata(IReadOnlyDictionary<string, object?> values) : ValidationMetadata
 {
+    /// <summary>The values by metadata key.</summary>
     public IReadOnlyDictionary<string, object?> Values { get; } = values ?? throw new ArgumentNullException(nameof(values));
 
+    /// <inheritdoc />
     protected internal override bool TryWrite(ReadOnlySpan<char> key, ValidationMessageWriter writer)
     {
         // A Dictionary with a span-capable comparer is looked up without allocating the key.
@@ -28,6 +30,7 @@ public sealed class DictionaryValidationMetadata(IReadOnlyDictionary<string, obj
         return true;
     }
 
+    /// <inheritdoc />
     public override void WriteTo(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         ArgumentNullException.ThrowIfNull(writer);

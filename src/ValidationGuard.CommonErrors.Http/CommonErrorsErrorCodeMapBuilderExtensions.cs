@@ -2,6 +2,7 @@ using ValidationGuard.Http;
 
 namespace ValidationGuard.CommonErrors.Http;
 
+/// <summary>Registers the HTTP statuses of the common errors.</summary>
 public static class CommonErrorsErrorCodeMapBuilderExtensions
 {
     /// <summary>

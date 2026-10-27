@@ -10,8 +10,8 @@ internal static class Accessor
         IPathFragmentNameConverter? nameConverter = null)
     {
         using var validation = nameConverter is null
-            ? ValidationBuilder<Root>.Create()
-            : ValidationBuilder<Root>.Create(nameConverter);
+            ? new ValidationBuilder<Root>()
+            : new ValidationBuilder<Root>(new ValidationOptions { NameConverter = nameConverter });
         validation.AddProperty(accessor, "C1", "f");
         return Assert.Single(validation.ToValidationEntries()).Pointer;
     }

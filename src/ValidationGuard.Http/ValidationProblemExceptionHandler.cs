@@ -12,6 +12,7 @@ namespace ValidationGuard.Http;
 /// </summary>
 public sealed class ValidationProblemExceptionHandler : IExceptionHandler
 {
+    /// <inheritdoc />
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(httpContext);

@@ -9,10 +9,15 @@ namespace ValidationGuard.CommonErrors;
 // paths are captured each time the entry is rendered. Each arity below adds one typed pair, so values stay typed.
 internal abstract class EntityKeyValidationMetadata(EntityErrorDefinition definition, string entity) : ValidationMetadata
 {
+    // The entity's name as passed to Add, localized when the entry is rendered (once) for the detail and for JSON,
+    // which is written later, without the writer.
+    private string _entity = entity;
+
     protected ImmutableArray<string> Keys => definition.Keys;
 
     protected sealed override string RenderDetail(string format, ValidationMessageWriter writer)
     {
+        _entity = writer.Localize(_entity);
         CaptureNames(writer);
         return base.RenderDetail(format, writer);
     }
@@ -29,7 +34,7 @@ internal abstract class EntityKeyValidationMetadata(EntityErrorDefinition defini
 
             if (slot == 0)
             {
-                writer.WriteText(entity);
+                writer.WriteText(_entity);
             }
             else
             {
@@ -48,7 +53,7 @@ internal abstract class EntityKeyValidationMetadata(EntityErrorDefinition defini
         ArgumentNullException.ThrowIfNull(options);
 
         writer.WriteStartObject();
-        writer.WriteString(Keys[0], entity);
+        writer.WriteString(Keys[0], _entity);
         WriteSlots(writer, options);
         writer.WriteEndObject();
     }

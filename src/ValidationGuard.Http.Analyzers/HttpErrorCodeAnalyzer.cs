@@ -10,6 +10,12 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace ValidationGuard.Http.Analyzers;
 
+/// <summary>
+/// Checks HTTP error code declarations at compile time: <c>[assembly: HttpErrorCode]</c> and
+/// <c>[assembly: HttpErrorCodeOverride]</c> attributes and <c>ErrorCodeMapBuilder</c> calls with constant arguments,
+/// for blank codes, statuses outside 400-599, problem types that are not absolute URIs, codes declared twice (in the
+/// assembly or by two referenced assemblies), and overrides of undeclared codes.
+/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class HttpErrorCodeAnalyzer : DiagnosticAnalyzer
 {
@@ -19,6 +25,7 @@ public sealed class HttpErrorCodeAnalyzer : DiagnosticAnalyzer
     private const int MinStatus = 400;
     private const int MaxStatus = 599;
 
+    /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
         DiagnosticDescriptors.EmptyCode,
         DiagnosticDescriptors.StatusOutOfRange,
@@ -28,6 +35,7 @@ public sealed class HttpErrorCodeAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.UnknownOverride,
         DiagnosticDescriptors.DuplicateOverride);
 
+    /// <inheritdoc />
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);

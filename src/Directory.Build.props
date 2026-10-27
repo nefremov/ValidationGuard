@@ -4,9 +4,11 @@
     All packages are versioned in lockstep: bump <Version> here to publish every packable project.
   -->
   <PropertyGroup>
-    <Version>1.0.0-pre3</Version>
+    <Version>1.0.0-pre5</Version>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <!-- XML docs ship in the packages; a public member without docs is a CS1591 warning. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Label="Package metadata">

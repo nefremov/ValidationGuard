@@ -1,7 +1,11 @@
 // A minimal API that validates an order and answers with RFC 9457 Problem Details: the status comes from the entries'
-// codes, and every entry is listed under "errors" with its pointer, code, format, detail and metadata.
+// codes, and every entry is listed under "errors" with its pointer, code, format, detail and metadata. Messages follow
+// the request culture (?culture=de or Accept-Language: de): formats, entity and member names are translated, values are
+// formatted for the culture, and pointers stay the same.
 using Acme.Validation;
 using Acme.Validation.Http;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Options;
 using ValidationGuard;
 using ValidationGuard.CommonErrors;
 using ValidationGuard.CommonErrors.Http;
@@ -19,20 +23,52 @@ builder.Services.AddValidationProblems(codes => codes
     .AddAcmeErrors()
     .AddAssemblyOf<Program>());
 
-// Optional: ASP.NET Core's Problem Details service. Its customizations (here a traceId) apply to validation problems
-// too, and the exception handler middleware below needs it to turn ValidationFailedException into a response.
+// Optional: ASP.NET Core's Problem Details service. Its customizations apply to validation problems too: here a
+// traceId, and the title translated for the request's culture (ValidationGuard localizes the detail and the errors,
+// not the title). The exception handler middleware below also needs it to turn ValidationFailedException into a
+// response.
 builder.Services.AddProblemDetails(options =>
     options.CustomizeProblemDetails = context =>
-        context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier);
+    {
+        context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+
+        var titles = context.HttpContext.RequestServices.GetRequiredService<IStringLocalizer<AppMessages>>();
+        if (context.ProblemDetails.Title is { } title && titles.Translate(title) is { } localized)
+        {
+            context.ProblemDetails.Title = localized;
+        }
+    });
+
+// IStringLocalizer<T> over resources: the application's in Resources/, Acme's wherever Acme declares them.
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+// How every builder renders its entries, configured once with the options pattern: camelCase paths, and the
+// localizers, asked in order (the application's first, so it can override Acme's translations).
+builder.Services.AddOptions<ValidationOptions>()
+    .Configure<IStringLocalizer<AppMessages>, IStringLocalizer<AcmeMessages>>((options, app, acme) =>
+    {
+        options.NameConverter = NameConverters.CamelCase;
+        options.Localizers.Add(app);
+        options.Localizers.Add(acme);
+    });
+
+builder.Services.AddSingleton<OrderService>();
 
 var app = builder.Build();
+
+// Sets CultureInfo.CurrentCulture (values) and CurrentUICulture (translations) per request from the query string, cookie
+// or Accept-Language header; validation messages are rendered under them.
+app.UseRequestLocalization(options => options
+    .SetDefaultCulture("en")
+    .AddSupportedCultures("en", "de")
+    .AddSupportedUICultures("en", "de"));
 
 // Turns ValidationFailedException, thrown by ThrowIfInvalid below the endpoints, into a Problem Details response.
 app.UseExceptionHandler();
 
-app.MapPost("/orders", (CreateOrder order) =>
+app.MapPost("/orders", (CreateOrder order, IOptions<ValidationOptions> options) =>
 {
-    using var validation = ValidationBuilder<CreateOrder>.Create(NameConverters.CamelCase);
+    using var validation = new ValidationBuilder<CreateOrder>(options.Value);
 
     if (!Store.Customers.Contains(order.CustomerId))
     {
@@ -69,7 +105,7 @@ app.MapPost("/orders", (CreateOrder order) =>
 
     // Problem(validation) produces the entries now and writes them as Problem Details when the response is sent, after
     // the builder is disposed.
-    if (validation.ToValidationEntries().Count > 0)
+    if (!validation.Valid)
     {
         return Problem(validation);
     }
@@ -78,9 +114,9 @@ app.MapPost("/orders", (CreateOrder order) =>
 });
 
 // Code below the endpoint that cannot return a result throws instead; the exception handler writes the same response.
-app.MapPut("/orders/{id:guid}/email", (Guid id, ChangeEmail change) =>
+app.MapPut("/orders/{id:guid}/email", (Guid id, ChangeEmail change, OrderService orders) =>
 {
-    OrderService.ChangeEmail(id, change);
+    orders.ChangeEmail(id, change);
     return Results.NoContent();
 });
 
@@ -92,11 +128,12 @@ public sealed record OrderLine(string? Sku, int Quantity);
 
 public sealed record ChangeEmail(string? Email);
 
-internal static class OrderService
+// A service below the endpoints gets the same options injected.
+internal sealed class OrderService(IOptions<ValidationOptions> options)
 {
-    public static void ChangeEmail(Guid orderId, ChangeEmail change)
+    public void ChangeEmail(Guid orderId, ChangeEmail change)
     {
-        using var validation = ValidationBuilder<ChangeEmail>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<ChangeEmail>(options.Value);
         if (string.IsNullOrEmpty(change.Email))
         {
             validation.AddEmpty("Order", x => x.Email);
@@ -136,6 +173,9 @@ internal static class OrderLineValidator
         }
     }
 }
+
+// The resources of the application's messages (Resources/AppMessages.de.resx), for IStringLocalizer<AppMessages>.
+internal sealed class AppMessages;
 
 internal static class Store
 {

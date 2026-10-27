@@ -18,7 +18,7 @@ public class PathRenderingTests
     public void Pointer_InNestedBuilder_UsesTheNamingConvention(IPathFragmentNameConverter nameConverter, string expectedPointer)
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(nameConverter);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = nameConverter });
         using (var address = validation.For(x => x.HomeAddress))
         {
             address.AddProperty(x => x.PostalCode, "A1", "fmt");
@@ -36,7 +36,7 @@ public class PathRenderingTests
     public void Pointer_FromRootAccessor_UsesTheNamingConvention(IPathFragmentNameConverter nameConverter, string expectedPointer)
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(nameConverter);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = nameConverter });
         validation.AddProperty(x => x.HomeAddress.PostalCode, "A1", "fmt");
 
         // Act
@@ -50,7 +50,7 @@ public class PathRenderingTests
     public void PointerAndPath_InIndexedNestedBuilder_IncludeTheScope()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         using (var line = validation.For(x => x.Lines[2]))
         {
             line.Add("C1", "{name}", new ProbeMetadata(line.Resolve(x => x.Sku)));
@@ -61,14 +61,14 @@ public class PathRenderingTests
 
         // Assert
         Assert.Equal("/lines/2/sku", entry.Pointer);
-        Assert.Equal("lines[2].sku", entry.Detail);
+        Assert.Equal("Lines[2].Sku", entry.Detail);
     }
 
     [Fact]
     public void PointerAndPath_InTwoLevelNestedBuilder_IncludeEveryScope()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         using (var line = validation.For(x => x.Lines[1]))
         using (var detail = line.For(x => x.Detail))
         {
@@ -80,19 +80,19 @@ public class PathRenderingTests
 
         // Assert
         Assert.Equal("/lines/1/detail/note", entry.Pointer);
-        Assert.Equal("lines[1].detail.note", entry.Detail);
+        Assert.Equal("Lines[1].Detail.Note", entry.Detail);
     }
 
     [Theory]
-    [InlineData("a/b", "/tags/a~1b", "tags[\"a/b\"]")]
-    [InlineData("a~b", "/tags/a~0b", "tags[\"a~b\"]")]
-    [InlineData("~1", "/tags/~01", "tags[\"~1\"]")]
-    [InlineData("say \"hi\"", "/tags/say \"hi\"", "tags[\"say \\\"hi\\\"\"]")]
-    [InlineData("2", "/tags/2", "tags[\"2\"]")]
+    [InlineData("a/b", "/tags/a~1b", "Tags[\"a/b\"]")]
+    [InlineData("a~b", "/tags/a~0b", "Tags[\"a~b\"]")]
+    [InlineData("~1", "/tags/~01", "Tags[\"~1\"]")]
+    [InlineData("say \"hi\"", "/tags/say \"hi\"", "Tags[\"say \\\"hi\\\"\"]")]
+    [InlineData("2", "/tags/2", "Tags[\"2\"]")]
     public void Key_IsEscapedInPointer_QuotedInPath(string key, string expectedPointer, string expectedPath)
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create(NameConverters.CamelCase);
+        using var validation = new ValidationBuilder<Order>(new ValidationOptions { NameConverter = NameConverters.CamelCase });
         validation.Add("C1", "{name}", new ProbeMetadata(validation.Resolve(x => x.Tags[key])));
 
         // Act
@@ -107,7 +107,7 @@ public class PathRenderingTests
     public void Root_HasEmptyPointerAndPath()
     {
         // Arrange
-        using var validation = ValidationBuilder<Order>.Create();
+        using var validation = new ValidationBuilder<Order>();
         validation.Add("C1", "[{name}]", new ProbeMetadata(validation.Resolve(x => x)));
 
         // Act

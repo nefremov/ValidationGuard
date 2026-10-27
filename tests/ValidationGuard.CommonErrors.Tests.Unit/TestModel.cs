@@ -27,6 +27,8 @@ public sealed class Order
 
     public int Quantity { get; init; }
 
+    public int? WarehouseId { get; init; }
+
     public decimal Price { get; init; }
 
     public decimal Weight { get; init; }
