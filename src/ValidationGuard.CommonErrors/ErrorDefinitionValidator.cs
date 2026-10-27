@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
-using Microsoft.Extensions.Localization;
 
 namespace ValidationGuard.CommonErrors;
 
@@ -57,20 +56,24 @@ public static class ErrorDefinitionValidator
     /// <summary>
     /// Validates the translations <paramref name="localizer"/> gives, in every culture the library ships, of every
     /// public static <see cref="ErrorDefinition"/> field of <paramref name="type"/> and its nested types: the cultures of
-    /// the satellite resource assemblies next to <paramref name="type"/>'s assembly (<c>de/Acme.Validation.resources.dll</c>
-    /// and so on), so a language added later is validated without changing the test. Otherwise as
-    /// <see cref="ValidateLocalizations(Type, IStringLocalizer, IEnumerable{CultureInfo}, bool)"/>.
+    /// the satellite resource assemblies of <paramref name="translations"/>, the assembly holding the resources
+    /// (<c>de/Acme.Validation.Localization.resources.dll</c> and so on), so a language added later is validated without
+    /// changing the test. Pass the assembly of the type naming the resources, such as
+    /// <c>typeof(AcmeMessages).Assembly</c>, whether it is a translations package of its own or the library itself.
+    /// Otherwise as <see cref="ValidateLocalizations(Type, Func{string, string}, IEnumerable{CultureInfo}, bool)"/>.
     /// </summary>
     /// <returns>The number of translations found, over all cultures.</returns>
     /// <exception cref="InvalidOperationException">No satellite resource assembly was found.</exception>
     public static int ValidateLocalizations(
         Type type,
-        IStringLocalizer localizer,
+        Func<string, string?> localizer,
+        Assembly translations,
         bool requireAll = false)
     {
         ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(translations);
 
-        var assembly = type.Assembly;
+        var assembly = translations;
         var cultures = FindSatelliteCultures(Path.GetDirectoryName(assembly.Location), assembly.GetName().Name!);
         if (cultures.Count == 0)
         {
@@ -83,12 +86,12 @@ public static class ErrorDefinitionValidator
 
     /// <summary>
     /// Validates the translations <paramref name="localizer"/> gives for <paramref name="culture"/>, as
-    /// <see cref="ValidateLocalizations(Type, IStringLocalizer, IEnumerable{CultureInfo}, bool)"/>.
+    /// <see cref="ValidateLocalizations(Type, Func{string, string}, IEnumerable{CultureInfo}, bool)"/>.
     /// </summary>
     /// <returns>The number of definitions translated.</returns>
     public static int ValidateLocalizations(
         Type type,
-        IStringLocalizer localizer,
+        Func<string, string?> localizer,
         CultureInfo culture,
         bool requireAll = false)
     {
@@ -98,11 +101,13 @@ public static class ErrorDefinitionValidator
 
     /// <summary>
     /// Validates the translations <paramref name="localizer"/> gives for each of <paramref name="cultures"/> (set as the
-    /// current UI culture while they are looked up, as <see cref="IStringLocalizer"/> reads it) of every public static
+    /// current UI culture while they are looked up, as localizers read it) of every public static
     /// <see cref="ErrorDefinition"/> field of <paramref name="type"/> and its nested types (as
     /// <see cref="ValidateFields"/> finds them), reporting all invalid translations at once, as
     /// <see cref="ValidateLocalizedFormat"/> checks one. A library calls it from a unit test, and can require every
-    /// definition to be translated. Each definition is looked up by its format, as builders look up entries.
+    /// definition to be translated. Each definition is looked up by its format, as builders look up entries. The
+    /// localizer is a function such as those of <see cref="ValidationOptions.Localizers"/>; for an
+    /// <c>IStringLocalizer</c>, pass its <c>Translate</c> (ValidationGuard.Localization).
     /// </summary>
     /// <returns>The number of translations found, over all cultures.</returns>
     /// <exception cref="ArgumentException">
@@ -111,7 +116,7 @@ public static class ErrorDefinitionValidator
     /// </exception>
     public static int ValidateLocalizations(
         Type type,
-        IStringLocalizer localizer,
+        Func<string, string?> localizer,
         IEnumerable<CultureInfo> cultures,
         bool requireAll = false)
     {
@@ -260,7 +265,7 @@ public static class ErrorDefinitionValidator
     // Adds the problems of the translations to culture to problems, and returns how many translations were found.
     private static int CollectLocalizationProblems(
         Type type,
-        IStringLocalizer localizer,
+        Func<string, string?> localizer,
         CultureInfo culture,
         bool requireAll,
         List<string> problems)
@@ -275,7 +280,7 @@ public static class ErrorDefinitionValidator
                 translations.Add((
                     $"{field.DeclaringType!.Name}.{field.Name} ({definition.Code})",
                     definition,
-                    localizer.Translate(definition.Format)));
+                    localizer(definition.Format)));
             }
         }
         finally

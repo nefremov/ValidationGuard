@@ -4,7 +4,7 @@
     All packages are versioned in lockstep: bump <Version> here to publish every packable project.
   -->
   <PropertyGroup>
-    <Version>1.0.0-pre6</Version>
+    <Version>1.0.0</Version>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <!-- XML docs ship in the packages; a public member without docs is a CS1591 warning. -->
@@ -14,7 +14,9 @@
   <PropertyGroup Label="Package metadata">
     <Authors>Nick Efremov</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
+    <PackageReleaseNotes>https://github.com/nefremov/ValidationGuard/blob/main/CHANGELOG.md</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/nefremov/ValidationGuard</PackageProjectUrl>
     <RepositoryUrl>https://github.com/nefremov/ValidationGuard</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -22,5 +24,10 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <!-- Deterministic paths in the symbols (Source Link maps them to the repository) when built by GitHub Actions. -->
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 </Project>

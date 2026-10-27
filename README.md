@@ -6,8 +6,10 @@ Typed validation error accumulation for .NET 10 with RFC 6901 JSON Pointer paths
 
 | Package | Purpose |
 |---------|---------|
-| `ValidationGuard` | Transport-agnostic validation builder and entries |
-| `ValidationGuard.CommonErrors` | Ready-made errors with stable codes and message formats (not found, null, empty, range, length), translated to 47 languages |
+| `ValidationGuard` | Transport-agnostic validation builder and entries; no dependencies |
+| `ValidationGuard.Localization` | Localizes messages with `IStringLocalizer` |
+| `ValidationGuard.CommonErrors` | Ready-made errors with stable codes and message formats (not found, null, empty, range, length) |
+| `ValidationGuard.CommonErrors.Localization` | The common errors' messages translated to 47 languages |
 | `ValidationGuard.Http` | RFC 9457 Problem Details projection for ASP.NET Core, with a bundled build-time analyzer |
 | `ValidationGuard.CommonErrors.Http` | HTTP statuses for the `ValidationGuard.CommonErrors` codes |
 
@@ -69,8 +71,9 @@ Code below the endpoints that cannot return a result injects `IOptions<Validatio
 ### With localization
 
 Messages follow the request's culture once request localization is enabled and the builders' options list the
-localizers. `ValidationGuard.CommonErrors` ships the common errors translated to 47 languages
-(`IStringLocalizer<CommonErrorMessages>`); the application translates its own formats, its entity and member names,
+localizers. Also reference `ValidationGuard.CommonErrors.Localization`: it ships the common errors translated to 47
+languages (`IStringLocalizer<CommonErrorMessages>`) and brings `ValidationGuard.Localization`, which adds an
+`IStringLocalizer` to `ValidationOptions.Localizers`. The application translates its own formats, its entity and member names,
 and (if it wants) the Problem Details titles, in resources keyed by the English text:
 
 ```csharp
@@ -143,8 +146,9 @@ registering a code again.
 
 ### With third-party libraries and localization
 
-Add each library's localizer to the chain, after the application's own and before the common errors', so the
-application can override any of them:
+Reference each library's translations package as well (`Acme.Validation.Localization`, which provides
+`IStringLocalizer<AcmeMessages>`), and add its localizer to the chain, after the application's own and before the
+common errors', so the application can override any of them:
 
 ```csharp
 builder.Services.AddOptions<ValidationOptions>()
@@ -239,13 +243,13 @@ produces
   `AddNotAllowed("Order", x => x.ShippingCode, code, typeof(Shipping))` allows only the defined numbers.
 - Codes and formats are available as constants in `CommonErrorCodes` and `CommonErrorFormats`. The `VG` prefix is
   reserved for ValidationGuard; codes are never renumbered or reused.
-- The formats are translated to 47 languages (Arabic to Vietnamese, Simplified and Traditional Chinese), shipped as
-  resources for `IStringLocalizer<CommonErrorMessages>`; add that localizer to `ValidationOptions.Localizers` (see
+- The formats are translated to 47 languages (Arabic to Vietnamese, Simplified and Traditional Chinese) by the
+  `ValidationGuard.CommonErrors.Localization` package, as resources for `IStringLocalizer<CommonErrorMessages>`; add that localizer to `ValidationOptions.Localizers` (see
   [With localization](#with-localization)). `CommonErrorMessages.GetSupportedCultures()` lists the cultures the
   messages are available in, `CommonErrorMessages.NeutralCulture` (`en`, the formats' own) included, to compute the
   cultures an application supports. Other languages, and English, keep the formats as defined; an application
   overrides any translation in its own resources, keyed by the English format.
-- The package depends only on `ValidationGuard` and `Microsoft.Extensions.Localization`. The HTTP statuses above are provided by
+- The package depends only on `ValidationGuard`; its translations bring `Microsoft.Extensions.Localization`. The HTTP statuses above are provided by
   `ValidationGuard.CommonErrors.Http`; register them with
   `AddValidationProblems(codes => codes.AddCommonErrors())` and change one with
   `.Override(CommonErrorCodes.NotFound, 422)` or `[assembly: HttpErrorCodeOverride(...)]`.
@@ -324,8 +328,11 @@ app.MapPost("/orders", (CreateOrder order, IOptions<ValidationOptions> options) 
 - `WriteText`: a `Func<string, string>`, `text => text`, for text written by metadata, such as paths and
   entity names; `ValidationOptions.DefaultWriteText` (as is) by default, and also when set to `null`. The format's own
   text is never passed to it.
-- `Localizers`: the `IStringLocalizer`s translating formats, entity names and member names (see
-  [Localization](#localization)); none by default.
+- `Localizers`: the functions translating formats, entity names and member names (`Func<string, string?>`: the
+  translation for the current UI culture, or `null`; see [Localization](#localization)); none by default.
+  `ValidationGuard.Localization` adds an `IStringLocalizer` with `options.Localizers.Add(localizer)`.
+- `UseLocalization`: whether messages are localized, `true` by default. Off, formats, entity and member names are
+  rendered as defined and values with the invariant culture (`1234.5`), whatever the request's cultures.
 
 An entry's `metadata` is a `ValidationMetadata`, not a dictionary. A metadata type keeps its values typed, decides
 how the entry's detail is rendered, and writes itself to JSON as a map. A metadata instance belongs to one entry: it
@@ -382,10 +389,12 @@ public abstract class ValidationMetadata
 
 ### Localization
 
-Messages are localized with the standard `IStringLocalizer` (`Microsoft.Extensions.Localization`) when entries are
-rendered (`ToValidationEntries()`), under the ambient cultures: `CultureInfo.CurrentCulture` formats values, and
-`ValidationOptions.Localizers` translate for `CultureInfo.CurrentUICulture`. In ASP.NET Core, request localization
-sets both per request, and the localizers come from dependency injection:
+Messages are localized when entries are rendered (`ToValidationEntries()`), under the ambient cultures:
+`CultureInfo.CurrentCulture` formats values, and `ValidationOptions.Localizers` translate for
+`CultureInfo.CurrentUICulture`. A localizer is a `Func<string, string?>`, so `ValidationGuard` itself depends on no
+localization library; `ValidationGuard.Localization` adapts the standard `IStringLocalizer`
+(`Microsoft.Extensions.Localization`): `options.Localizers.Add(localizer)` adds its `Translate`. In ASP.NET Core,
+request localization sets both cultures per request, and the localizers come from dependency injection:
 
 ```csharp
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
@@ -410,6 +419,8 @@ app.UseRequestLocalization(options => options
 - Values are formatted with the culture, including format specifiers: `{amount:N2}` renders `1.234,50` in German.
   Outside a request (a worker, a test) set `CultureInfo.CurrentCulture` and `CurrentUICulture`, or
   `CultureInfo.InvariantCulture` for culture-independent details.
+- `ValidationOptions.UseLocalization = false` turns localization off: messages are rendered as defined, with values
+  formatted by the invariant culture, so an English-only API never shows `1234,5` to a German client.
 
 Resource keys:
 
@@ -440,16 +451,22 @@ Resource keys:
 A library with its own errors (like the `Acme.Validation` sample) ships their translations, and applications plug
 them in next to their own. The library translates what it owns: the formats of its codes and the entity names it
 passes to `Add` (such as `Product`). Applications translate their own formats and their own entity and member names;
-the common errors come translated in `ValidationGuard.CommonErrors`.
+the common errors come translated in `ValidationGuard.CommonErrors.Localization`.
 
-**What to ship.** Resources for `IStringLocalizer<T>`: a marker type naming them, `.resx` files, and the resource
-location, so the lookup does not depend on the `ResourcesPath` the application configures for its own resources:
+**What to ship.** A translations package of its own (`Acme.Validation.Localization`), as
+`ValidationGuard.CommonErrors.Localization` is for the common errors: the library stays free of localization
+dependencies, and applications that answer in English only do not reference it. It holds resources for
+`IStringLocalizer<T>`: a marker type naming them, `.resx` files, the resource location, so the lookup does not depend
+on the `ResourcesPath` the application configures for its own resources, and the root namespace the resources are
+named after:
 
 ```text
-Acme.Validation/
-  AcmeMessages.cs                  marker type + [assembly: ResourceLocation("Resources")] + [assembly: NeutralResourcesLanguage("en")]
-  Resources/AcmeMessages.resx      neutral: empty, so cultures without a translation keep the defined (English) formats
-  Resources/AcmeMessages.de.resx   German: formats keyed by their English text, Product by name
+Acme.Validation.Localization/
+  Acme.Validation.Localization.csproj  <RootNamespace>Acme.Validation</RootNamespace>; references Acme.Validation,
+                                       ValidationGuard.Localization and Microsoft.Extensions.Localization
+  AcmeMessages.cs                      marker type + [ResourceLocation], [RootNamespace], [NeutralResourcesLanguage]
+  Resources/AcmeMessages.resx          neutral: empty, so cultures without a translation keep the defined formats
+  Resources/AcmeMessages.de.resx       German: formats keyed by their English text, Product by name
 ```
 
 ```csharp
@@ -457,7 +474,8 @@ using System.Resources;
 using Microsoft.Extensions.Localization;
 
 [assembly: ResourceLocation("Resources")]
-[assembly: NeutralResourcesLanguage("en")]   // the formats' own language: no English satellite is looked up
+[assembly: RootNamespace("Acme.Validation")]   // resources named after the library's namespace, not this assembly
+[assembly: NeutralResourcesLanguage("en")]     // the formats' own language: no English satellite is looked up
 
 namespace Acme.Validation;
 
@@ -465,17 +483,22 @@ namespace Acme.Validation;
 public sealed class AcmeMessages;
 ```
 
-- Reference `Microsoft.Extensions.Localization` for `[ResourceLocation]`; nothing else is needed at run time. The
-  `.resx` files compile into satellite assemblies (`de/Acme.Validation.resources.dll`) that `dotnet pack` includes in
-  the package.
+- Reference `Microsoft.Extensions.Localization` for `[ResourceLocation]` and `[RootNamespace]`, and
+  `ValidationGuard.Localization`, so applications get `options.Localizers.Add(localizer)` with the package; nothing
+  else is needed at run time. The `.resx` files compile into satellite assemblies
+  (`de/Acme.Validation.Localization.resources.dll`) that `dotnet pack` includes in the package.
+- The marker type keeps the library's namespace (`Acme.Validation`), so applications need no extra `using`. The
+  resource name is made of the root namespace and the folder (`Acme.Validation.Resources.AcmeMessages`): the project's
+  `<RootNamespace>` names the compiled resources, and `[RootNamespace]` tells the localizer the same name, as the
+  assembly's own name would otherwise be assumed.
 - Without `[ResourceLocation]`, the resources are looked up under the application's `ResourcesPath` inside the
-  library's assembly, and are found only if the folder names happen to match.
+  translations' assembly, and are found only if the folder names happen to match.
 - `[NeutralResourcesLanguage("en")]` states the language of the formats as defined: English requests are served from
   the neutral resources without looking for an English satellite. Applications can read it to list the cultures the
   library's messages are available in, as `CommonErrorMessages.NeutralCulture` and `GetSupportedCultures()` do for the
   common errors.
-- The marker type's namespace and the folder make the resource name (`Acme.Validation.Resources.AcmeMessages`). If
-  the library's root namespace differs from its assembly name, also add `[assembly: RootNamespace("...")]`.
+- A library may also keep its resources in its own assembly: the same files without `<RootNamespace>` and
+  `[RootNamespace]`, at the cost of the localization dependencies for every application.
 
 **Keys.** Formats are keyed by their English text, exactly as defined (`Value {value} for {name} must be between {min}
 and {max}`), so each definition has its own translation.
@@ -505,21 +528,21 @@ private static readonly IStringLocalizer Localizer = new StringLocalizer<AcmeMes
 
 [Fact]
 public void Translations_AreValid() => ErrorDefinitionValidator.ValidateLocalizations(
-    typeof(AcmeErrors), Localizer, requireAll: true);
+    typeof(AcmeErrors), Localizer.Translate, typeof(AcmeMessages).Assembly, requireAll: true);
 ```
 
-Without a culture, `ValidateLocalizations` validates every language the library ships: the cultures of the satellite
-resource assemblies next to the type's assembly (`de/Acme.Validation.resources.dll` ...), so a language added later is
-checked without changing the test; it throws when it finds none. Pass a culture, or a list of them, to check those
-only. For each culture (set as the current UI culture meanwhile) it looks up every public static `ErrorDefinition` of
-the type and its nested types, by its format. It returns the number of
-translations found and reports, all at once, every translation whose placeholders differ from its definition's or
+Given the translations' assembly, `ValidateLocalizations` validates every language the library ships: the cultures of
+its satellite resource assemblies (`de/Acme.Validation.Localization.resources.dll` ...), so a language added later is
+checked without changing the test; it throws when it finds none. Pass a culture, or a list of them, instead to check
+those only. The localizer is any `Func<string, string?>`; for an `IStringLocalizer`, pass its `Translate`. For each
+culture (set as the current UI culture meanwhile) it looks up every public static `ErrorDefinition` of the type and its
+nested types, by its format. It returns the number of translations found and reports, all at once, every translation whose placeholders differ from its definition's or
 whose specifier is not valid for a value of known type, and with `requireAll` every missing one. Call it once per
 holder type, including generic holders closed over a type (`typeof(AcmeErrors.Range<int>)`). Also render an entry or
 two with `CultureInfo.CurrentCulture` and `CurrentUICulture` set to a culture, to check the result reads well.
 
-**How applications register it.** With `AddLocalization()`, `IStringLocalizer<AcmeMessages>` comes from dependency
-injection; the application adds it after its own localizer, so the application can override any library translation:
+**How applications register it.** They reference the translations package; with `AddLocalization()`,
+`IStringLocalizer<AcmeMessages>` comes from dependency injection; the application adds it after its own localizer, so the application can override any library translation:
 
 ```csharp
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
@@ -623,12 +646,14 @@ See [ADR-002](docs/ADR/ADR-002-http-status-mapping-and-problem-envelope.md) for 
 ## Writing a library that extends ValidationGuard
 
 A library can add its own errors with the same conventions as the built-in ones, so applications use them alike. The
-`Acme.Validation`, `Acme.Validation.Http` and `Acme.Validation.Tests` samples are a complete example.
+`Acme.Validation`, `Acme.Validation.Http`, `Acme.Validation.Localization` and `Acme.Validation.Tests` samples are a
+complete example.
 
-1. **Packages.** The library (`Acme.Validation`) references `ValidationGuard.CommonErrors` (for `ErrorDefinition` and
-   the validator) and `Microsoft.Extensions.Localization` (for `[ResourceLocation]`). Its HTTP statuses go in a
-   companion package (`Acme.Validation.Http`) referencing `ValidationGuard.Http`, so the library itself stays free of
-   ASP.NET Core.
+1. **Packages.** The library (`Acme.Validation`) references only `ValidationGuard.CommonErrors` (for `ErrorDefinition`
+   and the validator). Two companion packages keep it free of everything else, as ValidationGuard's own packages are
+   split: its HTTP statuses (`Acme.Validation.Http`, referencing `ValidationGuard.Http`) and its translations
+   (`Acme.Validation.Localization`, referencing `ValidationGuard.Localization` and `Microsoft.Extensions.Localization`).
+   Applications reference only the ones they use.
 2. **Codes.** Choose a prefix of your own (`VG` is reserved) and keep the codes in a constants class
    (`AcmeErrorCodes`). Never renumber or reuse a code: clients identify failures by it.
 3. **Errors.** Define each error once as an `ErrorDefinition` (see [Defining your own errors](#defining-your-own-errors))
@@ -666,16 +691,18 @@ A library can add its own errors with the same conventions as the built-in ones,
 
    Either way, applications call `.AddAcmeErrors()`; with attributes they may also register the declaring assembly
    directly (`.AddAssemblyOf<AcmeHttp>()`).
-6. **Localization.** Ship translations of your formats and entity names as `.resx` resources for
-   `IStringLocalizer<T>`, keyed by the English text, with a marker type, `[assembly: ResourceLocation("Resources")]`
-   and `[assembly: NeutralResourcesLanguage("en")]`;
-   see [Localizing a library that extends ValidationGuard](#localizing-a-library-that-extends-validationguard). Keep
+6. **Localization.** In the translations package, ship translations of your formats and entity names as `.resx`
+   resources for `IStringLocalizer<T>`, keyed by the English text, with a marker type in the library's namespace,
+   `[assembly: ResourceLocation("Resources")]`, `[assembly: RootNamespace(...)]` and
+   `[assembly: NeutralResourcesLanguage("en")]`; see [Localizing a library that extends ValidationGuard](#localizing-a-library-that-extends-validationguard). Keep
    them in step with the formats: rewording a format changes its key.
 7. **Tests.** Cover what applications rely on: every definition is valid
    (`ErrorDefinitionValidator.ValidateFields(typeof(AcmeErrors))`, also for generic holders closed over a type), every
    code has an HTTP status, the messages render as intended, and every shipped language translates every definition
-   (`ErrorDefinitionValidator.ValidateLocalizations(typeof(AcmeErrors), localizer, requireAll: true)`).
-8. **Document the setup** for applications: the packages to reference, `.AddAcmeErrors()`, and the localizer to add
+   (`ErrorDefinitionValidator.ValidateLocalizations(typeof(AcmeErrors), localizer.Translate,
+   typeof(AcmeMessages).Assembly, requireAll: true)`).
+8. **Document the setup** for applications: the packages to reference (`Acme.Validation.Http`, and
+   `Acme.Validation.Localization` to localize), `.AddAcmeErrors()`, and the localizer to add
    (`IStringLocalizer<AcmeMessages>`), as in [With third-party libraries and localization](#with-third-party-libraries-and-localization).
 
 ## Release flow (GitHub Actions + NuGet)
@@ -699,7 +726,9 @@ This repository uses the workflow at `.github/workflows/ci-cd-nuget.yml`.
   - A change to the shared version in `src/Directory.Build.props` publishes every package.
   - A version override added to an individual project file publishes only that package:
     - `src/ValidationGuard/ValidationGuard.csproj`
+    - `src/ValidationGuard.Localization/ValidationGuard.Localization.csproj`
     - `src/ValidationGuard.CommonErrors/ValidationGuard.CommonErrors.csproj`
+    - `src/ValidationGuard.CommonErrors.Localization/ValidationGuard.CommonErrors.Localization.csproj`
     - `src/ValidationGuard.CommonErrors.Http/ValidationGuard.CommonErrors.Http.csproj`
     - `src/ValidationGuard.Http/ValidationGuard.Http.csproj` (the package includes the bundled analyzer)
 - Version tags that are checked:
@@ -714,14 +743,20 @@ If a version change is detected, the pipeline:
 2. Uploads the `.nupkg` and `.snupkg` files as a workflow artifact
 3. Exchanges the job's GitHub OIDC token for a short-lived nuget.org API key via [Trusted Publishing](https://learn.microsoft.com/nuget/nuget-org/trusted-publishing)
 4. Pushes the packages to nuget.org (with duplicate-skip enabled)
+5. Tags the commit `v<version>` and creates a GitHub release whose notes are the version's section of
+   [CHANGELOG.md](CHANGELOG.md) (a pre-release for a version with a suffix such as `-pre1`)
+
+To release: add the version's section to `CHANGELOG.md`, move the entries of each project's `PublicAPI.Unshipped.txt`
+to `PublicAPI.Shipped.txt` (and the analyzer's `AnalyzerReleases.Unshipped.md` rules to `AnalyzerReleases.Shipped.md`),
+bump `<Version>` in `src/Directory.Build.props`, and merge to `main`.
 
 `ValidationGuard.Http` depends on the `ValidationGuard` package version it was built against. Bumping the shared version keeps the two in lockstep; if you override a single project's version instead, bump and publish `ValidationGuard` first, or in the same commit, when the Http package needs core changes.
 
 ## Build configuration
 
 - `tests/Directory.Build.props` holds settings shared by the test projects.
-- `src/Directory.Build.props` holds the single package version and the shared package metadata for every shipping project under `src/`. Test projects live outside `src/` and are not versioned.
-- `src/Directory.Build.targets` packs `README.md` and `LICENSE` into every packable project.
+- `src/Directory.Build.props` holds the single package version and the shared package metadata for every shipping project under `src/` (license `BSD-3-Clause`, release notes in `CHANGELOG.md`). Builds in GitHub Actions set `ContinuousIntegrationBuild`, so the symbols' paths are deterministic. Test projects live outside `src/` and are not versioned.
+- `src/Directory.Build.targets` packs `README.md` into every packable project and checks its public API against `PublicAPI.Shipped.txt` and `PublicAPI.Unshipped.txt` (`Microsoft.CodeAnalysis.PublicApiAnalyzers`): a public API change is a build warning until it is recorded in `PublicAPI.Unshipped.txt`, and removing or changing a shipped API is a breaking change that needs a major version.
 - `src/Directory.Packages.props` and `tests/Directory.Packages.props` pin NuGet dependency versions (central package management) for their folder. `PackageReference` items in project files carry no `Version`. `Microsoft.CodeAnalysis.CSharp` appears in both and must stay in sync, because the analyzer tests compile against the same Roslyn version as the analyzer.
 
 ## Publishing setup

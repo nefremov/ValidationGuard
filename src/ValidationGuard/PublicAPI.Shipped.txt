@@ -1,0 +1,109 @@
+#nullable enable
+abstract ValidationGuard.ValidationMetadata.WriteTo(System.Text.Json.Utf8JsonWriter! writer, System.Text.Json.JsonSerializerOptions! options) -> void
+override ValidationGuard.DictionaryValidationMetadata.WriteTo(System.Text.Json.Utf8JsonWriter! writer, System.Text.Json.JsonSerializerOptions! options) -> void
+override ValidationGuard.PathFragment.GetHashCode() -> int
+override ValidationGuard.PropertyValidationMetadata.RenderDetail(string! format, ValidationGuard.ValidationMessageWriter! writer) -> string!
+override ValidationGuard.PropertyValidationMetadata.TryWrite(System.ReadOnlySpan<char> key, ValidationGuard.ValidationMessageWriter! writer) -> bool
+override ValidationGuard.PropertyValidationMetadata.WriteTo(System.Text.Json.Utf8JsonWriter! writer, System.Text.Json.JsonSerializerOptions! options) -> void
+override ValidationGuard.ValidationEntry.Equals(object? obj) -> bool
+override ValidationGuard.ValidationEntry.GetHashCode() -> int
+override ValidationGuard.ValidationEntry.ToString() -> string!
+static ValidationGuard.NameConverters.CamelCase.get -> ValidationGuard.IPathFragmentNameConverter!
+static ValidationGuard.NameConverters.Default.get -> ValidationGuard.IPathFragmentNameConverter!
+static ValidationGuard.NameConverters.KebabCase.get -> ValidationGuard.IPathFragmentNameConverter!
+static ValidationGuard.NameConverters.PascalCase.get -> ValidationGuard.IPathFragmentNameConverter!
+static ValidationGuard.NameConverters.SnakeCase.get -> ValidationGuard.IPathFragmentNameConverter!
+static ValidationGuard.PathFragment.operator !=(ValidationGuard.PathFragment left, ValidationGuard.PathFragment right) -> bool
+static ValidationGuard.PathFragment.operator ==(ValidationGuard.PathFragment left, ValidationGuard.PathFragment right) -> bool
+static ValidationGuard.ValidationEntry.operator !=(ValidationGuard.ValidationEntry? left, ValidationGuard.ValidationEntry? right) -> bool
+static ValidationGuard.ValidationEntry.operator ==(ValidationGuard.ValidationEntry? left, ValidationGuard.ValidationEntry? right) -> bool
+static ValidationGuard.ValidationEntryComparer.Instance.get -> ValidationGuard.ValidationEntryComparer!
+static ValidationGuard.ValidationMetadata.WriteValue<T>(System.Text.Json.Utf8JsonWriter! writer, string! key, T value, System.Text.Json.JsonSerializerOptions! options) -> void
+static ValidationGuard.ValidationOptions.DefaultWriteText.get -> System.Func<string!, string!>!
+static ValidationGuard.ValidationOptions.DefaultWriteValue.get -> System.Func<object?, string?, string!>!
+static ValidationGuard.ValidationOptions.DoubleQuote(string! text) -> string!
+static ValidationGuard.ValidationOptions.FormatValue(object? value, string? format) -> string!
+ValidationGuard.DictionaryValidationMetadata
+ValidationGuard.DictionaryValidationMetadata.DictionaryValidationMetadata(System.Collections.Generic.IReadOnlyDictionary<string!, object?>! values) -> void
+ValidationGuard.DictionaryValidationMetadata.Values.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
+ValidationGuard.IPathFragmentNameConverter
+ValidationGuard.IPathFragmentNameConverter.GetConvertedLength(System.ReadOnlySpan<char> value) -> int
+ValidationGuard.IPathFragmentNameConverter.WriteConverted(System.ReadOnlySpan<char> value, System.Span<char> destination) -> void
+ValidationGuard.IRenderableValue
+ValidationGuard.IRenderableValue.Render(ValidationGuard.ValidationMessageWriter! writer) -> void
+ValidationGuard.IValidationBuilder<TContext>
+ValidationGuard.IValidationBuilder<TContext>.Add(string! code, string! format, ValidationGuard.ValidationMetadata? metadata = null) -> void
+ValidationGuard.IValidationBuilder<TContext>.AddProperty<TValue>(System.Linq.Expressions.Expression<System.Func<TContext, TValue>!>! accessor, string! code, string! format) -> void
+ValidationGuard.IValidationBuilder<TContext>.For<TChild>(System.Linq.Expressions.Expression<System.Func<TContext, TChild>!>! accessor) -> ValidationGuard.IValidationBuilder<TChild>!
+ValidationGuard.IValidationBuilder<TContext>.Resolve<TValue>(System.Linq.Expressions.Expression<System.Func<TContext, TValue>!>! accessor) -> ValidationGuard.PathFragment[]!
+ValidationGuard.NameConverters
+ValidationGuard.PathFragment
+ValidationGuard.PathFragment.ClrName.get -> string!
+ValidationGuard.PathFragment.ClrName.init -> void
+ValidationGuard.PathFragment.Deconstruct(out ValidationGuard.PathFragmentKind Kind, out string! ClrName) -> void
+ValidationGuard.PathFragment.Equals(ValidationGuard.PathFragment other) -> bool
+ValidationGuard.PathFragment.Kind.get -> ValidationGuard.PathFragmentKind
+ValidationGuard.PathFragment.Kind.init -> void
+ValidationGuard.PathFragment.PathFragment() -> void
+ValidationGuard.PathFragment.PathFragment(ValidationGuard.PathFragmentKind Kind, string! ClrName) -> void
+ValidationGuard.PathFragmentKind
+ValidationGuard.PathFragmentKind.Index = 1 -> ValidationGuard.PathFragmentKind
+ValidationGuard.PathFragmentKind.Key = 2 -> ValidationGuard.PathFragmentKind
+ValidationGuard.PathFragmentKind.Member = 0 -> ValidationGuard.PathFragmentKind
+ValidationGuard.PropertyValidationMetadata
+ValidationGuard.PropertyValidationMetadata.Name.get -> string!
+ValidationGuard.PropertyValidationMetadata.Property.get -> ValidationGuard.PathFragment[]!
+ValidationGuard.PropertyValidationMetadata.PropertyValidationMetadata(ValidationGuard.PathFragment[]! property) -> void
+ValidationGuard.ValidationBuilder<TContext>
+ValidationGuard.ValidationBuilder<TContext>.ThrowIfInvalid() -> void
+ValidationGuard.ValidationBuilder<TContext>.ToValidationEntries() -> System.Collections.Generic.IReadOnlyList<ValidationGuard.ValidationEntry!>!
+ValidationGuard.ValidationBuilder<TContext>.Valid.get -> bool
+ValidationGuard.ValidationBuilder<TContext>.ValidationBuilder() -> void
+ValidationGuard.ValidationBuilder<TContext>.ValidationBuilder(ValidationGuard.ValidationOptions! options) -> void
+ValidationGuard.ValidationBuilderBase<TContext>
+ValidationGuard.ValidationBuilderBase<TContext>.Add(string! code, string! format, ValidationGuard.ValidationMetadata? metadata = null) -> void
+ValidationGuard.ValidationBuilderBase<TContext>.AddProperty<TValue>(System.Linq.Expressions.Expression<System.Func<TContext, TValue>!>! accessor, string! code, string! format) -> void
+ValidationGuard.ValidationBuilderBase<TContext>.Dispose() -> void
+ValidationGuard.ValidationBuilderBase<TContext>.For<TChild>(System.Linq.Expressions.Expression<System.Func<TContext, TChild>!>! accessor) -> ValidationGuard.IValidationBuilder<TChild>!
+ValidationGuard.ValidationBuilderBase<TContext>.Resolve<TValue>(System.Linq.Expressions.Expression<System.Func<TContext, TValue>!>! accessor) -> ValidationGuard.PathFragment[]!
+ValidationGuard.ValidationEntry
+ValidationGuard.ValidationEntry.<Clone>$() -> ValidationGuard.ValidationEntry!
+ValidationGuard.ValidationEntry.Code.get -> string!
+ValidationGuard.ValidationEntry.Code.init -> void
+ValidationGuard.ValidationEntry.Deconstruct(out string! Pointer, out string! Code, out string! Format, out string! Detail, out ValidationGuard.ValidationMetadata? Metadata) -> void
+ValidationGuard.ValidationEntry.Detail.get -> string!
+ValidationGuard.ValidationEntry.Equals(ValidationGuard.ValidationEntry? other) -> bool
+ValidationGuard.ValidationEntry.Format.get -> string!
+ValidationGuard.ValidationEntry.Metadata.get -> ValidationGuard.ValidationMetadata?
+ValidationGuard.ValidationEntry.Metadata.init -> void
+ValidationGuard.ValidationEntry.Pointer.get -> string!
+ValidationGuard.ValidationEntry.ValidationEntry(string! Pointer, string! Code, string! Format, string! Detail, ValidationGuard.ValidationMetadata? Metadata = null) -> void
+ValidationGuard.ValidationEntryComparer
+ValidationGuard.ValidationEntryComparer.Compare(ValidationGuard.ValidationEntry? left, ValidationGuard.ValidationEntry? right) -> int
+ValidationGuard.ValidationFailedException
+ValidationGuard.ValidationFailedException.Entries.get -> System.Collections.Generic.IReadOnlyList<ValidationGuard.ValidationEntry!>!
+ValidationGuard.ValidationFailedException.ValidationFailedException(System.Collections.Generic.IReadOnlyList<ValidationGuard.ValidationEntry!>! entries) -> void
+ValidationGuard.ValidationMessageWriter
+ValidationGuard.ValidationMessageWriter.Culture.get -> System.Globalization.CultureInfo!
+ValidationGuard.ValidationMessageWriter.FormatSpecifier.get -> string?
+ValidationGuard.ValidationMessageWriter.GetClrPath(ValidationGuard.PathFragment[]? property) -> string!
+ValidationGuard.ValidationMessageWriter.Localize(string! text) -> string!
+ValidationGuard.ValidationMessageWriter.WriteText(string? text) -> void
+ValidationGuard.ValidationMessageWriter.WriteValue<T>(T value) -> void
+ValidationGuard.ValidationMetadata
+ValidationGuard.ValidationMetadata.ValidationMetadata() -> void
+ValidationGuard.ValidationOptions
+ValidationGuard.ValidationOptions.Localizers.get -> System.Collections.Generic.IList<System.Func<string!, string?>!>!
+ValidationGuard.ValidationOptions.NameConverter.get -> ValidationGuard.IPathFragmentNameConverter!
+ValidationGuard.ValidationOptions.NameConverter.set -> void
+ValidationGuard.ValidationOptions.UseLocalization.get -> bool
+ValidationGuard.ValidationOptions.UseLocalization.set -> void
+ValidationGuard.ValidationOptions.ValidationOptions() -> void
+ValidationGuard.ValidationOptions.WriteText.get -> System.Func<string!, string!>!
+ValidationGuard.ValidationOptions.WriteText.set -> void
+ValidationGuard.ValidationOptions.WriteValue.get -> System.Func<object?, string?, string!>!
+ValidationGuard.ValidationOptions.WriteValue.set -> void
+virtual ValidationGuard.ValidationMetadata.RenderDetail(string! format, ValidationGuard.ValidationMessageWriter! writer) -> string!
+virtual ValidationGuard.ValidationMetadata.TryWrite(System.ReadOnlySpan<char> key, ValidationGuard.ValidationMessageWriter! writer) -> bool
+~override ValidationGuard.PathFragment.Equals(object obj) -> bool
+~override ValidationGuard.PathFragment.ToString() -> string

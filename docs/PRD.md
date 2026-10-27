@@ -1,7 +1,7 @@
 ---
-version: 1.2.0
+version: 1.3.0
 status: accepted
-updated: 2026-10-14
+updated: 2026-10-27
 ---
 
 # PRD — ValidationGuard Typed Validation Error Accumulator
@@ -116,13 +116,15 @@ To minimize drift and transformation complexity, internal storage must remain se
 - Support for RFC 6901 token escaping and numeric array-index token validation during pointer capture.
 - Canonical internal storage of near-RFC validation entries (`pointer`, `code`, `format`, `detail`) in `ValidationBuilder`, ready for direct projection to Problem Details `errors`.
 - Mapping accumulated errors into RFC 9457 Problem Details with `errors` extension.
-- Public library contracts for consumers to add and merge validation outcomes, and to finalize output from the root builder.
+- Public library contracts for consumers to add validation outcomes, including from nested scopes, and to finalize output from the root builder.
+- Localization of rendered messages (formats, entity and member names) through pluggable localizers for the request's UI culture, with values formatted for its culture; an `IStringLocalizer` adapter package.
+- Ready-made common errors (not found, null, empty, range, length ...) with stable codes, and their translations in a separate package.
 - Separate ASP.NET Core adapter library for HTTP integration on top of the core library.
 
 ### 4.2 Out of Scope
 
 - Business rule authoring DSL or full validation-rule engine.
-- Localization/content management for translated error messages.
+- Content management for translations: translations are resources or localizers supplied by libraries and applications; ValidationGuard ships only those of its common errors.
 - UI rendering logic for displaying validation errors.
 - Non-JSON transport payload formats.
 
@@ -182,9 +184,9 @@ Selecting a naming convention **MUST NOT** change the structure of a pointer pat
 
 **Actors**: API Developer, Client Application Developer, JSON Serializer
 
-#### Aggregation and Merge
+#### Aggregation
 
-The system **MUST** support aggregating validation failures from multiple validators/scopes into one final result while preserving all paths and codes.
+The system **MUST** support aggregating validation failures from multiple validators/scopes into one final result while preserving all paths and codes. Nested scopes are builders created from their parent (`For(x => x.Address)`); the root builder collects every scope's entries.
 
 **Rationale**: Enables compositional validation for larger object graphs.
 
@@ -266,7 +268,6 @@ The system **MUST** provide semantic versioning guarantees for public interfaces
 
 ### 6.2 NFR Exclusions
 
-- **Internationalization** (UX-PRD-003): Not applicable because the module returns developer-supplied messages and does not manage localization catalogs.
 - **Offline capability** (UX-PRD-004): Not applicable because this is a server-side library component.
 - **Safety engineering controls** (SAFE-PRD-001/002): Not applicable because the module is an information-processing library without direct physical-system control.
 
@@ -350,7 +351,7 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 **Alternative Flows**:
 - **No validation failures**: API returns normal success response and does not emit validation Problem Details.
 
-#### Merge child validator results into parent result
+#### Aggregate child validator results into the parent result
 
 **Actor**: API Developer
 
@@ -358,15 +359,15 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 - Multiple validators produce partial validation results.
 
 **Main Flow**:
-1. Parent validation context invokes child validators.
-2. Child results are merged into a parent accumulator.
+1. Parent validation context creates a nested builder per child scope and invokes the child validators with it.
+2. Child validators add their failures to the nested builders, relative to their own scope.
 3. Parent result is finalized from the root builder as one Problem Details payload.
 
 **Postconditions**:
 - All failures from child validators are present in final output without path loss.
 
 **Alternative Flows**:
-- **Conflicting paths/codes**: Library preserves all entries according to merge policy and does not drop failures silently.
+- **Conflicting paths/codes**: Library preserves all entries, ordered deterministically, and does not drop failures silently.
 
 ## 9. Acceptance Criteria
 
@@ -408,6 +409,7 @@ Define the public API surface, versioning/compatibility guarantees, and integrat
 
 | Version | Date | Change |
 |---------|------|--------|
+| 1.3.0 | 2026-10-27 | Localization and common errors in scope; aggregation through nested builders instead of merging. |
 | 1.2.0 | 2026-10-14 | Added HTTP Status Derivation; documented nested `metadata` and consumer guidance for the errors extension. |
 | 1.1.0 | 2026-08-24 | Added Configurable Pointer Fragment Naming and its acceptance criterion. |
 | 1.0.0 | 2026-08-06 | Initial PRD. |

@@ -1,5 +1,6 @@
 <Solution>
   <File Path=".editorconfig" />
+  <File Path="CHANGELOG.md" />
   <File Path=".gitignore" />
   <File Path="global.json" />
   <File Path="LICENSE" />
@@ -22,6 +23,7 @@
     <File Path="samples/Directory.Packages.props" />
     <File Path="samples/README.md" />
     <Project Path="samples/Acme.Validation.Http/Acme.Validation.Http.csproj" />
+    <Project Path="samples/Acme.Validation.Localization/Acme.Validation.Localization.csproj" />
     <Project Path="samples/Acme.Validation.Tests/Acme.Validation.Tests.csproj" />
     <Project Path="samples/Acme.Validation/Acme.Validation.csproj" />
     <Project Path="samples/ValidationGuard.Samples.Console/ValidationGuard.Samples.Console.csproj" />
@@ -32,9 +34,11 @@
     <File Path="src/Directory.Build.targets" />
     <File Path="src/Directory.Packages.props" />
     <Project Path="src/ValidationGuard.CommonErrors.Http/ValidationGuard.CommonErrors.Http.csproj" />
+    <Project Path="src/ValidationGuard.CommonErrors.Localization/ValidationGuard.CommonErrors.Localization.csproj" />
     <Project Path="src/ValidationGuard.CommonErrors/ValidationGuard.CommonErrors.csproj" />
     <Project Path="src/ValidationGuard.Http.Analyzers/ValidationGuard.Http.Analyzers.csproj" />
     <Project Path="src/ValidationGuard.Http/ValidationGuard.Http.csproj" />
+    <Project Path="src/ValidationGuard.Localization/ValidationGuard.Localization.csproj" />
     <Project Path="src/ValidationGuard/ValidationGuard.csproj" />
   </Folder>
   <Folder Name="/tests/">

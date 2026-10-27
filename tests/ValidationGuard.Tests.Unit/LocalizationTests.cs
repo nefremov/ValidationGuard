@@ -112,6 +112,51 @@ public class LocalizationTests
     }
 
     [Fact]
+    public void WithoutLocalization_MessagesAreAsDefined_ValuesInvariant()
+    {
+        // Arrange
+        using var culture = new CultureScope("de-DE");
+        var options = GermanOptions(new() { ["Price {price:N2} on {date:d}"] = "Preis {price:N2} am {date:d}" });
+        options.UseLocalization = false;
+        using var validation = new ValidationBuilder<Order>(options);
+        var values = new Dictionary<string, object?> { ["price"] = 1234.5m, ["date"] = new DateOnly(2026, 1, 31) };
+        validation.Add("C1", "Price {price:N2} on {date:d}", new DictionaryValidationMetadata(values));
+
+        // Act
+        var entry = Assert.Single(validation.ToValidationEntries());
+
+        // Assert
+        Assert.Equal(("Price {price:N2} on {date:d}", "Price 1,234.50 on 01/31/2026"), (entry.Format, entry.Detail));
+    }
+
+    [Fact]
+    public void WithoutLocalization_CustomWriteValue_RunsUnderTheInvariantCulture()
+    {
+        // Arrange
+        using var culture = new CultureScope("de-DE");
+        CultureInfo? seen = null;
+        var options = new ValidationOptions
+        {
+            UseLocalization = false,
+            WriteValue = (value, format) =>
+            {
+                seen = CultureInfo.CurrentCulture;
+                return ValidationOptions.FormatValue(value, format);
+            },
+        };
+        using var validation = new ValidationBuilder<Order>(options);
+        validation.Add("C1", "{n}", new DictionaryValidationMetadata(new Dictionary<string, object?> { ["n"] = 1.5m }));
+
+        // Act
+        var entry = Assert.Single(validation.ToValidationEntries());
+
+        // Assert: the culture is restored afterwards.
+        Assert.Same(CultureInfo.InvariantCulture, seen);
+        Assert.Equal("1.5", entry.Detail);
+        Assert.Same(German, CultureInfo.CurrentCulture);
+    }
+
+    [Fact]
     public void UICulture_SelectsTheTranslation_CultureFormatsTheValues()
     {
         // Arrange
@@ -249,6 +294,30 @@ public class LocalizationTests
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => ((Microsoft.Extensions.Localization.IStringLocalizer)null!).Translate("k"));
         Assert.Throws<ArgumentNullException>(() => localizer.Translate(null!));
+        Assert.Throws<ArgumentNullException>(() => ((ICollection<Func<string, string?>>)null!).Add(localizer));
+        Assert.Throws<ArgumentNullException>(
+            () => new ValidationOptions().Localizers.Add((Microsoft.Extensions.Localization.IStringLocalizer)null!));
+    }
+
+    [Fact]
+    public void Localizers_AreFunctions_NoStringLocalizerNeeded()
+    {
+        // Arrange: any function returning a translation, or null for none.
+        using var culture = new CultureScope("de-DE");
+        var options = new ValidationOptions
+        {
+            Localizers = { text => text == "{n} is too big" ? "{n} ist zu groß" : null },
+        };
+        using var validation = new ValidationBuilder<Order>(options);
+        var values = new Dictionary<string, object?> { ["n"] = 1.5m };
+        validation.Add("C1", "{n} is too big", new DictionaryValidationMetadata(values));
+        validation.Add("C2", "{n} is too small", new DictionaryValidationMetadata(values));
+
+        // Act
+        var details = validation.ToValidationEntries().Select(entry => entry.Detail);
+
+        // Assert
+        Assert.Equal(["1,5 ist zu groß", "1,5 is too small"], details);
     }
 
     [Fact]

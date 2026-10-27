@@ -27,7 +27,9 @@ Adopt a hierarchical builder architecture where:
 4. The root builder is the only public finalization point via `ToValidationEntries()`, which completes the whole
    hierarchy: entries are rendered once, later calls return the same entries, and no entry or nested builder can be
    added afterwards. `Valid` checks for entries without completing.
-5. Hierarchy traversal uses lazy `IEnumerable<ValidationEntry>` (`GetEntries()`) and allocates an array only at final root materialization.
+5. Materialization walks the hierarchy twice through the internal `IValidationBuilderNode`: `CountEntries()` sizes the
+   result array exactly, then `Render()` completes each entry (pointer and detail) in place and writes it into that
+   array. No intermediate collections are allocated.
 6. Deterministic ordering is enforced at finalization with `ValidationEntryComparer`: by pointer, code, then the
    format as added (before translation), keeping entries that compare equal in the order they were added.
 
@@ -43,7 +45,8 @@ Adopt a hierarchical builder architecture where:
 ### Negative / Trade-offs
 
 - Additional internal abstraction (`IValidationBuilderNode`) is required to traverse mixed generic child nodes.
-- Merge logic requires runtime checks ensuring builders belong to the same internal model.
+- Entries are incomplete (no pointer or detail) until the root materializes them, so they cannot be inspected per
+  scope before then.
 
 ## Alternatives Considered
 

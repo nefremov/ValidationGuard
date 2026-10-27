@@ -6,17 +6,9 @@ public class ValidationBuilderBaseTests
     public void Constructor_WithNullOptions_ThrowsArgumentNullException()
     {
         // Act
-        var exception = Assert.Throws<ArgumentNullException>(() => new ProbeBuilder<object>(null!));
+        var exception = Assert.Throws<ArgumentNullException>(() => new ValidationBuilder<object>(null!));
 
         // Assert
         Assert.Equal("options", exception.ParamName);
-    }
-
-    private sealed class ProbeBuilder<TContext> : ValidationBuilderBase<TContext>
-    {
-        public ProbeBuilder(ValidationOptions options)
-            : base(options)
-        {
-        }
     }
 }

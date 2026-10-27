@@ -27,11 +27,12 @@ public sealed partial class ValidationMessageWriter
     internal ValidationMessageWriter(ValidationOptions options)
     {
         _options = options;
-        _culture = CultureInfo.CurrentCulture;
+        _culture = options.UseLocalization ? CultureInfo.CurrentCulture : CultureInfo.InvariantCulture;
     }
 
     /// <summary>
-    /// The culture values are formatted with: <see cref="CultureInfo.CurrentCulture"/> when rendering started.
+    /// The culture values are formatted with: <see cref="CultureInfo.CurrentCulture"/> when rendering started, or
+    /// <see cref="CultureInfo.InvariantCulture"/> when <see cref="ValidationOptions.UseLocalization"/> is off.
     /// </summary>
     public CultureInfo Culture => _culture;
 
@@ -54,12 +55,13 @@ public sealed partial class ValidationMessageWriter
     /// The translation of <paramref name="text"/> for the current UI culture by the first of
     /// <see cref="ValidationOptions.Localizers"/> that has one, or the text itself: the builders' formats and the member
     /// names of readable paths go through it, and metadata uses it for the entity names it writes into the detail and
-    /// into JSON. Each text is looked up once per rendering; a failing localizer leaves it as is.
+    /// into JSON. Each text is looked up once per rendering; a failing localizer leaves it as is, and so does
+    /// <see cref="ValidationOptions.UseLocalization"/> off.
     /// </summary>
     public string Localize(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
-        if (_options.Localizers.Count == 0)
+        if (!_options.UseLocalization || _options.Localizers.Count == 0)
         {
             return text;
         }
@@ -83,7 +85,7 @@ public sealed partial class ValidationMessageWriter
         {
             for (var i = 0; i < localizers.Count; i++)
             {
-                if (localizers[i].Translate(key) is { } localized)
+                if (localizers[i](key) is { } localized)
                 {
                     return localized;
                 }
@@ -175,7 +177,18 @@ public sealed partial class ValidationMessageWriter
         var writeValue = _options.WriteValue;
         if (!IsDefault(writeValue, ValidationOptions.DefaultWriteValue))
         {
-            _text.Append(writeValue(value, specifier));
+            // The delegate formats with the current culture, so it runs under the writer's.
+            var previous = CultureInfo.CurrentCulture;
+            CultureInfo.CurrentCulture = _culture;
+            try
+            {
+                _text.Append(writeValue(value, specifier));
+            }
+            finally
+            {
+                CultureInfo.CurrentCulture = previous;
+            }
+
             return;
         }
 

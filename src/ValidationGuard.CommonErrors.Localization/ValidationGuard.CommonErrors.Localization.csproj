@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>true</IsPackable>
+    <PackageId>ValidationGuard.CommonErrors.Localization</PackageId>
+    <Title>ValidationGuard.CommonErrors.Localization</Title>
+    <Description>Translations of the ValidationGuard.CommonErrors messages to 47 languages, read through IStringLocalizer&lt;CommonErrorMessages&gt;.</Description>
+    <PackageTags>validation;errors;localization;problem-details;dotnet</PackageTags>
+    <!-- The types keep the ValidationGuard.CommonErrors namespace; resources are named after it ([RootNamespace]). -->
+    <RootNamespace>ValidationGuard.CommonErrors</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ValidationGuard.CommonErrors\ValidationGuard.CommonErrors.csproj" />
+    <ProjectReference Include="..\ValidationGuard.Localization\ValidationGuard.Localization.csproj" />
+    <!-- [ResourceLocation] and [RootNamespace] for the translations in Resources/. -->
+    <PackageReference Include="Microsoft.Extensions.Localization" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>true</IsPackable>
+    <PackageId>ValidationGuard.Localization</PackageId>
+    <Title>ValidationGuard.Localization</Title>
+    <Description>Localizes ValidationGuard messages with IStringLocalizer: adds string localizers to ValidationOptions.Localizers.</Description>
+    <PackageTags>validation;localization;problem-details;dotnet</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ValidationGuard\ValidationGuard.csproj" />
+    <!-- IStringLocalizer only: applications choose the implementation (resources, a database, ...). -->
+    <PackageReference Include="Microsoft.Extensions.Localization.Abstractions" />
+  </ItemGroup>
+</Project>

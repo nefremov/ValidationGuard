@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\ValidationGuard.CommonErrors\ValidationGuard.CommonErrors.csproj" />
+    <ProjectReference Include="..\..\src\ValidationGuard.CommonErrors.Localization\ValidationGuard.CommonErrors.Localization.csproj" />
   </ItemGroup>
 
 </Project>

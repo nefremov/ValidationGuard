@@ -5,8 +5,8 @@ using static ValidationGuard.CommonErrors.Tests.Unit.Order;
 
 namespace ValidationGuard.CommonErrors.Tests.Unit;
 
-// The translations ValidationGuard.CommonErrors ships: every language present, every format translated in each with
-// its placeholders, and rendered through the localizer an application gets from dependency injection.
+// The translations ValidationGuard.CommonErrors.Localization ships: every language present, every format translated in
+// each with its placeholders, and rendered through the localizer an application gets from dependency injection.
 public class CommonErrorTranslationsTests
 {
     // The languages supported: those of the applications using the package. English is the formats as defined;
@@ -53,8 +53,9 @@ public class CommonErrorTranslationsTests
     [MemberData(nameof(DefinitionHolders))]
     public void EveryDefinition_IsTranslatedInEveryShippedLanguage(Type holder, int definitions)
     {
-        // Act
-        var translated = ErrorDefinitionValidator.ValidateLocalizations(holder, Localizer, requireAll: true);
+        // Act: every culture the translations assembly ships, not the definitions'.
+        var translated = ErrorDefinitionValidator.ValidateLocalizations(
+            holder, Localizer.Translate, typeof(CommonErrorMessages).Assembly, requireAll: true);
 
         // Assert
         Assert.Equal(definitions * ShippedCultures.Length, translated);

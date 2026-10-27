@@ -126,9 +126,9 @@ public class CommonErrorLocalizationTests
 
         // Act
         var references = ErrorDefinitionValidator.ValidateLocalizations(
-            typeof(CommonErrorDefinitions.Reference<int>), Localizer, German);
+            typeof(CommonErrorDefinitions.Reference<int>), Localizer.Translate, German);
         var comparisons = ErrorDefinitionValidator.ValidateLocalizations(
-            typeof(CommonErrorDefinitions.Comparison<int>), Localizer, German);
+            typeof(CommonErrorDefinitions.Comparison<int>), Localizer.Translate, German);
 
         // Assert
         Assert.Equal((1, 1), (references, comparisons));
@@ -145,7 +145,7 @@ public class CommonErrorLocalizationTests
         });
 
         // Act
-        var translated = ErrorDefinitionValidator.ValidateLocalizations(typeof(CommonErrorDefinitions), localizer, German);
+        var translated = ErrorDefinitionValidator.ValidateLocalizations(typeof(CommonErrorDefinitions), localizer.Translate, German);
 
         // Assert
         Assert.Equal(1, translated);
@@ -156,7 +156,7 @@ public class CommonErrorLocalizationTests
     {
         // Act
         var exception = Assert.Throws<ArgumentException>(() => ErrorDefinitionValidator.ValidateLocalizations(
-            typeof(CommonErrorDefinitions.Comparison<int>), Localizer, German, requireAll: true));
+            typeof(CommonErrorDefinitions.Comparison<int>), Localizer.Translate, German, requireAll: true));
 
         // Assert
         Assert.Contains("(VG0006): not translated to de-DE", exception.Message);
@@ -171,7 +171,7 @@ public class CommonErrorLocalizationTests
 
         // Act
         var exception = Assert.Throws<ArgumentException>(
-            () => ErrorDefinitionValidator.ValidateLocalizations(typeof(CommonErrorDefinitions), broken, German));
+            () => ErrorDefinitionValidator.ValidateLocalizations(typeof(CommonErrorDefinitions), broken.Translate, German));
 
         // Assert
         Assert.Contains("CommonErrorDefinitions.Null (VG0002)", exception.Message);
@@ -213,16 +213,19 @@ public class CommonErrorLocalizationTests
         Assert.Throws<ArgumentNullException>(() => ErrorDefinitionValidator.ValidateLocalizedFormat(null!, "f"));
         Assert.Throws<ArgumentNullException>(() => ErrorDefinitionValidator.ValidateLocalizedFormat(definition, null!));
         Assert.Throws<ArgumentNullException>(
-            () => ErrorDefinitionValidator.ValidateLocalizations(null!, Localizer, German));
+            () => ErrorDefinitionValidator.ValidateLocalizations(null!, Localizer.Translate, German));
         Assert.Throws<ArgumentNullException>(
             () => ErrorDefinitionValidator.ValidateLocalizations(typeof(CommonErrorDefinitions), null!, German));
         Assert.Throws<ArgumentNullException>(
-            () => ErrorDefinitionValidator.ValidateLocalizations(typeof(CommonErrorDefinitions), Localizer, (CultureInfo)null!));
+            () => ErrorDefinitionValidator.ValidateLocalizations(typeof(CommonErrorDefinitions), Localizer.Translate, (CultureInfo)null!));
         Assert.Throws<ArgumentNullException>(() => ErrorDefinitionValidator.ValidateLocalizations(
-            typeof(CommonErrorDefinitions), Localizer, (IEnumerable<CultureInfo>)null!));
+            typeof(CommonErrorDefinitions), Localizer.Translate, (IEnumerable<CultureInfo>)null!));
         Assert.Throws<ArgumentNullException>(
-            () => ErrorDefinitionValidator.ValidateLocalizations(typeof(CommonErrorDefinitions), Localizer, [German, null!]));
-        Assert.Throws<ArgumentNullException>(() => ErrorDefinitionValidator.ValidateLocalizations(null!, Localizer));
+            () => ErrorDefinitionValidator.ValidateLocalizations(typeof(CommonErrorDefinitions), Localizer.Translate, [German, null!]));
+        Assert.Throws<ArgumentNullException>(
+            () => ErrorDefinitionValidator.ValidateLocalizations(null!, Localizer.Translate, typeof(SampleErrors).Assembly));
+        Assert.Throws<ArgumentNullException>(() => ErrorDefinitionValidator.ValidateLocalizations(
+            typeof(CommonErrorDefinitions), Localizer.Translate, (System.Reflection.Assembly)null!));
     }
 
     [Fact]
@@ -230,10 +233,10 @@ public class CommonErrorLocalizationTests
     {
         // Act
         var exception = Assert.Throws<ArgumentException>(() => ErrorDefinitionValidator.ValidateLocalizations(
-            typeof(CommonErrorDefinitions.Comparison<int>), Localizer, [German, CultureInfo.GetCultureInfo("fr-FR")],
+            typeof(CommonErrorDefinitions.Comparison<int>), Localizer.Translate, [German, CultureInfo.GetCultureInfo("fr-FR")],
             requireAll: true));
         var counted = ErrorDefinitionValidator.ValidateLocalizations(
-            typeof(CommonErrorDefinitions.Reference<int>), Localizer, [German, CultureInfo.GetCultureInfo("fr-FR")]);
+            typeof(CommonErrorDefinitions.Reference<int>), Localizer.Translate, [German, CultureInfo.GetCultureInfo("fr-FR")]);
 
         // Assert
         Assert.Contains("LessThan (VG0004): not translated to fr-FR", exception.Message);
@@ -249,9 +252,11 @@ public class CommonErrorLocalizationTests
             new Dictionary<string, string> { ["Value for {name} is required"] = "Wert für {name} ist erforderlich" }, culture: "de");
 
         // Act
-        var translated = ErrorDefinitionValidator.ValidateLocalizations(typeof(SampleErrors), localizer);
+        var translated = ErrorDefinitionValidator.ValidateLocalizations(
+            typeof(SampleErrors), localizer.Translate, typeof(SampleErrors).Assembly);
         var exception = Assert.Throws<ArgumentException>(
-            () => ErrorDefinitionValidator.ValidateLocalizations(typeof(SampleErrors), localizer, requireAll: true));
+            () => ErrorDefinitionValidator.ValidateLocalizations(
+                typeof(SampleErrors), localizer.Translate, typeof(SampleErrors).Assembly, requireAll: true));
 
         // Assert
         Assert.Equal(1, translated);
@@ -263,7 +268,8 @@ public class CommonErrorLocalizationTests
     {
         // Act: the core ValidationGuard assembly ships no satellite resource assemblies.
         var exception = Assert.Throws<InvalidOperationException>(
-            () => ErrorDefinitionValidator.ValidateLocalizations(typeof(ValidationOptions), Localizer));
+            () => ErrorDefinitionValidator.ValidateLocalizations(
+                typeof(CommonErrorDefinitions), Localizer.Translate, typeof(ValidationOptions).Assembly));
 
         // Assert
         Assert.Contains("No satellite resource assembly of ValidationGuard was found", exception.Message);

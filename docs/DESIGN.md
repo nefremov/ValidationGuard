@@ -1,7 +1,7 @@
 ---
-version: 1.2.0
+version: 1.3.0
 status: accepted
-updated: 2026-10-14
+updated: 2026-10-27
 ---
 
 # Technical Design — ValidationGuard Typed Validation Error Accumulator
@@ -56,7 +56,10 @@ Requirements that significantly influence architecture decisions.
 | Array Element Path Handling | Support indexed pointer composition for collection traversal (`/items/0/name`). |
 | Indexer and Keyed Path Handling | Resolve accessor indexers (`get_Item`) for keyed and numeric segments, RFC 6901-escape keyed tokens, and validate numeric index token correctness. |
 | Configurable Pointer Fragment Naming | Resolve member-name segments through a pluggable fragment-name converter selected per validation operation, defaulting to unchanged member names; conversion precedes RFC 6901 escaping, which is applied to the original value. |
-| Aggregation and Merge | Provide builder/merge contracts that combine child results without dropping entries. |
+| Aggregation | Nested builders created from their parent (`For(accessor)`) record their entries locally; the root collects every node's entries without dropping any. |
+| Deferred Rendering | Record entries as they are added and complete them (pointer, detail) once, when the root materializes them, under the cultures and options current at that moment. |
+| Localization | Translate formats, entity and member names through `ValidationOptions.Localizers` (functions keyed by the text) for the current UI culture, and format values with the current culture; adapt `IStringLocalizer` in a separate package. |
+| Common Errors | Ship ready-made error definitions with stable codes; ship their translations in a separate package so the errors carry no localization dependencies. |
 | RFC 9457-Compatible Output | Store near-RFC validation entries in builder and emit standard Problem Details fields plus extension members with minimal transformation. |
 | Errors Extension Projection | Persist `errors`-ready entries (`pointer`, `code`, `format`, `detail`) and serialize as deterministic extension array. |
 | Deterministic Output Ordering | Enforce canonical deterministic ordering at root materialization via `ValidationEntryComparer` before serialization. |
@@ -126,7 +129,10 @@ Core and adapter libraries target strictly `net10.0`. No multi-targeting is incl
 | Entity | Description | Schema |
 |--------|-------------|--------|
 | ValidationEntry | Near-RFC validation failure entry with `pointer`, `code`, `format`, `detail`, optional metadata | [ValidationEntry](../src/ValidationGuard) |
-| ValidationBuilder | Primary builder/accumulator used during validation traversal and merge operations | [ValidationBuilder](../src/ValidationGuard) |
+| ValidationBuilder | Primary builder/accumulator used during validation traversal; nested builders record the entries of their scope | [ValidationBuilder](../src/ValidationGuard) |
+| ValidationOptions | How entries are rendered: pointer naming convention, localizers, whether to localize, how text and values are written | [ValidationOptions](../src/ValidationGuard/Builders/ValidationOptions.cs) |
+| ValidationMetadata | Typed values of an entry: renders its detail from the (localized) format and writes itself to JSON | [Metadata](../src/ValidationGuard/Metadata) |
+| ErrorDefinition | A reusable error: code, English format and keys, checked by `ErrorDefinitionValidator` | [ValidationGuard.CommonErrors](../src/ValidationGuard.CommonErrors) |
 | ProblemDetailsProjection | Mapping output model for RFC 9457 + `errors` extension | [ValidationGuard.Http](../src/ValidationGuard.Http) |
 | HttpErrorCode | Code-to-`(status, type, title)` mapping declared in assembly metadata | [ValidationGuard.Http](../src/ValidationGuard.Http) |
 
@@ -139,8 +145,11 @@ Core and adapter libraries target strictly `net10.0`. No multi-targeting is incl
 ```mermaid
 graph LR
     A[Pointer Builder] --> B[Validation Builder]
+    B --> R[Message Renderer]
+    L[Localizers] --> R
     B --> D[ProblemDetails Mapper]
     E[ASP.NET Core Adapter] --> D
+    C[Common Errors] --> B
 ```
 
 #### Pointer Builder
@@ -165,20 +174,57 @@ Does not perform validation logic or serialization; only pointer composition and
 
 ##### Why this component exists
 
-Provides the primary accumulation surface for validators and enables merge behavior across nested validation scopes.
+Provides the primary accumulation surface for validators across nested validation scopes.
 
 ##### Responsibility scope
 
-Register entries with `code`, `format`, `detail`, `pointer`; create nested builders that capture pointer prefixes and keep scoped entries per builder node; support `using { ... }` lifetime for nested builder disposal; merge child results; materialize deterministic flattened output from the root builder.
+Register entries with a `code`, a `format` and optional metadata; create nested builders that hold their own path fragments, relative to their parent, and keep scoped entries per builder node; support `using { ... }` lifetime for nested builder disposal; materialize deterministic flattened output from the root builder (`ToValidationEntries()`), which completes the whole hierarchy once: pointers are composed from the fragments of the builders on the way down, details are rendered by the Message Renderer, and no entry can be added afterwards. `Valid` counts entries without rendering.
 
 ##### Responsibility boundaries
 
-Does not handle HTTP transport concerns or ASP.NET Core pipeline wiring. Nested validators remain path-agnostic and do not infer containment location. Nested builders isolate scope context per branch and keep local entries; only the root builder materializes the full hierarchy. Merge operations perform runtime checks to ensure merged builders belong to the same internal model. Hierarchy traversal uses `IValidationBuilderNode` as an internal abstraction to support mixed generic child node traversal.
+Does not handle HTTP transport concerns or ASP.NET Core pipeline wiring. Nested validators remain path-agnostic and do not infer containment location. Nested builders isolate scope context per branch and keep local entries; only the root builder materializes the full hierarchy, and only `ValidationBuilder<TContext>` (sealed) can, as no other assembly can derive from `ValidationBuilderBase<TContext>`. Hierarchy traversal uses `IValidationBuilderNode` as an internal abstraction to support mixed generic child node traversal.
 
 ##### Related components
 
 - Pointer Builder — depends on for pointer generation.
+- Message Renderer — renders each entry's detail at materialization.
 - ProblemDetails Mapper — provides root-materialized entries for mapping.
+
+#### Message Renderer
+
+##### Why this component exists
+
+Renders an entry's detail from its format and metadata in the request's language, once, when the root materializes the entries.
+
+##### Responsibility scope
+
+`ValidationMessageWriter` localizes each format, entity name and member name through `ValidationOptions.Localizers` (functions returning the translation of a text for the current UI culture, or null; the first translation wins, and each text is looked up once per rendering), fills the placeholders through the entry's metadata, and formats values with the current culture, including format specifiers. With `UseLocalization` off, texts are left as defined and values use the invariant culture. A failing localizer leaves the text untranslated, and an invalid specifier is dropped (the value is formatted without it), rather than failing the response. Entries are ordered by pointer, code and the format as added, so translations never change the order.
+
+##### Responsibility boundaries
+
+Does not own translations: libraries and applications supply localizers. `ValidationGuard.Localization` adapts `IStringLocalizer`; `ValidationGuard.CommonErrors.Localization` ships the common errors' resources. Pointers are never localized.
+
+##### Related components
+
+- Validation Builder — invokes it while materializing.
+
+#### Common Errors
+
+##### Why this component exists
+
+Gives applications and libraries ready-made errors with stable codes, formats and typed metadata, and the means to define their own the same way.
+
+##### Responsibility scope
+
+`ValidationGuard.CommonErrors` provides the error definitions (`CommonErrorDefinitions`), typed `Add...` helpers, their metadata types and `ErrorDefinitionValidator`, which checks definitions and translations. Its translations, keyed by the English format, ship in `ValidationGuard.CommonErrors.Localization`; its HTTP statuses in `ValidationGuard.CommonErrors.Http`.
+
+##### Responsibility boundaries
+
+Depends only on the core package: no localization or HTTP dependency.
+
+##### Related components
+
+- Validation Builder — its helpers add entries to builders.
 
 #### ProblemDetails Mapper
 
@@ -246,13 +292,17 @@ ValidationBuilder scope/addressing API uses accessor expressions instead of raw 
 - Indexed scope: `x => x[5]`
 - Keyed/indexer scope: `x => x.Metadata["key"]`, `x => x.Bag["region"]`
 
-These accessors are resolved to RFC 6901 pointer segments and appended to the nested builder prefix.
+These accessors are resolved to path fragments held by the nested builder; the pointer is composed from the fragments of every builder from the root when the entries are materialized, and RFC 6901-escaped then.
 
 ### 3.4 Internal Dependencies
 
 | Dependency Module | Interface Used | Purpose |
 |-------------------|----------------|----------|
-| ValidationGuard | Internal domain contracts | Entry and builder modeling |
+| ValidationGuard | Internal domain contracts | Entry and builder modeling; no package dependencies |
+| ValidationGuard.Localization | `options.Localizers.Add(IStringLocalizer)`, `Translate` | Localizes messages with `IStringLocalizer` |
+| ValidationGuard.CommonErrors | `ErrorDefinition`, `CommonErrorDefinitions`, `ErrorDefinitionValidator` | Ready-made errors and the means to define and check others |
+| ValidationGuard.CommonErrors.Localization | `IStringLocalizer<CommonErrorMessages>` resources | Translations of the common errors to 47 languages |
+| ValidationGuard.CommonErrors.Http | `AddCommonErrors()` | HTTP statuses of the common error codes |
 | ValidationGuard.Http | `ValidationProblemFactory`, `ErrorCodeMapBuilder`, `HttpErrorCode` attributes | RFC 9457 projection, HTTP status derivation, and ASP.NET Core integration |
 | ValidationGuard.Http.Analyzers | Roslyn diagnostics `VGH001`–`VGH007` | Build-time verification of HTTP code declarations; packed into the `ValidationGuard.Http` NuGet package |
 
@@ -270,6 +320,12 @@ These accessors are resolved to RFC 6901 pointer segments and appended to the ne
 | Dependency Module | Interface Used | Purpose |
 |-------------------|---------------|---------|
 | Microsoft.AspNetCore.Http.Abstractions / ProblemDetails | RFC 9457-compatible ProblemDetails model | HTTP error envelope interoperability |
+
+#### Microsoft.Extensions.Localization
+
+| Dependency Module | Interface Used | Purpose |
+|-------------------|---------------|---------|
+| Microsoft.Extensions.Localization(.Abstractions) | `IStringLocalizer`, `[ResourceLocation]`, `[RootNamespace]` | Adapter and resource-based translations; referenced only by the `.Localization` packages |
 
 #### System.Text.Json
 
@@ -302,38 +358,37 @@ sequenceDiagram
     participant A as AspNetCoreAdapter
     participant H as API Host
 
-    PV->>C: Add error(code, format, detail, pointer="/name")
+    PV->>C: AddProperty(x => x.Name, code, format)
     PV->>C: using addressBuilder = For(x => x.Address)
     C->>PB: Resolve accessor x => x.Address
-    PB-->>C: prefix "/address"
+    PB-->>C: fragments [Address]
     PV->>CV: Validate(address, addressBuilder)
-    CV->>C: Add error(code, format, detail, pointer="/street")
+    CV->>C: AddProperty(x => x.Street, code, format)
     PV->>C: addressBuilder.Dispose() (end using block)
 
     par Parallel item scope creation
         PV->>C: using item0Builder = For(x => x.Items[0])
         C->>PB: Resolve accessor x => x.Items[0]
-        PB-->>C: prefix "/items/0"
+        PB-->>C: fragments [Items, 0]
         PV->>CV: Validate(items[0], item0Builder)
-        CV->>C: Add error(code, format, detail, pointer="/sku")
+        CV->>C: AddProperty(x => x.Sku, code, format)
         PV->>C: item0Builder.Dispose() (end using block)
     and
         PV->>C: using item1Builder = For(x => x.Items[1])
         C->>PB: Resolve accessor x => x.Items[1]
-        PB-->>C: prefix "/items/1"
+        PB-->>C: fragments [Items, 1]
         PV->>CV: Validate(items[1], item1Builder)
-        CV->>C: Add error(code, format, detail, pointer="/sku")
+        CV->>C: AddProperty(x => x.Sku, code, format)
         PV->>C: item1Builder.Dispose() (end using block)
     end
 
-    PV->>C: Merge optional child results
-    C->>C: ToValidationEntries() flattens hierarchy + sorts
+    C->>C: ToValidationEntries(): renders pointers and localized details once, then sorts
     C->>M: Provide finalized entries
     M->>A: Build RFC9457 ProblemDetails + errors[]
     A->>H: Return application/problem+json response
 ```
 
-**Description**: Containing validators create nested builders through accessor expressions and pass them to nested validators. Accessors are resolved to RFC 6901 prefixes before nested validation begins. Each builder node stores scoped entries locally, and the root builder flattens the full hierarchy during `ToValidationEntries()`. This model supports independent parallel branches (for example multiple array element scopes) without scope leakage while preserving deterministic output ordering.
+**Description**: Containing validators create nested builders through accessor expressions and pass them to nested validators. Accessors are resolved to path fragments before nested validation begins; pointers and details are rendered only when the root materializes the entries. Each builder node stores scoped entries locally, and the root builder flattens the full hierarchy during `ToValidationEntries()`. This model supports independent parallel branches (for example multiple array element scopes) without scope leakage while preserving deterministic output ordering.
 
 ### 3.7 Database schemas & tables
 
@@ -354,6 +409,7 @@ The adapter package is intentionally separate to keep the core library reusable 
 
 | Version | Date | Change |
 |---------|------|--------|
+| 1.3.0 | 2026-10-27 | Deferred rendering, options, localization and common errors: Message Renderer and Common Errors components, drivers and package dependencies; nested builders hold path fragments instead of pointer prefixes; merging removed. |
 | 1.2.0 | 2026-10-14 | Added HTTP Status Derivation driver and `ADR-002`; specified envelope selection for the ProblemDetails Mapper; replaced the planned Mapping and AspNetCore modules with `ValidationGuard.Http` and its bundled analyzer. |
 | 1.1.0 | 2026-08-24 | Added Functional Drivers rows for Canonical Internal Entry Storage and Configurable Pointer Fragment Naming. |
 | 1.0.0 | 2026-08-06 | Initial DESIGN. |

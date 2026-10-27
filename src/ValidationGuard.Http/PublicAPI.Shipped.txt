@@ -1,0 +1,77 @@
+#nullable enable
+const ValidationGuard.Http.ValidationProblemFactory.ErrorsExtensionName = "errors" -> string!
+override ValidationGuard.Http.HttpErrorCode.Equals(object? obj) -> bool
+override ValidationGuard.Http.HttpErrorCode.GetHashCode() -> int
+override ValidationGuard.Http.HttpErrorCode.ToString() -> string!
+override ValidationGuard.Http.ValidationErrorsJsonConverter.Read(ref System.Text.Json.Utf8JsonReader reader, System.Type! typeToConvert, System.Text.Json.JsonSerializerOptions! options) -> ValidationGuard.Http.ValidationErrors!
+override ValidationGuard.Http.ValidationErrorsJsonConverter.Write(System.Text.Json.Utf8JsonWriter! writer, ValidationGuard.Http.ValidationErrors! value, System.Text.Json.JsonSerializerOptions! options) -> void
+static ValidationGuard.Http.HttpErrorCode.operator !=(ValidationGuard.Http.HttpErrorCode? left, ValidationGuard.Http.HttpErrorCode? right) -> bool
+static ValidationGuard.Http.HttpErrorCode.operator ==(ValidationGuard.Http.HttpErrorCode? left, ValidationGuard.Http.HttpErrorCode? right) -> bool
+static ValidationGuard.Http.StatusPrecedence.Default.get -> ValidationGuard.Http.StatusPrecedence!
+static ValidationGuard.Http.ValidationProblemResult.PopulateMetadata(System.Reflection.MethodInfo! method, Microsoft.AspNetCore.Builder.EndpointBuilder! builder) -> void
+static ValidationGuard.Http.ValidationProblemServiceCollectionExtensions.AddValidationProblems(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<ValidationGuard.Http.ErrorCodeMapBuilder!>! configure) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static ValidationGuard.Http.ValidationResults.Problem(System.Collections.Generic.IReadOnlyList<ValidationGuard.ValidationEntry!>! entries) -> ValidationGuard.Http.ValidationProblemResult!
+static ValidationGuard.Http.ValidationResults.Problem<TContext>(ValidationGuard.ValidationBuilder<TContext>! validation) -> ValidationGuard.Http.ValidationProblemResult!
+ValidationGuard.Http.ErrorCodeMap
+ValidationGuard.Http.ErrorCodeMap.Codes.get -> System.Collections.Generic.IEnumerable<ValidationGuard.Http.HttpErrorCode!>!
+ValidationGuard.Http.ErrorCodeMap.Count.get -> int
+ValidationGuard.Http.ErrorCodeMap.FallbackStatus.get -> int
+ValidationGuard.Http.ErrorCodeMap.TryGetCode(string! code, out ValidationGuard.Http.HttpErrorCode? errorCode) -> bool
+ValidationGuard.Http.ErrorCodeMapBuilder
+ValidationGuard.Http.ErrorCodeMapBuilder.Add(string! code, int status, string? type = null, string? title = null) -> ValidationGuard.Http.ErrorCodeMapBuilder!
+ValidationGuard.Http.ErrorCodeMapBuilder.AddAssembly(System.Reflection.Assembly! assembly) -> ValidationGuard.Http.ErrorCodeMapBuilder!
+ValidationGuard.Http.ErrorCodeMapBuilder.AddAssemblyOf<TMarker>() -> ValidationGuard.Http.ErrorCodeMapBuilder!
+ValidationGuard.Http.ErrorCodeMapBuilder.Build() -> ValidationGuard.Http.ErrorCodeMap!
+ValidationGuard.Http.ErrorCodeMapBuilder.ErrorCodeMapBuilder() -> void
+ValidationGuard.Http.ErrorCodeMapBuilder.Override(string! code, int status, string? type = null, string? title = null) -> ValidationGuard.Http.ErrorCodeMapBuilder!
+ValidationGuard.Http.ErrorCodeMapBuilder.UseFallbackStatus(int status) -> ValidationGuard.Http.ErrorCodeMapBuilder!
+ValidationGuard.Http.HttpErrorCode
+ValidationGuard.Http.HttpErrorCode.<Clone>$() -> ValidationGuard.Http.HttpErrorCode!
+ValidationGuard.Http.HttpErrorCode.Code.get -> string!
+ValidationGuard.Http.HttpErrorCode.Code.init -> void
+ValidationGuard.Http.HttpErrorCode.Deconstruct(out string! Code, out int Status, out string? Type, out string? Title) -> void
+ValidationGuard.Http.HttpErrorCode.Equals(ValidationGuard.Http.HttpErrorCode? other) -> bool
+ValidationGuard.Http.HttpErrorCode.HttpErrorCode(string! Code, int Status, string? Type = null, string? Title = null) -> void
+ValidationGuard.Http.HttpErrorCode.Status.get -> int
+ValidationGuard.Http.HttpErrorCode.Status.init -> void
+ValidationGuard.Http.HttpErrorCode.Title.get -> string?
+ValidationGuard.Http.HttpErrorCode.Title.init -> void
+ValidationGuard.Http.HttpErrorCode.Type.get -> string?
+ValidationGuard.Http.HttpErrorCode.Type.init -> void
+ValidationGuard.Http.HttpErrorCodeAttribute
+ValidationGuard.Http.HttpErrorCodeAttribute.Code.get -> string!
+ValidationGuard.Http.HttpErrorCodeAttribute.HttpErrorCodeAttribute(string! code, int status) -> void
+ValidationGuard.Http.HttpErrorCodeAttribute.Status.get -> int
+ValidationGuard.Http.HttpErrorCodeAttribute.Title.get -> string?
+ValidationGuard.Http.HttpErrorCodeAttribute.Title.set -> void
+ValidationGuard.Http.HttpErrorCodeAttribute.Type.get -> string?
+ValidationGuard.Http.HttpErrorCodeAttribute.Type.set -> void
+ValidationGuard.Http.HttpErrorCodeOverrideAttribute
+ValidationGuard.Http.HttpErrorCodeOverrideAttribute.Code.get -> string!
+ValidationGuard.Http.HttpErrorCodeOverrideAttribute.HttpErrorCodeOverrideAttribute(string! code, int status) -> void
+ValidationGuard.Http.HttpErrorCodeOverrideAttribute.Status.get -> int
+ValidationGuard.Http.HttpErrorCodeOverrideAttribute.Title.get -> string?
+ValidationGuard.Http.HttpErrorCodeOverrideAttribute.Title.set -> void
+ValidationGuard.Http.HttpErrorCodeOverrideAttribute.Type.get -> string?
+ValidationGuard.Http.HttpErrorCodeOverrideAttribute.Type.set -> void
+ValidationGuard.Http.StatusPrecedence
+ValidationGuard.Http.StatusPrecedence.Rank(int status) -> int
+ValidationGuard.Http.StatusPrecedence.StatusPrecedence(params System.ReadOnlySpan<int> mostDominantFirst) -> void
+ValidationGuard.Http.ValidationErrors
+ValidationGuard.Http.ValidationErrors.Entries.get -> System.Collections.Generic.IReadOnlyList<ValidationGuard.ValidationEntry!>!
+ValidationGuard.Http.ValidationErrors.ValidationErrors(System.Collections.Generic.IReadOnlyList<ValidationGuard.ValidationEntry!>! entries) -> void
+ValidationGuard.Http.ValidationErrorsJsonConverter
+ValidationGuard.Http.ValidationErrorsJsonConverter.ValidationErrorsJsonConverter() -> void
+ValidationGuard.Http.ValidationProblemExceptionHandler
+ValidationGuard.Http.ValidationProblemExceptionHandler.TryHandleAsync(Microsoft.AspNetCore.Http.HttpContext! httpContext, System.Exception! exception, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<bool>
+ValidationGuard.Http.ValidationProblemExceptionHandler.ValidationProblemExceptionHandler() -> void
+ValidationGuard.Http.ValidationProblemFactory
+ValidationGuard.Http.ValidationProblemFactory.Create(System.Collections.Generic.IReadOnlyList<ValidationGuard.ValidationEntry!>! entries) -> Microsoft.AspNetCore.Mvc.ProblemDetails!
+ValidationGuard.Http.ValidationProblemFactory.CreateResult(System.Collections.Generic.IReadOnlyList<ValidationGuard.ValidationEntry!>! entries) -> Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult!
+ValidationGuard.Http.ValidationProblemFactory.ValidationProblemFactory(ValidationGuard.Http.ErrorCodeMap! map, ValidationGuard.Http.StatusPrecedence! precedence, Microsoft.Extensions.Logging.ILogger<ValidationGuard.Http.ValidationProblemFactory!>! logger) -> void
+ValidationGuard.Http.ValidationProblemResult
+ValidationGuard.Http.ValidationProblemResult.Entries.get -> System.Collections.Generic.IReadOnlyList<ValidationGuard.ValidationEntry!>!
+ValidationGuard.Http.ValidationProblemResult.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext! httpContext) -> System.Threading.Tasks.Task!
+ValidationGuard.Http.ValidationProblemResult.ValidationProblemResult(System.Collections.Generic.IReadOnlyList<ValidationGuard.ValidationEntry!>! entries) -> void
+ValidationGuard.Http.ValidationProblemServiceCollectionExtensions
+ValidationGuard.Http.ValidationResults

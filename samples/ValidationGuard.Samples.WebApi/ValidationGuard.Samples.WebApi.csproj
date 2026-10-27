@@ -1,11 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <!--
-    Outside this repository, reference the ValidationGuard.Http and ValidationGuard.CommonErrors.Http packages instead;
-    ValidationGuard.Http brings the analyzer that checks the [HttpErrorCode] declaration in Program.cs.
+    Outside this repository, reference the ValidationGuard.Http, ValidationGuard.CommonErrors.Http and
+    ValidationGuard.CommonErrors.Localization packages instead; ValidationGuard.Http brings the analyzer that checks the [HttpErrorCode] declaration in Program.cs.
   -->
   <ItemGroup>
     <ProjectReference Include="..\..\src\ValidationGuard.CommonErrors.Http\ValidationGuard.CommonErrors.Http.csproj" />
+    <ProjectReference Include="..\..\src\ValidationGuard.CommonErrors.Localization\ValidationGuard.CommonErrors.Localization.csproj" />
     <ProjectReference Include="..\Acme.Validation.Http\Acme.Validation.Http.csproj" />
+    <ProjectReference Include="..\Acme.Validation.Localization\Acme.Validation.Localization.csproj" />
     <ProjectReference Include="..\..\src\ValidationGuard.Http.Analyzers\ValidationGuard.Http.Analyzers.csproj"
                       PrivateAssets="all"
                       ReferenceOutputAssembly="false"
