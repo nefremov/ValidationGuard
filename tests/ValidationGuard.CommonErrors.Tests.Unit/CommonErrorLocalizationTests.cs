@@ -261,12 +261,12 @@ public class CommonErrorLocalizationTests
     [Fact]
     public void ValidateLocalizations_ShippedCultures_RequireSatelliteAssemblies()
     {
-        // Act: this assembly ships no satellite resource assemblies.
+        // Act: the core ValidationGuard assembly ships no satellite resource assemblies.
         var exception = Assert.Throws<InvalidOperationException>(
-            () => ErrorDefinitionValidator.ValidateLocalizations(typeof(CommonErrorDefinitions), Localizer));
+            () => ErrorDefinitionValidator.ValidateLocalizations(typeof(ValidationOptions), Localizer));
 
         // Assert
-        Assert.Contains("No satellite resource assembly of ValidationGuard.CommonErrors", exception.Message);
+        Assert.Contains("No satellite resource assembly of ValidationGuard was found", exception.Message);
     }
 
     [Fact]

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Translations of the common error formats to ta, keyed by the English format (CommonErrorFormats). -->
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="{entity} with {name} = {value} does not exist" xml:space="preserve">
+    <value>{name} = {value} கொண்ட {entity} இல்லை</value>
+  </data>
+  <data name="{entity} with {name1} = {value1} and {name2} = {value2} does not exist" xml:space="preserve">
+    <value>{name1} = {value1} மற்றும் {name2} = {value2} கொண்ட {entity} இல்லை</value>
+  </data>
+  <data name="{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} does not exist" xml:space="preserve">
+    <value>{name1} = {value1}, {name2} = {value2} மற்றும் {name3} = {value3} கொண்ட {entity} இல்லை</value>
+  </data>
+  <data name="{entity} with {name} = {value} already exists" xml:space="preserve">
+    <value>{name} = {value} கொண்ட {entity} ஏற்கனவே உள்ளது</value>
+  </data>
+  <data name="{entity} with {name1} = {value1} and {name2} = {value2} already exists" xml:space="preserve">
+    <value>{name1} = {value1} மற்றும் {name2} = {value2} கொண்ட {entity} ஏற்கனவே உள்ளது</value>
+  </data>
+  <data name="{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} already exists" xml:space="preserve">
+    <value>{name1} = {value1}, {name2} = {value2} மற்றும் {name3} = {value3} கொண்ட {entity} ஏற்கனவே உள்ளது</value>
+  </data>
+  <data name="Value for {name} is required" xml:space="preserve">
+    <value>{name} க்கு ஒரு மதிப்பு தேவை</value>
+  </data>
+  <data name="Value for {name} must not be empty" xml:space="preserve">
+    <value>{name} இன் மதிப்பு காலியாக இருக்கக்கூடாது</value>
+  </data>
+  <data name="Value {value} for {name} must be at least {min_value}" xml:space="preserve">
+    <value>{name} இன் மதிப்பு {value} குறைந்தது {min_value} ஆக இருக்க வேண்டும்</value>
+  </data>
+  <data name="Value {value} for {name} must be greater than {min_value}" xml:space="preserve">
+    <value>{name} இன் மதிப்பு {value} {min_value} ஐ விட அதிகமாக இருக்க வேண்டும்</value>
+  </data>
+  <data name="Value {value} for {name} must be at most {max_value}" xml:space="preserve">
+    <value>{name} இன் மதிப்பு {value} அதிகபட்சம் {max_value} ஆக இருக்க வேண்டும்</value>
+  </data>
+  <data name="Value {value} for {name} must be less than {max_value}" xml:space="preserve">
+    <value>{name} இன் மதிப்பு {value} {max_value} ஐ விட குறைவாக இருக்க வேண்டும்</value>
+  </data>
+  <data name="Value for {name} must be at least {min_length} characters long, but has {length}" xml:space="preserve">
+    <value>{name} இன் மதிப்பு குறைந்தது {min_length} எழுத்துகள் இருக்க வேண்டும், ஆனால் {length} உள்ளன</value>
+  </data>
+  <data name="Value for {name} must be at most {max_length} characters long, but has {length}" xml:space="preserve">
+    <value>{name} இன் மதிப்பு அதிகபட்சம் {max_length} எழுத்துகள் இருக்க வேண்டும், ஆனால் {length} உள்ளன</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range [{min_value}, {max_value}]" xml:space="preserve">
+    <value>{name} இன் மதிப்பு {value} [{min_value}, {max_value}] வரம்பில் இருக்க வேண்டும்</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range ({min_value}, {max_value})" xml:space="preserve">
+    <value>{name} இன் மதிப்பு {value} ({min_value}, {max_value}) வரம்பில் இருக்க வேண்டும்</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range [{min_value}, {max_value})" xml:space="preserve">
+    <value>{name} இன் மதிப்பு {value} [{min_value}, {max_value}) வரம்பில் இருக்க வேண்டும்</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range ({min_value}, {max_value}]" xml:space="preserve">
+    <value>{name} இன் மதிப்பு {value} ({min_value}, {max_value}] வரம்பில் இருக்க வேண்டும்</value>
+  </data>
+  <data name="Value {value} for {name} does not refer to an existing {referenced_entity}" xml:space="preserve">
+    <value>{name} இன் மதிப்பு {value}: {referenced_entity} கண்டறியப்படவில்லை</value>
+  </data>
+  <data name="{entity} cannot have {name1} = {value1} when {name2} = {value2}" xml:space="preserve">
+    <value>{name2} = {value2} எனும்போது {entity} இல் {name1} = {value1} இருக்க முடியாது</value>
+  </data>
+  <data name="Value {value} for {name} must be one of {allowed_values}" xml:space="preserve">
+    <value>{name} இன் மதிப்பு {value} இவற்றில் ஒன்றாக இருக்க வேண்டும்: {allowed_values}</value>
+  </data>
+  <data name="Value for {name} cannot be changed" xml:space="preserve">
+    <value>{name} இன் மதிப்பை மாற்ற முடியாது</value>
+  </data>
+</root>

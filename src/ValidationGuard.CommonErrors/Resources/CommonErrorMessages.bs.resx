@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Translations of the common error formats to bs, keyed by the English format (CommonErrorFormats). -->
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="{entity} with {name} = {value} does not exist" xml:space="preserve">
+    <value>{entity} sa {name} = {value} ne postoji</value>
+  </data>
+  <data name="{entity} with {name1} = {value1} and {name2} = {value2} does not exist" xml:space="preserve">
+    <value>{entity} sa {name1} = {value1} i {name2} = {value2} ne postoji</value>
+  </data>
+  <data name="{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} does not exist" xml:space="preserve">
+    <value>{entity} sa {name1} = {value1}, {name2} = {value2} i {name3} = {value3} ne postoji</value>
+  </data>
+  <data name="{entity} with {name} = {value} already exists" xml:space="preserve">
+    <value>{entity} sa {name} = {value} već postoji</value>
+  </data>
+  <data name="{entity} with {name1} = {value1} and {name2} = {value2} already exists" xml:space="preserve">
+    <value>{entity} sa {name1} = {value1} i {name2} = {value2} već postoji</value>
+  </data>
+  <data name="{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} already exists" xml:space="preserve">
+    <value>{entity} sa {name1} = {value1}, {name2} = {value2} i {name3} = {value3} već postoji</value>
+  </data>
+  <data name="Value for {name} is required" xml:space="preserve">
+    <value>Vrijednost za {name} je obavezna</value>
+  </data>
+  <data name="Value for {name} must not be empty" xml:space="preserve">
+    <value>Vrijednost za {name} ne smije biti prazna</value>
+  </data>
+  <data name="Value {value} for {name} must be at least {min_value}" xml:space="preserve">
+    <value>Vrijednost {value} za {name} mora biti najmanje {min_value}</value>
+  </data>
+  <data name="Value {value} for {name} must be greater than {min_value}" xml:space="preserve">
+    <value>Vrijednost {value} za {name} mora biti veća od {min_value}</value>
+  </data>
+  <data name="Value {value} for {name} must be at most {max_value}" xml:space="preserve">
+    <value>Vrijednost {value} za {name} može biti najviše {max_value}</value>
+  </data>
+  <data name="Value {value} for {name} must be less than {max_value}" xml:space="preserve">
+    <value>Vrijednost {value} za {name} mora biti manja od {max_value}</value>
+  </data>
+  <data name="Value for {name} must be at least {min_length} characters long, but has {length}" xml:space="preserve">
+    <value>Vrijednost za {name} mora imati najmanje {min_length} znakova, ali ima {length}</value>
+  </data>
+  <data name="Value for {name} must be at most {max_length} characters long, but has {length}" xml:space="preserve">
+    <value>Vrijednost za {name} može imati najviše {max_length} znakova, ali ima {length}</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range [{min_value}, {max_value}]" xml:space="preserve">
+    <value>Vrijednost {value} za {name} mora biti u opsegu [{min_value}, {max_value}]</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range ({min_value}, {max_value})" xml:space="preserve">
+    <value>Vrijednost {value} za {name} mora biti u opsegu ({min_value}, {max_value})</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range [{min_value}, {max_value})" xml:space="preserve">
+    <value>Vrijednost {value} za {name} mora biti u opsegu [{min_value}, {max_value})</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range ({min_value}, {max_value}]" xml:space="preserve">
+    <value>Vrijednost {value} za {name} mora biti u opsegu ({min_value}, {max_value}]</value>
+  </data>
+  <data name="Value {value} for {name} does not refer to an existing {referenced_entity}" xml:space="preserve">
+    <value>Vrijednost {value} za {name}: objekat {referenced_entity} nije pronađen</value>
+  </data>
+  <data name="{entity} cannot have {name1} = {value1} when {name2} = {value2}" xml:space="preserve">
+    <value>{entity} ne može imati {name1} = {value1} kada je {name2} = {value2}</value>
+  </data>
+  <data name="Value {value} for {name} must be one of {allowed_values}" xml:space="preserve">
+    <value>Vrijednost {value} za {name} mora biti jedna od: {allowed_values}</value>
+  </data>
+  <data name="Value for {name} cannot be changed" xml:space="preserve">
+    <value>Vrijednost za {name} se ne može promijeniti</value>
+  </data>
+</root>

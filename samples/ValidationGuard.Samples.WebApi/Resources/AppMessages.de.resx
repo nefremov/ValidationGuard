@@ -13,15 +13,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="{entity} with {name} = {value} does not exist" xml:space="preserve">
-    <value>{entity} mit {name} = {value} existiert nicht</value>
-  </data>
-  <data name="Value for {name} must not be empty" xml:space="preserve">
-    <value>Wert für {name} darf nicht leer sein</value>
-  </data>
-  <data name="Value for {name} must be at most {max_length} characters long, but has {length}" xml:space="preserve">
-    <value>Wert für {name} darf höchstens {max_length} Zeichen lang sein, hat aber {length}</value>
-  </data>
   <data name="Value for {name} has more than one line for the same SKU" xml:space="preserve">
     <value>Wert für {name} enthält mehrere Positionen mit derselben SKU</value>
   </data>

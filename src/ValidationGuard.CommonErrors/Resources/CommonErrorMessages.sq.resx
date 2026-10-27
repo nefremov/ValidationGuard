@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Translations of the common error formats to sq, keyed by the English format (CommonErrorFormats). -->
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="{entity} with {name} = {value} does not exist" xml:space="preserve">
+    <value>{entity} me {name} = {value} nuk ekziston</value>
+  </data>
+  <data name="{entity} with {name1} = {value1} and {name2} = {value2} does not exist" xml:space="preserve">
+    <value>{entity} me {name1} = {value1} dhe {name2} = {value2} nuk ekziston</value>
+  </data>
+  <data name="{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} does not exist" xml:space="preserve">
+    <value>{entity} me {name1} = {value1}, {name2} = {value2} dhe {name3} = {value3} nuk ekziston</value>
+  </data>
+  <data name="{entity} with {name} = {value} already exists" xml:space="preserve">
+    <value>{entity} me {name} = {value} ekziston tashmë</value>
+  </data>
+  <data name="{entity} with {name1} = {value1} and {name2} = {value2} already exists" xml:space="preserve">
+    <value>{entity} me {name1} = {value1} dhe {name2} = {value2} ekziston tashmë</value>
+  </data>
+  <data name="{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} already exists" xml:space="preserve">
+    <value>{entity} me {name1} = {value1}, {name2} = {value2} dhe {name3} = {value3} ekziston tashmë</value>
+  </data>
+  <data name="Value for {name} is required" xml:space="preserve">
+    <value>Vlera për {name} është e detyrueshme</value>
+  </data>
+  <data name="Value for {name} must not be empty" xml:space="preserve">
+    <value>Vlera për {name} nuk duhet të jetë bosh</value>
+  </data>
+  <data name="Value {value} for {name} must be at least {min_value}" xml:space="preserve">
+    <value>Vlera {value} për {name} duhet të jetë të paktën {min_value}</value>
+  </data>
+  <data name="Value {value} for {name} must be greater than {min_value}" xml:space="preserve">
+    <value>Vlera {value} për {name} duhet të jetë më e madhe se {min_value}</value>
+  </data>
+  <data name="Value {value} for {name} must be at most {max_value}" xml:space="preserve">
+    <value>Vlera {value} për {name} duhet të jetë më së shumti {max_value}</value>
+  </data>
+  <data name="Value {value} for {name} must be less than {max_value}" xml:space="preserve">
+    <value>Vlera {value} për {name} duhet të jetë më e vogël se {max_value}</value>
+  </data>
+  <data name="Value for {name} must be at least {min_length} characters long, but has {length}" xml:space="preserve">
+    <value>Vlera për {name} duhet të ketë të paktën {min_length} karaktere, por ka {length}</value>
+  </data>
+  <data name="Value for {name} must be at most {max_length} characters long, but has {length}" xml:space="preserve">
+    <value>Vlera për {name} duhet të ketë më së shumti {max_length} karaktere, por ka {length}</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range [{min_value}, {max_value}]" xml:space="preserve">
+    <value>Vlera {value} për {name} duhet të jetë në intervalin [{min_value}, {max_value}]</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range ({min_value}, {max_value})" xml:space="preserve">
+    <value>Vlera {value} për {name} duhet të jetë në intervalin ({min_value}, {max_value})</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range [{min_value}, {max_value})" xml:space="preserve">
+    <value>Vlera {value} për {name} duhet të jetë në intervalin [{min_value}, {max_value})</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range ({min_value}, {max_value}]" xml:space="preserve">
+    <value>Vlera {value} për {name} duhet të jetë në intervalin ({min_value}, {max_value}]</value>
+  </data>
+  <data name="Value {value} for {name} does not refer to an existing {referenced_entity}" xml:space="preserve">
+    <value>Vlera {value} për {name}: {referenced_entity} nuk u gjet</value>
+  </data>
+  <data name="{entity} cannot have {name1} = {value1} when {name2} = {value2}" xml:space="preserve">
+    <value>{entity} nuk mund të ketë {name1} = {value1} kur {name2} = {value2}</value>
+  </data>
+  <data name="Value {value} for {name} must be one of {allowed_values}" xml:space="preserve">
+    <value>Vlera {value} për {name} duhet të jetë një nga: {allowed_values}</value>
+  </data>
+  <data name="Value for {name} cannot be changed" xml:space="preserve">
+    <value>Vlera për {name} nuk mund të ndryshohet</value>
+  </data>
+</root>

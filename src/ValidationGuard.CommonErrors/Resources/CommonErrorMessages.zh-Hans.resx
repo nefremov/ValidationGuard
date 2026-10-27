@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Translations of the common error formats to zh-Hans, keyed by the English format (CommonErrorFormats). -->
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="{entity} with {name} = {value} does not exist" xml:space="preserve">
+    <value>{name} = {value} 的{entity}不存在</value>
+  </data>
+  <data name="{entity} with {name1} = {value1} and {name2} = {value2} does not exist" xml:space="preserve">
+    <value>{name1} = {value1}、{name2} = {value2} 的{entity}不存在</value>
+  </data>
+  <data name="{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} does not exist" xml:space="preserve">
+    <value>{name1} = {value1}、{name2} = {value2}、{name3} = {value3} 的{entity}不存在</value>
+  </data>
+  <data name="{entity} with {name} = {value} already exists" xml:space="preserve">
+    <value>{name} = {value} 的{entity}已存在</value>
+  </data>
+  <data name="{entity} with {name1} = {value1} and {name2} = {value2} already exists" xml:space="preserve">
+    <value>{name1} = {value1}、{name2} = {value2} 的{entity}已存在</value>
+  </data>
+  <data name="{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} already exists" xml:space="preserve">
+    <value>{name1} = {value1}、{name2} = {value2}、{name3} = {value3} 的{entity}已存在</value>
+  </data>
+  <data name="Value for {name} is required" xml:space="preserve">
+    <value>{name} 的值为必填项</value>
+  </data>
+  <data name="Value for {name} must not be empty" xml:space="preserve">
+    <value>{name} 的值不能为空</value>
+  </data>
+  <data name="Value {value} for {name} must be at least {min_value}" xml:space="preserve">
+    <value>{name} 的值 {value} 必须至少为 {min_value}</value>
+  </data>
+  <data name="Value {value} for {name} must be greater than {min_value}" xml:space="preserve">
+    <value>{name} 的值 {value} 必须大于 {min_value}</value>
+  </data>
+  <data name="Value {value} for {name} must be at most {max_value}" xml:space="preserve">
+    <value>{name} 的值 {value} 最多为 {max_value}</value>
+  </data>
+  <data name="Value {value} for {name} must be less than {max_value}" xml:space="preserve">
+    <value>{name} 的值 {value} 必须小于 {max_value}</value>
+  </data>
+  <data name="Value for {name} must be at least {min_length} characters long, but has {length}" xml:space="preserve">
+    <value>{name} 的值至少需要 {min_length} 个字符，但只有 {length} 个</value>
+  </data>
+  <data name="Value for {name} must be at most {max_length} characters long, but has {length}" xml:space="preserve">
+    <value>{name} 的值最多只能有 {max_length} 个字符，但有 {length} 个</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range [{min_value}, {max_value}]" xml:space="preserve">
+    <value>{name} 的值 {value} 必须在 [{min_value}, {max_value}] 范围内</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range ({min_value}, {max_value})" xml:space="preserve">
+    <value>{name} 的值 {value} 必须在 ({min_value}, {max_value}) 范围内</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range [{min_value}, {max_value})" xml:space="preserve">
+    <value>{name} 的值 {value} 必须在 [{min_value}, {max_value}) 范围内</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range ({min_value}, {max_value}]" xml:space="preserve">
+    <value>{name} 的值 {value} 必须在 ({min_value}, {max_value}] 范围内</value>
+  </data>
+  <data name="Value {value} for {name} does not refer to an existing {referenced_entity}" xml:space="preserve">
+    <value>{name} 的值 {value}：未找到 {referenced_entity}</value>
+  </data>
+  <data name="{entity} cannot have {name1} = {value1} when {name2} = {value2}" xml:space="preserve">
+    <value>当 {name2} = {value2} 时，{entity} 不能具有 {name1} = {value1}</value>
+  </data>
+  <data name="Value {value} for {name} must be one of {allowed_values}" xml:space="preserve">
+    <value>{name} 的值 {value} 必须是以下之一：{allowed_values}</value>
+  </data>
+  <data name="Value for {name} cannot be changed" xml:space="preserve">
+    <value>{name} 的值不能更改</value>
+  </data>
+</root>

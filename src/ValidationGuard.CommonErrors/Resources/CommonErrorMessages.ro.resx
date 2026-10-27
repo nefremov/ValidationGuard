@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Translations of the common error formats to ro, keyed by the English format (CommonErrorFormats). -->
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="{entity} with {name} = {value} does not exist" xml:space="preserve">
+    <value>{entity} cu {name} = {value} nu există</value>
+  </data>
+  <data name="{entity} with {name1} = {value1} and {name2} = {value2} does not exist" xml:space="preserve">
+    <value>{entity} cu {name1} = {value1} și {name2} = {value2} nu există</value>
+  </data>
+  <data name="{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} does not exist" xml:space="preserve">
+    <value>{entity} cu {name1} = {value1}, {name2} = {value2} și {name3} = {value3} nu există</value>
+  </data>
+  <data name="{entity} with {name} = {value} already exists" xml:space="preserve">
+    <value>{entity} cu {name} = {value} există deja</value>
+  </data>
+  <data name="{entity} with {name1} = {value1} and {name2} = {value2} already exists" xml:space="preserve">
+    <value>{entity} cu {name1} = {value1} și {name2} = {value2} există deja</value>
+  </data>
+  <data name="{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} already exists" xml:space="preserve">
+    <value>{entity} cu {name1} = {value1}, {name2} = {value2} și {name3} = {value3} există deja</value>
+  </data>
+  <data name="Value for {name} is required" xml:space="preserve">
+    <value>Este necesară o valoare pentru {name}</value>
+  </data>
+  <data name="Value for {name} must not be empty" xml:space="preserve">
+    <value>Valoarea pentru {name} nu trebuie să fie goală</value>
+  </data>
+  <data name="Value {value} for {name} must be at least {min_value}" xml:space="preserve">
+    <value>Valoarea {value} pentru {name} trebuie să fie cel puțin {min_value}</value>
+  </data>
+  <data name="Value {value} for {name} must be greater than {min_value}" xml:space="preserve">
+    <value>Valoarea {value} pentru {name} trebuie să fie mai mare decât {min_value}</value>
+  </data>
+  <data name="Value {value} for {name} must be at most {max_value}" xml:space="preserve">
+    <value>Valoarea {value} pentru {name} trebuie să fie cel mult {max_value}</value>
+  </data>
+  <data name="Value {value} for {name} must be less than {max_value}" xml:space="preserve">
+    <value>Valoarea {value} pentru {name} trebuie să fie mai mică decât {max_value}</value>
+  </data>
+  <data name="Value for {name} must be at least {min_length} characters long, but has {length}" xml:space="preserve">
+    <value>Valoarea pentru {name} trebuie să aibă cel puțin {min_length} caractere, dar are {length}</value>
+  </data>
+  <data name="Value for {name} must be at most {max_length} characters long, but has {length}" xml:space="preserve">
+    <value>Valoarea pentru {name} trebuie să aibă cel mult {max_length} caractere, dar are {length}</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range [{min_value}, {max_value}]" xml:space="preserve">
+    <value>Valoarea {value} pentru {name} trebuie să fie în intervalul [{min_value}, {max_value}]</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range ({min_value}, {max_value})" xml:space="preserve">
+    <value>Valoarea {value} pentru {name} trebuie să fie în intervalul ({min_value}, {max_value})</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range [{min_value}, {max_value})" xml:space="preserve">
+    <value>Valoarea {value} pentru {name} trebuie să fie în intervalul [{min_value}, {max_value})</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range ({min_value}, {max_value}]" xml:space="preserve">
+    <value>Valoarea {value} pentru {name} trebuie să fie în intervalul ({min_value}, {max_value}]</value>
+  </data>
+  <data name="Value {value} for {name} does not refer to an existing {referenced_entity}" xml:space="preserve">
+    <value>Valoarea {value} pentru {name}: {referenced_entity} nu a fost găsit</value>
+  </data>
+  <data name="{entity} cannot have {name1} = {value1} when {name2} = {value2}" xml:space="preserve">
+    <value>{entity} nu poate avea {name1} = {value1} când {name2} = {value2}</value>
+  </data>
+  <data name="Value {value} for {name} must be one of {allowed_values}" xml:space="preserve">
+    <value>Valoarea {value} pentru {name} trebuie să fie una dintre: {allowed_values}</value>
+  </data>
+  <data name="Value for {name} cannot be changed" xml:space="preserve">
+    <value>Valoarea pentru {name} nu poate fi modificată</value>
+  </data>
+</root>

@@ -1,7 +1,11 @@
+using System.Resources;
 using Microsoft.Extensions.Localization;
 
 // The resources are in Resources/ whatever ResourcesPath the application configures for its own.
 [assembly: ResourceLocation("Resources")]
+
+// The formats are English: the neutral resources' language.
+[assembly: NeutralResourcesLanguage("en")]
 
 namespace Acme.Validation;
 
