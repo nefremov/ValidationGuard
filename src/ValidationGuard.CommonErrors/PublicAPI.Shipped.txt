@@ -1,0 +1,144 @@
+#nullable enable
+const ValidationGuard.CommonErrors.CommonErrorCodes.AlreadyExists = "VG0010" -> string!
+const ValidationGuard.CommonErrors.CommonErrorCodes.Empty = "VG0003" -> string!
+const ValidationGuard.CommonErrors.CommonErrorCodes.GreaterThan = "VG0006" -> string!
+const ValidationGuard.CommonErrors.CommonErrorCodes.GreaterThanOrEqual = "VG0007" -> string!
+const ValidationGuard.CommonErrors.CommonErrorCodes.IncompatibleValues = "VG0014" -> string!
+const ValidationGuard.CommonErrors.CommonErrorCodes.LessThan = "VG0004" -> string!
+const ValidationGuard.CommonErrors.CommonErrorCodes.LessThanOrEqual = "VG0005" -> string!
+const ValidationGuard.CommonErrors.CommonErrorCodes.NotAllowedValue = "VG0015" -> string!
+const ValidationGuard.CommonErrors.CommonErrorCodes.NotFound = "VG0001" -> string!
+const ValidationGuard.CommonErrors.CommonErrorCodes.NotModifiable = "VG0016" -> string!
+const ValidationGuard.CommonErrors.CommonErrorCodes.NotUnique = "VG0011" -> string!
+const ValidationGuard.CommonErrors.CommonErrorCodes.Null = "VG0002" -> string!
+const ValidationGuard.CommonErrors.CommonErrorCodes.OutOfRange = "VG0012" -> string!
+const ValidationGuard.CommonErrors.CommonErrorCodes.ReferenceNotFound = "VG0013" -> string!
+const ValidationGuard.CommonErrors.CommonErrorCodes.TooLong = "VG0009" -> string!
+const ValidationGuard.CommonErrors.CommonErrorCodes.TooShort = "VG0008" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.AlreadyExists = "{entity} with {name} = {value} already exists" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.AlreadyExists2 = "{entity} with {name1} = {value1} and {name2} = {value2} already exists" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.AlreadyExists3 = "{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} already exists" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.Empty = "Value for {name} must not be empty" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.GreaterThan = "Value {value} for {name} must be at most {max_value}" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.GreaterThanOrEqual = "Value {value} for {name} must be less than {max_value}" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.IncompatibleValues = "{entity} cannot have {name1} = {value1} when {name2} = {value2}" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.LessThan = "Value {value} for {name} must be at least {min_value}" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.LessThanOrEqual = "Value {value} for {name} must be greater than {min_value}" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.NotAllowedValue = "Value {value} for {name} must be one of {allowed_values}" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.NotFound = "{entity} with {name} = {value} does not exist" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.NotFound2 = "{entity} with {name1} = {value1} and {name2} = {value2} does not exist" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.NotFound3 = "{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} does not exist" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.NotModifiable = "Value for {name} cannot be changed" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.NotUnique = "{entity} with {name} = {value} already exists" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.NotUnique2 = "{entity} with {name1} = {value1} and {name2} = {value2} already exists" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.NotUnique3 = "{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} already exists" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.Null = "Value for {name} is required" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.OutOfExclusiveRange = "Value {value} for {name} must be in the range ({min_value}, {max_value})" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.OutOfInclusiveRange = "Value {value} for {name} must be in the range [{min_value}, {max_value}]" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.OutOfMaxInclusiveRange = "Value {value} for {name} must be in the range ({min_value}, {max_value}]" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.OutOfMinInclusiveRange = "Value {value} for {name} must be in the range [{min_value}, {max_value})" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.ReferenceNotFound = "Value {value} for {name} does not refer to an existing {referenced_entity}" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.TooLong = "Value for {name} must be at most {max_length} characters long, but has {length}" -> string!
+const ValidationGuard.CommonErrors.CommonErrorFormats.TooShort = "Value for {name} must be at least {min_length} characters long, but has {length}" -> string!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.Allowed<T>.NotAllowedValue -> ValidationGuard.CommonErrors.PropertyErrorDefinition<T, ValidationGuard.CommonErrors.ValueList<T>!>!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.AlreadyExists -> ValidationGuard.CommonErrors.EntityErrorDefinition!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.AlreadyExists2 -> ValidationGuard.CommonErrors.EntityErrorDefinition!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.AlreadyExists3 -> ValidationGuard.CommonErrors.EntityErrorDefinition!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.Comparison<T>.GreaterThan -> ValidationGuard.CommonErrors.PropertyErrorDefinition<T, T>!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.Comparison<T>.GreaterThanOrEqual -> ValidationGuard.CommonErrors.PropertyErrorDefinition<T, T>!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.Comparison<T>.LessThan -> ValidationGuard.CommonErrors.PropertyErrorDefinition<T, T>!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.Comparison<T>.LessThanOrEqual -> ValidationGuard.CommonErrors.PropertyErrorDefinition<T, T>!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.Comparison<T>.OutOfExclusiveRange -> ValidationGuard.CommonErrors.PropertyErrorDefinition<T, T, T>!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.Comparison<T>.OutOfInclusiveRange -> ValidationGuard.CommonErrors.PropertyErrorDefinition<T, T, T>!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.Comparison<T>.OutOfMaxInclusiveRange -> ValidationGuard.CommonErrors.PropertyErrorDefinition<T, T, T>!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.Comparison<T>.OutOfMinInclusiveRange -> ValidationGuard.CommonErrors.PropertyErrorDefinition<T, T, T>!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.Empty -> ValidationGuard.CommonErrors.PropertyErrorDefinition!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.IncompatibleValues -> ValidationGuard.CommonErrors.EntityErrorDefinition!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.NotFound -> ValidationGuard.CommonErrors.EntityErrorDefinition!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.NotFound2 -> ValidationGuard.CommonErrors.EntityErrorDefinition!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.NotFound3 -> ValidationGuard.CommonErrors.EntityErrorDefinition!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.NotModifiable -> ValidationGuard.CommonErrors.PropertyErrorDefinition!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.NotUnique -> ValidationGuard.CommonErrors.EntityErrorDefinition!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.NotUnique2 -> ValidationGuard.CommonErrors.EntityErrorDefinition!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.NotUnique3 -> ValidationGuard.CommonErrors.EntityErrorDefinition!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.Null -> ValidationGuard.CommonErrors.PropertyErrorDefinition!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.Reference<T>.NotFound -> ValidationGuard.CommonErrors.ReferenceErrorDefinition<T>!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.TooLong -> ValidationGuard.CommonErrors.PropertyErrorDefinition<int, int>!
+static readonly ValidationGuard.CommonErrors.CommonErrorDefinitions.TooShort -> ValidationGuard.CommonErrors.PropertyErrorDefinition<int, int>!
+static ValidationGuard.CommonErrors.CommonErrorDefinitions.Comparison<T>.OutOfRange(ValidationGuard.CommonErrors.RangeBounds bounds) -> ValidationGuard.CommonErrors.PropertyErrorDefinition<T, T, T>!
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddAlreadyExists<TContext, T1, T2, T3>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, T1>!>! key1, T1 value1, System.Linq.Expressions.Expression<System.Func<TContext, T2>!>! key2, T2 value2, System.Linq.Expressions.Expression<System.Func<TContext, T3>!>! key3, T3 value3) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddAlreadyExists<TContext, T1, T2>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, T1>!>! key1, T1 value1, System.Linq.Expressions.Expression<System.Func<TContext, T2>!>! key2, T2 value2) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddAlreadyExists<TContext, T1>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, T1>!>! key, T1 value) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddEmpty<TContext>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, string?>!>! accessor) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddGreaterThan<TContext, TValue>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, TValue>!>! accessor, TValue value, TValue maxValue) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddGreaterThanOrEqual<TContext, TValue>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, TValue>!>! accessor, TValue value, TValue maxValue) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddIncompatibleValues<TContext, T1, T2>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, T1>!>! property1, T1 value1, System.Linq.Expressions.Expression<System.Func<TContext, T2>!>! property2, T2 value2) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddLessThan<TContext, TValue>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, TValue>!>! accessor, TValue value, TValue minValue) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddLessThanOrEqual<TContext, TValue>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, TValue>!>! accessor, TValue value, TValue minValue) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddNotAllowed<TContext, TEnum>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, TEnum>!>! accessor, TEnum value) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddNotAllowed<TContext, TValue>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, TValue>!>! accessor, TValue value, System.Collections.Generic.IEnumerable<TValue>! allowedValues) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddNotAllowed<TContext>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, int>!>! accessor, int value, System.Type! enumType) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddNotFound<TContext, T1, T2, T3>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, T1>!>! key1, T1 value1, System.Linq.Expressions.Expression<System.Func<TContext, T2>!>! key2, T2 value2, System.Linq.Expressions.Expression<System.Func<TContext, T3>!>! key3, T3 value3) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddNotFound<TContext, T1, T2>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, T1>!>! key1, T1 value1, System.Linq.Expressions.Expression<System.Func<TContext, T2>!>! key2, T2 value2) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddNotFound<TContext, T1>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, T1>!>! key, T1 value) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddNotModifiable<TContext, TValue>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, TValue>!>! accessor) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddNotUnique<TContext, T1, T2, T3>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, T1>!>! property1, T1 value1, System.Linq.Expressions.Expression<System.Func<TContext, T2>!>! property2, T2 value2, System.Linq.Expressions.Expression<System.Func<TContext, T3>!>! property3, T3 value3) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddNotUnique<TContext, T1, T2>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, T1>!>! property1, T1 value1, System.Linq.Expressions.Expression<System.Func<TContext, T2>!>! property2, T2 value2) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddNotUnique<TContext, T1>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, T1>!>! property, T1 value) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddNull<TContext, TValue>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, TValue>!>! accessor) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddOutOfRange<TContext, TValue>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, TValue>!>! accessor, TValue value, TValue minValue, TValue maxValue, ValidationGuard.CommonErrors.RangeBounds bounds) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddReferenceNotFound<TContext, TValue>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, TValue>!>! accessor, string! referencedEntity, TValue value) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddTooLong<TContext>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, string?>!>! accessor, string? value, int maxLength) -> void
+static ValidationGuard.CommonErrors.CommonErrorExtensions.AddTooShort<TContext>(this ValidationGuard.IValidationBuilder<TContext>! validation, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, string?>!>! accessor, string? value, int minLength) -> void
+static ValidationGuard.CommonErrors.ErrorDefinitionExtensions.Add<TContext, T1, T2, T3>(this ValidationGuard.IValidationBuilder<TContext>! validation, ValidationGuard.CommonErrors.EntityErrorDefinition! error, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, T1>!>! key1, T1 value1, System.Linq.Expressions.Expression<System.Func<TContext, T2>!>! key2, T2 value2, System.Linq.Expressions.Expression<System.Func<TContext, T3>!>! key3, T3 value3) -> void
+static ValidationGuard.CommonErrors.ErrorDefinitionExtensions.Add<TContext, T1, T2>(this ValidationGuard.IValidationBuilder<TContext>! validation, ValidationGuard.CommonErrors.EntityErrorDefinition! error, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, T1>!>! key1, T1 value1, System.Linq.Expressions.Expression<System.Func<TContext, T2>!>! key2, T2 value2) -> void
+static ValidationGuard.CommonErrors.ErrorDefinitionExtensions.Add<TContext, T1>(this ValidationGuard.IValidationBuilder<TContext>! validation, ValidationGuard.CommonErrors.EntityErrorDefinition! error, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, T1>!>! key, T1 value) -> void
+static ValidationGuard.CommonErrors.ErrorDefinitionExtensions.Add<TContext, TValue, T1, T2, T3>(this ValidationGuard.IValidationBuilder<TContext>! validation, ValidationGuard.CommonErrors.PropertyErrorDefinition<T1, T2, T3>! error, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, TValue>!>! property, T1 value1, T2 value2, T3 value3) -> void
+static ValidationGuard.CommonErrors.ErrorDefinitionExtensions.Add<TContext, TValue, T1, T2>(this ValidationGuard.IValidationBuilder<TContext>! validation, ValidationGuard.CommonErrors.PropertyErrorDefinition<T1, T2>! error, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, TValue>!>! property, T1 value1, T2 value2) -> void
+static ValidationGuard.CommonErrors.ErrorDefinitionExtensions.Add<TContext, TValue, T1>(this ValidationGuard.IValidationBuilder<TContext>! validation, ValidationGuard.CommonErrors.PropertyErrorDefinition<T1>! error, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, TValue>!>! property, T1 value1) -> void
+static ValidationGuard.CommonErrors.ErrorDefinitionExtensions.Add<TContext, TValue, TKey>(this ValidationGuard.IValidationBuilder<TContext>! validation, ValidationGuard.CommonErrors.ReferenceErrorDefinition<TKey>! error, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, TValue>!>! property, string! referencedEntity, TKey value) -> void
+static ValidationGuard.CommonErrors.ErrorDefinitionExtensions.Add<TContext, TValue>(this ValidationGuard.IValidationBuilder<TContext>! validation, ValidationGuard.CommonErrors.PropertyErrorDefinition! error, string! entity, System.Linq.Expressions.Expression<System.Func<TContext, TValue>!>! property) -> void
+static ValidationGuard.CommonErrors.ErrorDefinitionValidator.GetPlaceholders(string! format) -> System.Collections.Generic.IReadOnlyList<string!>!
+static ValidationGuard.CommonErrors.ErrorDefinitionValidator.Validate(ValidationGuard.CommonErrors.ErrorDefinition! definition) -> void
+static ValidationGuard.CommonErrors.ErrorDefinitionValidator.ValidateFields(System.Type! type) -> int
+static ValidationGuard.CommonErrors.ErrorDefinitionValidator.ValidateLocalizations(System.Type! type, System.Func<string!, string?>! localizer, System.Collections.Generic.IEnumerable<System.Globalization.CultureInfo!>! cultures, bool requireAll = false) -> int
+static ValidationGuard.CommonErrors.ErrorDefinitionValidator.ValidateLocalizations(System.Type! type, System.Func<string!, string?>! localizer, System.Globalization.CultureInfo! culture, bool requireAll = false) -> int
+static ValidationGuard.CommonErrors.ErrorDefinitionValidator.ValidateLocalizations(System.Type! type, System.Func<string!, string?>! localizer, System.Reflection.Assembly! translations, bool requireAll = false) -> int
+static ValidationGuard.CommonErrors.ErrorDefinitionValidator.ValidateLocalizedFormat(ValidationGuard.CommonErrors.ErrorDefinition! definition, string! localizedFormat) -> void
+ValidationGuard.CommonErrors.CommonErrorCodes
+ValidationGuard.CommonErrors.CommonErrorDefinitions
+ValidationGuard.CommonErrors.CommonErrorDefinitions.Allowed<T>
+ValidationGuard.CommonErrors.CommonErrorDefinitions.Comparison<T>
+ValidationGuard.CommonErrors.CommonErrorDefinitions.Reference<T>
+ValidationGuard.CommonErrors.CommonErrorExtensions
+ValidationGuard.CommonErrors.CommonErrorFormats
+ValidationGuard.CommonErrors.EntityErrorDefinition
+ValidationGuard.CommonErrors.EntityErrorDefinition.EntityErrorDefinition(string! code, string! format, int keyCount = 1) -> void
+ValidationGuard.CommonErrors.EntityErrorDefinition.KeyCount.get -> int
+ValidationGuard.CommonErrors.ErrorDefinition
+ValidationGuard.CommonErrors.ErrorDefinition.Code.get -> string!
+ValidationGuard.CommonErrors.ErrorDefinition.Format.get -> string!
+ValidationGuard.CommonErrors.ErrorDefinition.Keys.get -> System.Collections.Immutable.ImmutableArray<string!>
+ValidationGuard.CommonErrors.ErrorDefinitionExtensions
+ValidationGuard.CommonErrors.ErrorDefinitionValidator
+ValidationGuard.CommonErrors.PropertyErrorDefinition
+ValidationGuard.CommonErrors.PropertyErrorDefinition.PropertyErrorDefinition(string! code, string! format) -> void
+ValidationGuard.CommonErrors.PropertyErrorDefinition<T1, T2, T3>
+ValidationGuard.CommonErrors.PropertyErrorDefinition<T1, T2, T3>.PropertyErrorDefinition(string! code, string! format, string! key1, string! key2, string! key3) -> void
+ValidationGuard.CommonErrors.PropertyErrorDefinition<T1, T2>
+ValidationGuard.CommonErrors.PropertyErrorDefinition<T1, T2>.PropertyErrorDefinition(string! code, string! format, string! key1, string! key2) -> void
+ValidationGuard.CommonErrors.PropertyErrorDefinition<T1>
+ValidationGuard.CommonErrors.PropertyErrorDefinition<T1>.PropertyErrorDefinition(string! code, string! format, string! key1) -> void
+ValidationGuard.CommonErrors.RangeBounds
+ValidationGuard.CommonErrors.RangeBounds.Exclusive = 1 -> ValidationGuard.CommonErrors.RangeBounds
+ValidationGuard.CommonErrors.RangeBounds.Inclusive = 0 -> ValidationGuard.CommonErrors.RangeBounds
+ValidationGuard.CommonErrors.RangeBounds.MaxInclusive = 3 -> ValidationGuard.CommonErrors.RangeBounds
+ValidationGuard.CommonErrors.RangeBounds.MinInclusive = 2 -> ValidationGuard.CommonErrors.RangeBounds
+ValidationGuard.CommonErrors.ReferenceErrorDefinition<T>
+ValidationGuard.CommonErrors.ReferenceErrorDefinition<T>.ReferenceErrorDefinition(string! code, string! format, string! valueKey = "value") -> void
+ValidationGuard.CommonErrors.ValueList<T>
+ValidationGuard.CommonErrors.ValueList<T>.Count.get -> int
+ValidationGuard.CommonErrors.ValueList<T>.GetEnumerator() -> System.Collections.Generic.IEnumerator<T>!
+ValidationGuard.CommonErrors.ValueList<T>.Render(ValidationGuard.ValidationMessageWriter! writer) -> void
+ValidationGuard.CommonErrors.ValueList<T>.this[int index].get -> T
+ValidationGuard.CommonErrors.ValueList<T>.ValueList(System.Collections.Generic.IEnumerable<T>! values) -> void

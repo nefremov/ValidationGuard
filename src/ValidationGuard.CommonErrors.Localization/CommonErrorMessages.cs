@@ -2,8 +2,10 @@ using System.Reflection;
 using System.Resources;
 using Microsoft.Extensions.Localization;
 
-// The resources are in Resources/ whatever ResourcesPath the application configures for its own.
+// The resources are in Resources/ whatever ResourcesPath the application configures for its own, and named after the
+// types' namespace rather than the assembly.
 [assembly: ResourceLocation("Resources")]
+[assembly: RootNamespace("ValidationGuard.CommonErrors")]
 
 // The formats are English: English needs no satellite resources, and resource lookups for it stop at the neutral ones.
 [assembly: NeutralResourcesLanguage("en")]
@@ -13,8 +15,9 @@ namespace ValidationGuard.CommonErrors;
 /// <summary>
 /// The translations of the common error formats, for <see cref="IStringLocalizer{T}"/>: each
 /// <see cref="CommonErrorFormats"/> format translated to the languages the package ships, keyed by the English format
-/// (<c>Resources/CommonErrorMessages.{culture}.resx</c>). Add the localizer to
-/// <see cref="ValidationOptions.Localizers"/>, after the application's own so it can override any of them:
+/// (<c>Resources/CommonErrorMessages.{culture}.resx</c>), shipped by the ValidationGuard.CommonErrors.Localization
+/// package. Add the localizer to <see cref="ValidationOptions.Localizers"/>, after the application's own so it can
+/// override any of them:
 /// <code>
 /// services.AddLocalization();
 /// services.AddOptions&lt;ValidationOptions&gt;()

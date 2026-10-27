@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Localization;
-
 namespace ValidationGuard;
 
 /// <summary>
@@ -33,14 +31,24 @@ public sealed class ValidationOptions
     } = NameConverters.Default;
 
     /// <summary>
-    /// The localizers of the rendered messages, asked in order for the current UI culture: the first that translates a
-    /// format, an entity or a member name wins. Each is looked up by its own text: a format such as
+    /// The localizers of the rendered messages: functions returning the translation of a text for the current UI culture,
+    /// or <see langword="null"/> when they have none. They are asked in order: the first that translates a format, an
+    /// entity or a member name wins. Each is looked up by its own text: a format such as
     /// <c>Value for {name} is required</c>, an entity name such as <c>Customer</c>, a member name such as
-    /// <c>FirstName</c>. Empty by default: messages are rendered as defined. A library ships resources for its formats
-    /// and entities, and an application adds its own localizer for its formats, entities and members, typically
-    /// <c>IStringLocalizer&lt;T&gt;</c> from dependency injection.
+    /// <c>FirstName</c>. Empty by default: messages are rendered as defined. A library ships translations for its
+    /// formats and entities, and an application adds its own localizer for its formats, entities and members. The
+    /// ValidationGuard.Localization package adds an <c>IStringLocalizer</c>: <c>options.Localizers.Add(localizer)</c>.
     /// </summary>
-    public IList<IStringLocalizer> Localizers { get; } = new List<IStringLocalizer>();
+    public IList<Func<string, string?>> Localizers { get; } = new List<Func<string, string?>>();
+
+    /// <summary>
+    /// Whether messages are localized; <see langword="true"/> by default. When localized, the
+    /// <see cref="Localizers"/> translate formats, entity names and member names for
+    /// <see cref="System.Globalization.CultureInfo.CurrentUICulture"/>, and values are formatted with
+    /// <see cref="System.Globalization.CultureInfo.CurrentCulture"/>. When not, messages are rendered as defined and
+    /// values with <see cref="System.Globalization.CultureInfo.InvariantCulture"/>, whatever the cultures of the request.
+    /// </summary>
+    public bool UseLocalization { get; set; } = true;
 
     /// <summary>The default <see cref="WriteText"/>: text as is.</summary>
     public static Func<string, string> DefaultWriteText { get; } = static text => text;

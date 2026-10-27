@@ -20,8 +20,9 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
     private bool _completed;
     private bool _disposed;
 
-    /// <summary>Creates a builder for the document root.</summary>
-    protected ValidationBuilderBase(ValidationOptions options)
+    // Creates a builder for the document root. Only this assembly's builders derive: entries are produced by
+    // ValidationBuilder<TContext> alone.
+    private protected ValidationBuilderBase(ValidationOptions options)
         : this(options, [])
     {
     }

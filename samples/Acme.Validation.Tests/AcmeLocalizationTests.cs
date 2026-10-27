@@ -18,10 +18,12 @@ public class AcmeLocalizationTests
     [Fact]
     public void ShippedTranslations_CoverEveryDefinitionWithTheirPlaceholders()
     {
-        // Act: every culture Acme ships a satellite resource assembly for (German only, so far).
-        var plain = ErrorDefinitionValidator.ValidateLocalizations(typeof(AcmeErrors), Localizer, requireAll: true);
+        // Act: every culture Acme's translations ship a satellite resource assembly for (German only, so far).
+        var translations = typeof(AcmeMessages).Assembly;
+        var plain = ErrorDefinitionValidator.ValidateLocalizations(
+            typeof(AcmeErrors), Localizer.Translate, translations, requireAll: true);
         var generic = ErrorDefinitionValidator.ValidateLocalizations(
-            typeof(AcmeErrors.Range<int>), Localizer, requireAll: true);
+            typeof(AcmeErrors.Range<int>), Localizer.Translate, translations, requireAll: true);
 
         // Assert
         Assert.Equal((2, 1), (plain, generic));

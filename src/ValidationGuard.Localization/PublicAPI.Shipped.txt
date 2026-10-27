@@ -1,0 +1,4 @@
+#nullable enable
+static ValidationGuard.StringLocalizerExtensions.Add(this System.Collections.Generic.ICollection<System.Func<string!, string?>!>! localizers, Microsoft.Extensions.Localization.IStringLocalizer! localizer) -> void
+static ValidationGuard.StringLocalizerExtensions.Translate(this Microsoft.Extensions.Localization.IStringLocalizer! localizer, string! key) -> string?
+ValidationGuard.StringLocalizerExtensions

@@ -1,8 +1,10 @@
 using System.Resources;
 using Microsoft.Extensions.Localization;
 
-// The resources are in Resources/ whatever ResourcesPath the application configures for its own.
+// The resources are in Resources/ whatever ResourcesPath the application configures for its own, and named after the
+// types' namespace rather than the assembly.
 [assembly: ResourceLocation("Resources")]
+[assembly: RootNamespace("Acme.Validation")]
 
 // The formats are English: the neutral resources' language.
 [assembly: NeutralResourcesLanguage("en")]

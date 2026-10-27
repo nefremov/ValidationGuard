@@ -38,7 +38,7 @@ jobs:
     needs: ci
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
-      contents: read
+      contents: write # creates the release tag and GitHub release
       id-token: write # required for NuGet Trusted Publishing (OIDC)
 
     steps:
@@ -55,7 +55,9 @@ jobs:
             'src/ValidationGuard/ValidationGuard.csproj',
             'src/ValidationGuard.CommonErrors/ValidationGuard.CommonErrors.csproj',
             'src/ValidationGuard.CommonErrors.Http/ValidationGuard.CommonErrors.Http.csproj',
-            'src/ValidationGuard.Http/ValidationGuard.Http.csproj'
+            'src/ValidationGuard.CommonErrors.Localization/ValidationGuard.CommonErrors.Localization.csproj',
+            'src/ValidationGuard.Http/ValidationGuard.Http.csproj',
+            'src/ValidationGuard.Localization/ValidationGuard.Localization.csproj'
           )
 
           $hasParent = $true
@@ -144,3 +146,31 @@ jobs:
       - name: Publish to NuGet
         if: steps.version_check.outputs.version_changed == 'true'
         run: dotnet nuget push "artifacts/packages/*.nupkg" --source https://api.nuget.org/v3/index.json --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" --skip-duplicate
+
+      # Tags the commit v<version> and creates a GitHub release with the version's CHANGELOG.md section, when the shared
+      # version changed (every package published). An existing release is left as is.
+      - name: Create GitHub release
+        if: steps.version_check.outputs.version_changed == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = dotnet msbuild src/ValidationGuard/ValidationGuard.csproj -getProperty:Version
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $tag = "v$version"
+          gh release view $tag 2>$null | Out-Null
+          if ($LASTEXITCODE -eq 0) {
+            "Release $tag already exists."
+            exit 0
+          }
+
+          # The CHANGELOG.md section of this version: from its heading to the next version's.
+          $section = [regex]::Match(
+            (Get-Content CHANGELOG.md -Raw),
+            "(?ms)^## \[$([regex]::Escape($version))\][^\n]*\n(.*?)(?=^## \[|\z)").Groups[1].Value.Trim()
+          if (-not $section) { $section = "See CHANGELOG.md." }
+          Set-Content -Path release-notes.md -Value $section
+
+          $prerelease = if ($version -match '-') { '--prerelease' } else { $null }
+          gh release create $tag --target $env:GITHUB_SHA --title $tag --notes-file release-notes.md $prerelease
+          exit $LASTEXITCODE

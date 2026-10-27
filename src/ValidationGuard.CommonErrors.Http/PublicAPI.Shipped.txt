@@ -1,0 +1,3 @@
+#nullable enable
+static ValidationGuard.CommonErrors.Http.CommonErrorsErrorCodeMapBuilderExtensions.AddCommonErrors(this ValidationGuard.Http.ErrorCodeMapBuilder! builder) -> ValidationGuard.Http.ErrorCodeMapBuilder!
+ValidationGuard.CommonErrors.Http.CommonErrorsErrorCodeMapBuilderExtensions

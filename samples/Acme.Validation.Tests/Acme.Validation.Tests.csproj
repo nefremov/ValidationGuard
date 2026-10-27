@@ -20,5 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Acme.Validation.Http\Acme.Validation.Http.csproj" />
+    <ProjectReference Include="..\Acme.Validation.Localization\Acme.Validation.Localization.csproj" />
   </ItemGroup>
 </Project>

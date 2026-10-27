@@ -1,0 +1,5 @@
+#nullable enable
+static ValidationGuard.CommonErrors.CommonErrorMessages.GetSupportedCultures() -> System.Collections.Generic.IReadOnlyList<string!>!
+static ValidationGuard.CommonErrors.CommonErrorMessages.NeutralCulture.get -> string!
+ValidationGuard.CommonErrors.CommonErrorMessages
+ValidationGuard.CommonErrors.CommonErrorMessages.CommonErrorMessages() -> void

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    The translations of the Acme errors, a package of their own so Acme.Validation stays free of localization
+    dependencies: resources read through IStringLocalizer<AcmeMessages>. Microsoft.Extensions.Localization provides
+    [ResourceLocation] and [RootNamespace]; ValidationGuard.Localization adds the localizer to ValidationOptions.
+    Outside this repository, reference the ValidationGuard.Localization package instead.
+  -->
+  <PropertyGroup>
+    <!-- The types keep the Acme.Validation namespace; resources are named after it ([RootNamespace]). -->
+    <RootNamespace>Acme.Validation</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Acme.Validation\Acme.Validation.csproj" />
+    <ProjectReference Include="..\..\src\ValidationGuard.Localization\ValidationGuard.Localization.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Localization" />
+  </ItemGroup>
+</Project>
