@@ -5,14 +5,22 @@ using Microsoft.Extensions.Logging;
 
 namespace ValidationGuard.Http;
 
+/// <summary>
+/// Turns validation entries into RFC 9457 Problem Details. The status is the one of the entry ranked highest by
+/// <see cref="StatusPrecedence"/> (unregistered codes get <see cref="ErrorCodeMap.FallbackStatus"/>, with a logged
+/// warning). When a single entry has that rank, its code's <c>type</c> and <c>title</c> and its <c>detail</c> describe
+/// the problem; otherwise they are left to the status's defaults. Every entry is listed under <c>errors</c>.
+/// </summary>
 public sealed partial class ValidationProblemFactory
 {
+    /// <summary>The name of the Problem Details extension listing the entries.</summary>
     public const string ErrorsExtensionName = "errors";
 
     private readonly ErrorCodeMap _map;
     private readonly StatusPrecedence _precedence;
     private readonly ILogger _logger;
 
+    /// <summary>Creates a factory over <paramref name="map"/> and <paramref name="precedence"/>.</summary>
     public ValidationProblemFactory(ErrorCodeMap map, StatusPrecedence precedence, ILogger<ValidationProblemFactory> logger)
     {
         ArgumentNullException.ThrowIfNull(map);
@@ -24,6 +32,8 @@ public sealed partial class ValidationProblemFactory
         _logger = logger;
     }
 
+    /// <summary>Creates the Problem Details for <paramref name="entries"/>.</summary>
+    /// <exception cref="ArgumentException"><paramref name="entries"/> is empty.</exception>
     public ProblemDetails Create(IReadOnlyList<ValidationEntry> entries)
     {
         ArgumentNullException.ThrowIfNull(entries);
@@ -84,6 +94,7 @@ public sealed partial class ValidationProblemFactory
         return problem;
     }
 
+    /// <summary>Creates a Minimal API result writing the Problem Details for <paramref name="entries"/>.</summary>
     public ProblemHttpResult CreateResult(IReadOnlyList<ValidationEntry> entries) => TypedResults.Problem(Create(entries));
 
     [LoggerMessage(EventId = 1, Level = LogLevel.Warning, Message = "Validation code '{Code}' has no HTTP mapping; falling back to status {Status}.")]

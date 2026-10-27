@@ -2,6 +2,10 @@
 
 namespace ValidationGuard.Http;
 
+/// <summary>
+/// Which status a problem with entries of several statuses gets: the one ranked highest. Statuses not listed rank
+/// below every listed one.
+/// </summary>
 public sealed class StatusPrecedence
 {
     private const int MinStatus = 400;
@@ -9,6 +13,9 @@ public sealed class StatusPrecedence
 
     private readonly int[] _ranks = new int[StatusRange];
 
+    /// <summary>Ranks the 4xx and 5xx statuses in <paramref name="mostDominantFirst"/>, the highest first.</summary>
+    /// <exception cref="ArgumentOutOfRangeException">A status is not 4xx or 5xx.</exception>
+    /// <exception cref="ArgumentException">A status is listed more than once.</exception>
     public StatusPrecedence(params ReadOnlySpan<int> mostDominantFirst)
     {
         for (var i = 0; i < mostDominantFirst.Length; i++)
@@ -30,6 +37,7 @@ public sealed class StatusPrecedence
         }
     }
 
+    /// <summary>403, then 404, 409, 422 and 400.</summary>
     public static StatusPrecedence Default { get; } = new(
         StatusCodes.Status403Forbidden,
         StatusCodes.Status404NotFound,
@@ -37,6 +45,7 @@ public sealed class StatusPrecedence
         StatusCodes.Status422UnprocessableEntity,
         StatusCodes.Status400BadRequest);
 
+    /// <summary>The rank of <paramref name="status"/>: higher wins; 0 for a status not listed.</summary>
     public int Rank(int status)
     {
         var index = status - MinStatus;

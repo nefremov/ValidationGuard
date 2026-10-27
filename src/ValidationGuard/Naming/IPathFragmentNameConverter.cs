@@ -12,7 +12,12 @@ namespace ValidationGuard;
 /// </remarks>
 public interface IPathFragmentNameConverter
 {
+    /// <summary>The length of <paramref name="value"/> once converted, so callers can size the destination.</summary>
     int GetConvertedLength(ReadOnlySpan<char> value);
 
+    /// <summary>
+    /// Writes <paramref name="value"/> converted into <paramref name="destination"/>, which is exactly
+    /// <see cref="GetConvertedLength"/> characters long.
+    /// </summary>
     void WriteConverted(ReadOnlySpan<char> value, Span<char> destination);
 }

@@ -15,9 +15,18 @@ public sealed record ValidationEntry(
     string Detail,
     ValidationMetadata? Metadata = null) : IValidationEntryBase
 {
+    /// <summary>
+    /// The RFC 6901 JSON Pointer of what the entry is about, such as <c>/lines/2/sku</c>, in the builders' naming
+    /// convention; empty for the document root. Never localized.
+    /// </summary>
     public string Pointer { get; internal set; } = Pointer;
 
+    /// <summary>
+    /// The message format with its placeholders, such as <c>Value for {name} must not be empty</c>: as added, or its
+    /// translation once rendered.
+    /// </summary>
     public string Format { get; internal set; } = Format;
 
+    /// <summary>The human-readable message: the format with its placeholders filled, in the current culture.</summary>
     public string Detail { get; internal set; } = Detail;
 }

@@ -7,5 +7,6 @@ namespace ValidationGuard;
 /// </summary>
 public interface IRenderableValue
 {
+    /// <summary>Writes the value into the detail being rendered, with <paramref name="writer"/>.</summary>
     void Render(ValidationMessageWriter writer);
 }

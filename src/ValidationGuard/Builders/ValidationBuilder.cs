@@ -1,5 +1,11 @@
 namespace ValidationGuard;
 
+/// <summary>
+/// The root builder: collects the entries of a validation, including those of its nested builders, and produces them
+/// with <see cref="ToValidationEntries"/>, or throws them with <see cref="ThrowIfInvalid"/>. Create one per validation
+/// with <see langword="using"/>, for example <c>using var validation = new ValidationBuilder&lt;Order&gt;(options);</c>.
+/// </summary>
+/// <typeparam name="TContext">The type of the validated object, the root of pointers and property paths.</typeparam>
 public sealed class ValidationBuilder<TContext> : ValidationBuilderBase<TContext>
 {
     // The options of builders created without any; never exposed, so never changed.

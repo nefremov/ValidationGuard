@@ -7,6 +7,7 @@ namespace ValidationGuard;
 /// </summary>
 public sealed class ValidationFailedException : Exception
 {
+    /// <summary>Creates the exception for <paramref name="entries"/>, listing them in its message.</summary>
     public ValidationFailedException(IReadOnlyList<ValidationEntry> entries)
         : base(Describe(entries))
     {

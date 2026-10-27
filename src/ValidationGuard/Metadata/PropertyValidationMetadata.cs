@@ -20,12 +20,16 @@ public class PropertyValidationMetadata(PathFragment[] property) : ValidationMet
     /// <summary>The property's readable path, for example <c>lines[2].sku</c>; set each time the entry is rendered.</summary>
     public string Name => _name;
 
+    /// <inheritdoc />
+    /// <remarks>Captures <see cref="Name"/> before rendering; derived types call it from their overrides.</remarks>
     protected internal override string RenderDetail(string format, ValidationMessageWriter writer)
     {
         _name = writer.GetClrPath(Property);
         return base.RenderDetail(format, writer);
     }
 
+    /// <inheritdoc />
+    /// <remarks>Writes <c>{name}</c>; derived types handle their own keys and fall back to it.</remarks>
     protected internal override bool TryWrite(ReadOnlySpan<char> key, ValidationMessageWriter writer)
     {
         if (!key.SequenceEqual(NameKey))
@@ -37,6 +41,7 @@ public class PropertyValidationMetadata(PathFragment[] property) : ValidationMet
         return true;
     }
 
+    /// <inheritdoc />
     public override void WriteTo(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         ArgumentNullException.ThrowIfNull(writer);

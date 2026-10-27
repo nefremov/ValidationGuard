@@ -11,16 +11,20 @@ public sealed class ValueList<T> : IReadOnlyList<T>, IRenderableValue
 {
     private readonly T[] _values;
 
+    /// <summary>Creates a list of a copy of <paramref name="values"/>.</summary>
     public ValueList(IEnumerable<T> values)
     {
         ArgumentNullException.ThrowIfNull(values);
         _values = [.. values];
     }
 
+    /// <inheritdoc />
     public int Count => _values.Length;
 
+    /// <inheritdoc />
     public T this[int index] => _values[index];
 
+    /// <summary>Writes the values separated by <c>", "</c>, each as a placeholder value.</summary>
     public void Render(ValidationMessageWriter writer)
     {
         ArgumentNullException.ThrowIfNull(writer);
@@ -36,6 +40,7 @@ public sealed class ValueList<T> : IReadOnlyList<T>, IRenderableValue
         }
     }
 
+    /// <inheritdoc />
     public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)_values).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

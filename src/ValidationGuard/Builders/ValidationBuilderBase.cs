@@ -35,6 +35,7 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
     /// <summary>How entries are rendered: the naming convention of paths and the quoting of string values.</summary>
     protected ValidationOptions Options => _options;
 
+    /// <inheritdoc />
     public IValidationBuilder<TChild> For<TChild>(Expression<Func<TContext, TChild>> accessor)
     {
         EnsureWritable();
@@ -45,6 +46,9 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
         return child;
     }
 
+    /// <inheritdoc />
+    /// <exception cref="ArgumentException"><paramref name="code"/> or <paramref name="format"/> is blank.</exception>
+    /// <exception cref="InvalidOperationException">The root builder already produced its entries.</exception>
     public void Add(string code, string format, ValidationMetadata? metadata = null)
     {
         EnsureWritable();
@@ -54,9 +58,11 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
         _entries.Add(new ValidationEntry(string.Empty, code, format, string.Empty, metadata));
     }
 
+    /// <inheritdoc />
     public void AddProperty<TValue>(Expression<Func<TContext, TValue>> accessor, string code, string format) =>
         Add(code, format, new PropertyValidationMetadata(Resolve(accessor)));
 
+    /// <inheritdoc />
     public PathFragment[] Resolve<TValue>(Expression<Func<TContext, TValue>> accessor)
     {
         EnsureNotDisposed();
@@ -116,11 +122,16 @@ public abstract class ValidationBuilderBase<TContext> : IValidationBuilder<TCont
         return position;
     }
 
+    /// <summary>
+    /// Ends the builder's use: afterwards it throws <see cref="ObjectDisposedException"/>. Entries already produced stay
+    /// valid.
+    /// </summary>
     public void Dispose()
     {
         _disposed = true;
     }
 
+    /// <summary>Throws <see cref="ObjectDisposedException"/> if the builder was disposed.</summary>
     protected void EnsureNotDisposed()
     {
         if (_disposed)
