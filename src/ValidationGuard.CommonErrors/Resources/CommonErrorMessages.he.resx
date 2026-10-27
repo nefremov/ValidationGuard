@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Translations of the common error formats to he, keyed by the English format (CommonErrorFormats). -->
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="{entity} with {name} = {value} does not exist" xml:space="preserve">
+    <value>{entity} עם {name} = {value} אינו קיים</value>
+  </data>
+  <data name="{entity} with {name1} = {value1} and {name2} = {value2} does not exist" xml:space="preserve">
+    <value>{entity} עם {name1} = {value1} ו-{name2} = {value2} אינו קיים</value>
+  </data>
+  <data name="{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} does not exist" xml:space="preserve">
+    <value>{entity} עם {name1} = {value1}, {name2} = {value2} ו-{name3} = {value3} אינו קיים</value>
+  </data>
+  <data name="{entity} with {name} = {value} already exists" xml:space="preserve">
+    <value>{entity} עם {name} = {value} כבר קיים</value>
+  </data>
+  <data name="{entity} with {name1} = {value1} and {name2} = {value2} already exists" xml:space="preserve">
+    <value>{entity} עם {name1} = {value1} ו-{name2} = {value2} כבר קיים</value>
+  </data>
+  <data name="{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} already exists" xml:space="preserve">
+    <value>{entity} עם {name1} = {value1}, {name2} = {value2} ו-{name3} = {value3} כבר קיים</value>
+  </data>
+  <data name="Value for {name} is required" xml:space="preserve">
+    <value>נדרש ערך עבור {name}</value>
+  </data>
+  <data name="Value for {name} must not be empty" xml:space="preserve">
+    <value>הערך עבור {name} לא יכול להיות ריק</value>
+  </data>
+  <data name="Value {value} for {name} must be at least {min_value}" xml:space="preserve">
+    <value>הערך {value} עבור {name} חייב להיות לפחות {min_value}</value>
+  </data>
+  <data name="Value {value} for {name} must be greater than {min_value}" xml:space="preserve">
+    <value>הערך {value} עבור {name} חייב להיות גדול מ-{min_value}</value>
+  </data>
+  <data name="Value {value} for {name} must be at most {max_value}" xml:space="preserve">
+    <value>הערך {value} עבור {name} יכול להיות לכל היותר {max_value}</value>
+  </data>
+  <data name="Value {value} for {name} must be less than {max_value}" xml:space="preserve">
+    <value>הערך {value} עבור {name} חייב להיות קטן מ-{max_value}</value>
+  </data>
+  <data name="Value for {name} must be at least {min_length} characters long, but has {length}" xml:space="preserve">
+    <value>הערך עבור {name} חייב להכיל לפחות {min_length} תווים, אך הוא מכיל {length}</value>
+  </data>
+  <data name="Value for {name} must be at most {max_length} characters long, but has {length}" xml:space="preserve">
+    <value>הערך עבור {name} יכול להכיל לכל היותר {max_length} תווים, אך הוא מכיל {length}</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range [{min_value}, {max_value}]" xml:space="preserve">
+    <value>הערך {value} עבור {name} חייב להיות בטווח [{min_value}, {max_value}]</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range ({min_value}, {max_value})" xml:space="preserve">
+    <value>הערך {value} עבור {name} חייב להיות בטווח ({min_value}, {max_value})</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range [{min_value}, {max_value})" xml:space="preserve">
+    <value>הערך {value} עבור {name} חייב להיות בטווח [{min_value}, {max_value})</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range ({min_value}, {max_value}]" xml:space="preserve">
+    <value>הערך {value} עבור {name} חייב להיות בטווח ({min_value}, {max_value}]</value>
+  </data>
+  <data name="Value {value} for {name} does not refer to an existing {referenced_entity}" xml:space="preserve">
+    <value>הערך {value} עבור {name}: {referenced_entity} לא נמצא</value>
+  </data>
+  <data name="{entity} cannot have {name1} = {value1} when {name2} = {value2}" xml:space="preserve">
+    <value>ל-{entity} לא יכול להיות {name1} = {value1} כאשר {name2} = {value2}</value>
+  </data>
+  <data name="Value {value} for {name} must be one of {allowed_values}" xml:space="preserve">
+    <value>הערך {value} עבור {name} חייב להיות אחד מהבאים: {allowed_values}</value>
+  </data>
+  <data name="Value for {name} cannot be changed" xml:space="preserve">
+    <value>לא ניתן לשנות את הערך עבור {name}</value>
+  </data>
+</root>

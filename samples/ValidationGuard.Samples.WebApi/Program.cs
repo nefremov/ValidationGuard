@@ -30,6 +30,7 @@ builder.Services.AddValidationProblems(codes => codes
 builder.Services.AddProblemDetails(options =>
     options.CustomizeProblemDetails = context =>
     {
+        // The request's trace identifier lets a client report an error that support can find in the server logs.
         context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
 
         var titles = context.HttpContext.RequestServices.GetRequiredService<IStringLocalizer<AppMessages>>();
@@ -39,18 +40,21 @@ builder.Services.AddProblemDetails(options =>
         }
     });
 
-// IStringLocalizer<T> over resources: the application's in Resources/, Acme's wherever Acme declares them.
+// IStringLocalizer<T> over resources: the application's in Resources/; Acme's and the common errors' (shipped in 47
+// languages) wherever their libraries declare them.
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 // How every builder renders its entries, configured once with the options pattern: camelCase paths, and the
-// localizers, asked in order (the application's first, so it can override Acme's translations).
+// localizers, asked in order (the application's first, so it can override the libraries' translations).
 builder.Services.AddOptions<ValidationOptions>()
-    .Configure<IStringLocalizer<AppMessages>, IStringLocalizer<AcmeMessages>>((options, app, acme) =>
-    {
-        options.NameConverter = NameConverters.CamelCase;
-        options.Localizers.Add(app);
-        options.Localizers.Add(acme);
-    });
+    .Configure<IStringLocalizer<AppMessages>, IStringLocalizer<AcmeMessages>, IStringLocalizer<CommonErrorMessages>>(
+        (options, app, acme, common) =>
+        {
+            options.NameConverter = NameConverters.CamelCase;
+            options.Localizers.Add(app);
+            options.Localizers.Add(acme);
+            options.Localizers.Add(common);
+        });
 
 builder.Services.AddSingleton<OrderService>();
 
@@ -58,10 +62,13 @@ var app = builder.Build();
 
 // Sets CultureInfo.CurrentCulture (values) and CurrentUICulture (translations) per request from the query string, cookie
 // or Accept-Language header; validation messages are rendered under them.
+// The cultures this application answers in: every language the common errors are available in, English included. Its
+// own messages and Acme's are translated to German only, so in the others they stay English.
+string[] cultures = [.. CommonErrorMessages.GetSupportedCultures()];
 app.UseRequestLocalization(options => options
-    .SetDefaultCulture("en")
-    .AddSupportedCultures("en", "de")
-    .AddSupportedUICultures("en", "de"));
+    .SetDefaultCulture(CommonErrorMessages.NeutralCulture)
+    .AddSupportedCultures(cultures)
+    .AddSupportedUICultures(cultures));
 
 // Turns ValidationFailedException, thrown by ThrowIfInvalid below the endpoints, into a Problem Details response.
 app.UseExceptionHandler();

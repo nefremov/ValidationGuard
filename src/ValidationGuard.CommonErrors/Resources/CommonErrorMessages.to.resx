@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Translations of the common error formats to to, keyed by the English format (CommonErrorFormats). -->
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="{entity} with {name} = {value} does not exist" xml:space="preserve">
+    <value>ʻOku ʻikai ke ʻi ai ha {entity} mo e {name} = {value}</value>
+  </data>
+  <data name="{entity} with {name1} = {value1} and {name2} = {value2} does not exist" xml:space="preserve">
+    <value>ʻOku ʻikai ke ʻi ai ha {entity} mo e {name1} = {value1} mo {name2} = {value2}</value>
+  </data>
+  <data name="{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} does not exist" xml:space="preserve">
+    <value>ʻOku ʻikai ke ʻi ai ha {entity} mo e {name1} = {value1}, {name2} = {value2} mo {name3} = {value3}</value>
+  </data>
+  <data name="{entity} with {name} = {value} already exists" xml:space="preserve">
+    <value>ʻOku ʻosi ʻi ai ha {entity} mo e {name} = {value}</value>
+  </data>
+  <data name="{entity} with {name1} = {value1} and {name2} = {value2} already exists" xml:space="preserve">
+    <value>ʻOku ʻosi ʻi ai ha {entity} mo e {name1} = {value1} mo {name2} = {value2}</value>
+  </data>
+  <data name="{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} already exists" xml:space="preserve">
+    <value>ʻOku ʻosi ʻi ai ha {entity} mo e {name1} = {value1}, {name2} = {value2} mo {name3} = {value3}</value>
+  </data>
+  <data name="Value for {name} is required" xml:space="preserve">
+    <value>ʻOku fiemaʻu ha mahuʻinga ki he {name}</value>
+  </data>
+  <data name="Value for {name} must not be empty" xml:space="preserve">
+    <value>ʻOku ʻikai totonu ke maha ʻa e mahuʻinga ʻo e {name}</value>
+  </data>
+  <data name="Value {value} for {name} must be at least {min_value}" xml:space="preserve">
+    <value>Ko e mahuʻinga {value} ʻo e {name} kuo pau ke ʻoua ʻe siʻi hifo ʻi he {min_value}</value>
+  </data>
+  <data name="Value {value} for {name} must be greater than {min_value}" xml:space="preserve">
+    <value>Ko e mahuʻinga {value} ʻo e {name} kuo pau ke lahi ange ʻi he {min_value}</value>
+  </data>
+  <data name="Value {value} for {name} must be at most {max_value}" xml:space="preserve">
+    <value>Ko e mahuʻinga {value} ʻo e {name} kuo pau ke ʻoua ʻe lahi ange ʻi he {max_value}</value>
+  </data>
+  <data name="Value {value} for {name} must be less than {max_value}" xml:space="preserve">
+    <value>Ko e mahuʻinga {value} ʻo e {name} kuo pau ke siʻi ange ʻi he {max_value}</value>
+  </data>
+  <data name="Value for {name} must be at least {min_length} characters long, but has {length}" xml:space="preserve">
+    <value>Ko e mahuʻinga ʻo e {name} kuo pau ke ʻoua ʻe siʻi hifo ʻi he mataʻitohi ʻe {min_length}, ka ʻoku ʻi ai ʻa e {length}</value>
+  </data>
+  <data name="Value for {name} must be at most {max_length} characters long, but has {length}" xml:space="preserve">
+    <value>Ko e mahuʻinga ʻo e {name} kuo pau ke ʻoua ʻe lahi ange ʻi he mataʻitohi ʻe {max_length}, ka ʻoku ʻi ai ʻa e {length}</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range [{min_value}, {max_value}]" xml:space="preserve">
+    <value>Ko e mahuʻinga {value} ʻo e {name} kuo pau ke ʻi he vahaʻa [{min_value}, {max_value}]</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range ({min_value}, {max_value})" xml:space="preserve">
+    <value>Ko e mahuʻinga {value} ʻo e {name} kuo pau ke ʻi he vahaʻa ({min_value}, {max_value})</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range [{min_value}, {max_value})" xml:space="preserve">
+    <value>Ko e mahuʻinga {value} ʻo e {name} kuo pau ke ʻi he vahaʻa [{min_value}, {max_value})</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range ({min_value}, {max_value}]" xml:space="preserve">
+    <value>Ko e mahuʻinga {value} ʻo e {name} kuo pau ke ʻi he vahaʻa ({min_value}, {max_value}]</value>
+  </data>
+  <data name="Value {value} for {name} does not refer to an existing {referenced_entity}" xml:space="preserve">
+    <value>Ko e mahuʻinga {value} ʻo e {name}: ʻOku ʻikai maʻu ʻa e {referenced_entity}</value>
+  </data>
+  <data name="{entity} cannot have {name1} = {value1} when {name2} = {value2}" xml:space="preserve">
+    <value>ʻE ʻikai lava ke maʻu ʻe he {entity} ʻa e {name1} = {value1} ʻi he taimi ʻoku {name2} = {value2}</value>
+  </data>
+  <data name="Value {value} for {name} must be one of {allowed_values}" xml:space="preserve">
+    <value>Ko e mahuʻinga {value} ʻo e {name} kuo pau ke taha ʻo e: {allowed_values}</value>
+  </data>
+  <data name="Value for {name} cannot be changed" xml:space="preserve">
+    <value>ʻE ʻikai lava ke liliu ʻa e mahuʻinga ʻo e {name}</value>
+  </data>
+</root>

@@ -5,12 +5,14 @@
     <IsPackable>true</IsPackable>
     <PackageId>ValidationGuard.CommonErrors</PackageId>
     <Title>ValidationGuard.CommonErrors</Title>
-    <Description>Ready-made ValidationGuard errors with stable codes and message formats: not found, already exists, null, empty, length, and range violations.</Description>
+    <Description>Ready-made ValidationGuard errors with stable codes and message formats, translated to 47 languages: not found, already exists, null, empty, length, and range violations.</Description>
     <PackageTags>validation;errors;problem-details;rfc6901;rfc9457;dotnet</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ValidationGuard\ValidationGuard.csproj" />
+    <!-- [ResourceLocation] for the translations in Resources/, read through IStringLocalizer<CommonErrorMessages>. -->
+    <PackageReference Include="Microsoft.Extensions.Localization" />
   </ItemGroup>
 
   <ItemGroup>

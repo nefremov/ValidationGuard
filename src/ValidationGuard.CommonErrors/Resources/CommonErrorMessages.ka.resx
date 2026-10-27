@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Translations of the common error formats to ka, keyed by the English format (CommonErrorFormats). -->
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="{entity} with {name} = {value} does not exist" xml:space="preserve">
+    <value>{entity} {name} = {value}-ით არ არსებობს</value>
+  </data>
+  <data name="{entity} with {name1} = {value1} and {name2} = {value2} does not exist" xml:space="preserve">
+    <value>{entity} {name1} = {value1} და {name2} = {value2}-ით არ არსებობს</value>
+  </data>
+  <data name="{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} does not exist" xml:space="preserve">
+    <value>{entity} {name1} = {value1}, {name2} = {value2} და {name3} = {value3}-ით არ არსებობს</value>
+  </data>
+  <data name="{entity} with {name} = {value} already exists" xml:space="preserve">
+    <value>{entity} {name} = {value}-ით უკვე არსებობს</value>
+  </data>
+  <data name="{entity} with {name1} = {value1} and {name2} = {value2} already exists" xml:space="preserve">
+    <value>{entity} {name1} = {value1} და {name2} = {value2}-ით უკვე არსებობს</value>
+  </data>
+  <data name="{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} already exists" xml:space="preserve">
+    <value>{entity} {name1} = {value1}, {name2} = {value2} და {name3} = {value3}-ით უკვე არსებობს</value>
+  </data>
+  <data name="Value for {name} is required" xml:space="preserve">
+    <value>{name}-ის მნიშვნელობა სავალდებულოა</value>
+  </data>
+  <data name="Value for {name} must not be empty" xml:space="preserve">
+    <value>{name}-ის მნიშვნელობა არ უნდა იყოს ცარიელი</value>
+  </data>
+  <data name="Value {value} for {name} must be at least {min_value}" xml:space="preserve">
+    <value>{name}-ის მნიშვნელობა {value} უნდა იყოს მინიმუმ {min_value}</value>
+  </data>
+  <data name="Value {value} for {name} must be greater than {min_value}" xml:space="preserve">
+    <value>{name}-ის მნიშვნელობა {value} უნდა იყოს {min_value}-ზე მეტი</value>
+  </data>
+  <data name="Value {value} for {name} must be at most {max_value}" xml:space="preserve">
+    <value>{name}-ის მნიშვნელობა {value} უნდა იყოს მაქსიმუმ {max_value}</value>
+  </data>
+  <data name="Value {value} for {name} must be less than {max_value}" xml:space="preserve">
+    <value>{name}-ის მნიშვნელობა {value} უნდა იყოს {max_value}-ზე ნაკლები</value>
+  </data>
+  <data name="Value for {name} must be at least {min_length} characters long, but has {length}" xml:space="preserve">
+    <value>{name}-ის მნიშვნელობა უნდა შეიცავდეს მინიმუმ {min_length} სიმბოლოს, მაგრამ შეიცავს {length}-ს</value>
+  </data>
+  <data name="Value for {name} must be at most {max_length} characters long, but has {length}" xml:space="preserve">
+    <value>{name}-ის მნიშვნელობა უნდა შეიცავდეს მაქსიმუმ {max_length} სიმბოლოს, მაგრამ შეიცავს {length}-ს</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range [{min_value}, {max_value}]" xml:space="preserve">
+    <value>{name}-ის მნიშვნელობა {value} უნდა იყოს დიაპაზონში [{min_value}, {max_value}]</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range ({min_value}, {max_value})" xml:space="preserve">
+    <value>{name}-ის მნიშვნელობა {value} უნდა იყოს დიაპაზონში ({min_value}, {max_value})</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range [{min_value}, {max_value})" xml:space="preserve">
+    <value>{name}-ის მნიშვნელობა {value} უნდა იყოს დიაპაზონში [{min_value}, {max_value})</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range ({min_value}, {max_value}]" xml:space="preserve">
+    <value>{name}-ის მნიშვნელობა {value} უნდა იყოს დიაპაზონში ({min_value}, {max_value}]</value>
+  </data>
+  <data name="Value {value} for {name} does not refer to an existing {referenced_entity}" xml:space="preserve">
+    <value>{name}-ის მნიშვნელობა {value}: {referenced_entity} ვერ მოიძებნა</value>
+  </data>
+  <data name="{entity} cannot have {name1} = {value1} when {name2} = {value2}" xml:space="preserve">
+    <value>{entity}-ს არ შეიძლება ჰქონდეს {name1} = {value1}, როცა {name2} = {value2}</value>
+  </data>
+  <data name="Value {value} for {name} must be one of {allowed_values}" xml:space="preserve">
+    <value>{name}-ის მნიშვნელობა {value} უნდა იყოს ერთ-ერთი: {allowed_values}</value>
+  </data>
+  <data name="Value for {name} cannot be changed" xml:space="preserve">
+    <value>{name}-ის მნიშვნელობის შეცვლა შეუძლებელია</value>
+  </data>
+</root>

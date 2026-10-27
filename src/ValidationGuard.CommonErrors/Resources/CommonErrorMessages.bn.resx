@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Translations of the common error formats to bn, keyed by the English format (CommonErrorFormats). -->
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="{entity} with {name} = {value} does not exist" xml:space="preserve">
+    <value>{name} = {value} সহ {entity} বিদ্যমান নেই</value>
+  </data>
+  <data name="{entity} with {name1} = {value1} and {name2} = {value2} does not exist" xml:space="preserve">
+    <value>{name1} = {value1} এবং {name2} = {value2} সহ {entity} বিদ্যমান নেই</value>
+  </data>
+  <data name="{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} does not exist" xml:space="preserve">
+    <value>{name1} = {value1}, {name2} = {value2} এবং {name3} = {value3} সহ {entity} বিদ্যমান নেই</value>
+  </data>
+  <data name="{entity} with {name} = {value} already exists" xml:space="preserve">
+    <value>{name} = {value} সহ {entity} ইতিমধ্যে বিদ্যমান</value>
+  </data>
+  <data name="{entity} with {name1} = {value1} and {name2} = {value2} already exists" xml:space="preserve">
+    <value>{name1} = {value1} এবং {name2} = {value2} সহ {entity} ইতিমধ্যে বিদ্যমান</value>
+  </data>
+  <data name="{entity} with {name1} = {value1}, {name2} = {value2} and {name3} = {value3} already exists" xml:space="preserve">
+    <value>{name1} = {value1}, {name2} = {value2} এবং {name3} = {value3} সহ {entity} ইতিমধ্যে বিদ্যমান</value>
+  </data>
+  <data name="Value for {name} is required" xml:space="preserve">
+    <value>{name}-এর জন্য একটি মান প্রয়োজন</value>
+  </data>
+  <data name="Value for {name} must not be empty" xml:space="preserve">
+    <value>{name}-এর মান খালি থাকা চলবে না</value>
+  </data>
+  <data name="Value {value} for {name} must be at least {min_value}" xml:space="preserve">
+    <value>{name}-এর মান {value} কমপক্ষে {min_value} হতে হবে</value>
+  </data>
+  <data name="Value {value} for {name} must be greater than {min_value}" xml:space="preserve">
+    <value>{name}-এর মান {value} অবশ্যই {min_value}-এর চেয়ে বড় হতে হবে</value>
+  </data>
+  <data name="Value {value} for {name} must be at most {max_value}" xml:space="preserve">
+    <value>{name}-এর মান {value} সর্বোচ্চ {max_value} হতে পারে</value>
+  </data>
+  <data name="Value {value} for {name} must be less than {max_value}" xml:space="preserve">
+    <value>{name}-এর মান {value} অবশ্যই {max_value}-এর চেয়ে ছোট হতে হবে</value>
+  </data>
+  <data name="Value for {name} must be at least {min_length} characters long, but has {length}" xml:space="preserve">
+    <value>{name}-এর মান কমপক্ষে {min_length} অক্ষরের হতে হবে, কিন্তু এতে {length}টি আছে</value>
+  </data>
+  <data name="Value for {name} must be at most {max_length} characters long, but has {length}" xml:space="preserve">
+    <value>{name}-এর মান সর্বোচ্চ {max_length} অক্ষরের হতে পারে, কিন্তু এতে {length}টি আছে</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range [{min_value}, {max_value}]" xml:space="preserve">
+    <value>{name}-এর মান {value} অবশ্যই [{min_value}, {max_value}] পরিসরের মধ্যে হতে হবে</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range ({min_value}, {max_value})" xml:space="preserve">
+    <value>{name}-এর মান {value} অবশ্যই ({min_value}, {max_value}) পরিসরের মধ্যে হতে হবে</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range [{min_value}, {max_value})" xml:space="preserve">
+    <value>{name}-এর মান {value} অবশ্যই [{min_value}, {max_value}) পরিসরের মধ্যে হতে হবে</value>
+  </data>
+  <data name="Value {value} for {name} must be in the range ({min_value}, {max_value}]" xml:space="preserve">
+    <value>{name}-এর মান {value} অবশ্যই ({min_value}, {max_value}] পরিসরের মধ্যে হতে হবে</value>
+  </data>
+  <data name="Value {value} for {name} does not refer to an existing {referenced_entity}" xml:space="preserve">
+    <value>{name}-এর মান {value}: {referenced_entity} পাওয়া যায়নি</value>
+  </data>
+  <data name="{entity} cannot have {name1} = {value1} when {name2} = {value2}" xml:space="preserve">
+    <value>{name2} = {value2} হলে {entity}-এর {name1} = {value1} থাকতে পারে না</value>
+  </data>
+  <data name="Value {value} for {name} must be one of {allowed_values}" xml:space="preserve">
+    <value>{name}-এর মান {value} অবশ্যই এগুলোর একটি হতে হবে: {allowed_values}</value>
+  </data>
+  <data name="Value for {name} cannot be changed" xml:space="preserve">
+    <value>{name}-এর মান পরিবর্তন করা যাবে না</value>
+  </data>
+</root>

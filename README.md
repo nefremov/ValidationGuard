@@ -7,11 +7,160 @@ Typed validation error accumulation for .NET 10 with RFC 6901 JSON Pointer paths
 | Package | Purpose |
 |---------|---------|
 | `ValidationGuard` | Transport-agnostic validation builder and entries |
-| `ValidationGuard.CommonErrors` | Ready-made errors with stable codes and message formats (not found, null, empty, range, length) |
+| `ValidationGuard.CommonErrors` | Ready-made errors with stable codes and message formats (not found, null, empty, range, length), translated to 47 languages |
 | `ValidationGuard.Http` | RFC 9457 Problem Details projection for ASP.NET Core, with a bundled build-time analyzer |
 | `ValidationGuard.CommonErrors.Http` | HTTP statuses for the `ValidationGuard.CommonErrors` codes |
 
 Runnable examples, including a library that extends ValidationGuard with its own errors, are in [samples](samples/README.md).
+
+## ASP.NET Core setup
+
+The four common setups, from the simplest. Each builds on the previous one; the
+[web sample](samples/ValidationGuard.Samples.WebApi/Program.cs) shows the last one in full.
+
+### Without localization
+
+Reference `ValidationGuard.CommonErrors.Http` (it brings `ValidationGuard`, `ValidationGuard.CommonErrors` and
+`ValidationGuard.Http`), then register the HTTP statuses of every code the application reports and the options of its
+builders:
+
+```csharp
+using Microsoft.Extensions.Options;
+using ValidationGuard;
+using ValidationGuard.CommonErrors;
+using ValidationGuard.CommonErrors.Http;
+using ValidationGuard.Http;
+using static ValidationGuard.Http.ValidationResults;
+
+[assembly: HttpErrorCode("APP0001", 422, Title = "Duplicate SKU")]   // the application's own codes, if any
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddValidationProblems(codes => codes
+    .AddCommonErrors()                 // VG0001 ... from ValidationGuard.CommonErrors.Http
+    .AddAssemblyOf<Program>());        // the application's own [assembly: HttpErrorCode]
+builder.Services.Configure<ValidationOptions>(options => options.NameConverter = NameConverters.CamelCase);
+// ASP.NET Core's Problem Details service: needed by the exception handler below, and the place to enrich every
+// Problem Details response, validation problems included.
+builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = context =>
+    // The request's trace identifier lets a client report an error that support can find in the server logs.
+    context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier);
+
+var app = builder.Build();
+app.UseExceptionHandler();             // writes ValidationFailedException thrown by ThrowIfInvalid
+
+app.MapPost("/orders", (CreateOrder order, IOptions<ValidationOptions> options) =>
+{
+    using var validation = new ValidationBuilder<CreateOrder>(options.Value);
+    if (string.IsNullOrEmpty(order.Email))
+    {
+        validation.AddEmpty("Order", x => x.Email);
+    }
+
+    return validation.Valid ? Results.Created() : Problem(validation);
+});
+
+app.Run();
+```
+
+Code below the endpoints that cannot return a result injects `IOptions<ValidationOptions>` the same way and calls
+`validation.ThrowIfInvalid()`; the exception handler writes the same Problem Details response.
+
+### With localization
+
+Messages follow the request's culture once request localization is enabled and the builders' options list the
+localizers. `ValidationGuard.CommonErrors` ships the common errors translated to 47 languages
+(`IStringLocalizer<CommonErrorMessages>`); the application translates its own formats, its entity and member names,
+and (if it wants) the Problem Details titles, in resources keyed by the English text:
+
+```csharp
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+builder.Services.AddOptions<ValidationOptions>()
+    .Configure<IStringLocalizer<AppMessages>, IStringLocalizer<CommonErrorMessages>>((options, app, common) =>
+    {
+        options.NameConverter = NameConverters.CamelCase;
+        options.Localizers.Add(app);      // first: the application can override any library translation
+        options.Localizers.Add(common);
+    });
+builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = context =>
+{
+    // The request's trace identifier lets a client report an error that support can find in the server logs.
+    context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+
+    // ValidationGuard localizes detail and errors; the title is the application's to translate.
+    var titles = context.HttpContext.RequestServices.GetRequiredService<IStringLocalizer<AppMessages>>();
+    if (context.ProblemDetails.Title is { } title && titles.Translate(title) is { } localized)
+    {
+        context.ProblemDetails.Title = localized;
+    }
+});
+
+var app = builder.Build();
+
+// The languages the application answers in. CommonErrorMessages.GetSupportedCultures() lists those of the common
+// errors, English (their NeutralCulture) included: support them all, or only those the application also translates
+// its own messages to.
+string[] cultures = [.. CommonErrorMessages.GetSupportedCultures().Intersect(["en", "de", "fr", "ja"])];
+app.UseRequestLocalization(options => options
+    .SetDefaultCulture(CommonErrorMessages.NeutralCulture)
+    .AddSupportedCultures(cultures)
+    .AddSupportedUICultures(cultures));
+app.UseExceptionHandler();
+
+internal sealed class AppMessages;   // names Resources/AppMessages.*.resx
+```
+
+- `AddLocalization` registers ASP.NET Core's resource-based localization: `IStringLocalizer<T>` for any `T`, reading
+  the `.resx` resources that `T` names (`AppMessages` → `AppMessages.de.resx`, `AppMessages.fr.resx` ...) from their
+  satellite assemblies. `ResourcesPath` is the folder of the application's own resources (`Resources/AppMessages.de.resx`);
+  without it they sit next to the class. Libraries declare their own folder with `[ResourceLocation]`, so this setting
+  does not affect them.
+- `AppMessages` is an empty class that only names the application's resources; any type works, one per set of
+  resources.
+- `CurrentCulture` formats the values and `CurrentUICulture` selects the translations; `UseRequestLocalization` sets
+  both per request, from the query string (`?culture=de`), a cookie or the `Accept-Language` header. Pointers never
+  change. See [Localization](#localization) for the rules.
+
+### With third-party libraries
+
+A library extending ValidationGuard (like the `Acme.Validation` sample) brings its own errors and, in a companion
+package, their HTTP statuses. Reference both and register its statuses next to the others:
+
+```csharp
+using Acme.Validation;        // AddSkuRetired, AddNotBetween ...
+using Acme.Validation.Http;   // AddAcmeErrors
+
+builder.Services.AddValidationProblems(codes => codes
+    .AddCommonErrors()
+    .AddAcmeErrors()          // or .AddAssemblyOf<AcmeHttp>(): the assembly declaring the statuses
+    .AddAssemblyOf<Program>()
+    .Override(AcmeErrorCodes.SkuRetired, 422));   // optional: the application decides
+```
+
+Its errors are added like the common ones (`validation.AddSkuRetired(x => x.Sku, sku)`). A code registered by two
+libraries fails at startup (and the bundled analyzer warns at build time); override a status in the application, not by
+registering a code again.
+
+### With third-party libraries and localization
+
+Add each library's localizer to the chain, after the application's own and before the common errors', so the
+application can override any of them:
+
+```csharp
+builder.Services.AddOptions<ValidationOptions>()
+    .Configure<IStringLocalizer<AppMessages>, IStringLocalizer<AcmeMessages>, IStringLocalizer<CommonErrorMessages>>(
+        (options, app, acme, common) =>
+        {
+            options.NameConverter = NameConverters.CamelCase;
+            options.Localizers.Add(app);
+            options.Localizers.Add(acme);
+            options.Localizers.Add(common);
+        });
+```
+
+A library's translations cover its own formats and entity names in the languages it ships; for other languages its
+messages stay in English unless the application translates them in its own resources (keyed by the library's English
+formats). The application also translates its member names, which no library knows.
 
 ## Common errors with ValidationGuard.CommonErrors
 
@@ -90,7 +239,13 @@ produces
   `AddNotAllowed("Order", x => x.ShippingCode, code, typeof(Shipping))` allows only the defined numbers.
 - Codes and formats are available as constants in `CommonErrorCodes` and `CommonErrorFormats`. The `VG` prefix is
   reserved for ValidationGuard; codes are never renumbered or reused.
-- The package depends only on `ValidationGuard`. The HTTP statuses above are provided by
+- The formats are translated to 47 languages (Arabic to Vietnamese, Simplified and Traditional Chinese), shipped as
+  resources for `IStringLocalizer<CommonErrorMessages>`; add that localizer to `ValidationOptions.Localizers` (see
+  [With localization](#with-localization)). `CommonErrorMessages.GetSupportedCultures()` lists the cultures the
+  messages are available in, `CommonErrorMessages.NeutralCulture` (`en`, the formats' own) included, to compute the
+  cultures an application supports. Other languages, and English, keep the formats as defined; an application
+  overrides any translation in its own resources, keyed by the English format.
+- The package depends only on `ValidationGuard` and `Microsoft.Extensions.Localization`. The HTTP statuses above are provided by
   `ValidationGuard.CommonErrors.Http`; register them with
   `AddValidationProblems(codes => codes.AddCommonErrors())` and change one with
   `.Override(CommonErrorCodes.NotFound, 422)` or `[assembly: HttpErrorCodeOverride(...)]`.
@@ -137,8 +292,9 @@ validation.Add(AcmeErrors.SlugTaken, "Article", x => x.Slug, request.Slug);
   `CommonErrorDefinitions.Comparison<T>.LessThan`.
 - The built-in errors are available as definitions in `CommonErrorDefinitions`; the `Add...` methods are thin
   wrappers over them.
-- Use your own code prefix (`VG` is reserved) and declare HTTP statuses in your assembly with
-  `[assembly: HttpErrorCode("ACME0001", 422)]`; applications register it with `.AddAssemblyOf<AcmeErrors>()`.
+- Use your own code prefix (`VG` is reserved) and declare HTTP statuses with
+  `[assembly: HttpErrorCode("ACME0001", 422)]`, best in a companion package so the library stays free of ASP.NET Core
+  (see [Writing a library that extends ValidationGuard](#writing-a-library-that-extends-validationguard)).
 
 ### Metadata and rendering
 
@@ -283,23 +439,25 @@ Resource keys:
 
 A library with its own errors (like the `Acme.Validation` sample) ships their translations, and applications plug
 them in next to their own. The library translates what it owns: the formats of its codes and the entity names it
-passes to `Add` (such as `Product`). Applications translate their own codes, the common errors, and their own entity
-and member names.
+passes to `Add` (such as `Product`). Applications translate their own formats and their own entity and member names;
+the common errors come translated in `ValidationGuard.CommonErrors`.
 
 **What to ship.** Resources for `IStringLocalizer<T>`: a marker type naming them, `.resx` files, and the resource
 location, so the lookup does not depend on the `ResourcesPath` the application configures for its own resources:
 
 ```text
 Acme.Validation/
-  AcmeMessages.cs                  marker type + [assembly: ResourceLocation("Resources")]
+  AcmeMessages.cs                  marker type + [assembly: ResourceLocation("Resources")] + [assembly: NeutralResourcesLanguage("en")]
   Resources/AcmeMessages.resx      neutral: empty, so cultures without a translation keep the defined (English) formats
   Resources/AcmeMessages.de.resx   German: formats keyed by their English text, Product by name
 ```
 
 ```csharp
+using System.Resources;
 using Microsoft.Extensions.Localization;
 
 [assembly: ResourceLocation("Resources")]
+[assembly: NeutralResourcesLanguage("en")]   // the formats' own language: no English satellite is looked up
 
 namespace Acme.Validation;
 
@@ -312,6 +470,10 @@ public sealed class AcmeMessages;
   the package.
 - Without `[ResourceLocation]`, the resources are looked up under the application's `ResourcesPath` inside the
   library's assembly, and are found only if the folder names happen to match.
+- `[NeutralResourcesLanguage("en")]` states the language of the formats as defined: English requests are served from
+  the neutral resources without looking for an English satellite. Applications can read it to list the cultures the
+  library's messages are available in, as `CommonErrorMessages.NeutralCulture` and `GetSupportedCultures()` do for the
+  common errors.
 - The marker type's namespace and the folder make the resource name (`Acme.Validation.Resources.AcmeMessages`). If
   the library's root namespace differs from its assembly name, also add `[assembly: RootNamespace("...")]`.
 
@@ -457,6 +619,64 @@ The package includes an analyzer that checks declarations at build time:
 | VGH007 | Error | Code overridden twice in one assembly |
 
 See [ADR-002](docs/ADR/ADR-002-http-status-mapping-and-problem-envelope.md) for the reasoning.
+
+## Writing a library that extends ValidationGuard
+
+A library can add its own errors with the same conventions as the built-in ones, so applications use them alike. The
+`Acme.Validation`, `Acme.Validation.Http` and `Acme.Validation.Tests` samples are a complete example.
+
+1. **Packages.** The library (`Acme.Validation`) references `ValidationGuard.CommonErrors` (for `ErrorDefinition` and
+   the validator) and `Microsoft.Extensions.Localization` (for `[ResourceLocation]`). Its HTTP statuses go in a
+   companion package (`Acme.Validation.Http`) referencing `ValidationGuard.Http`, so the library itself stays free of
+   ASP.NET Core.
+2. **Codes.** Choose a prefix of your own (`VG` is reserved) and keep the codes in a constants class
+   (`AcmeErrorCodes`). Never renumber or reuse a code: clients identify failures by it.
+3. **Errors.** Define each error once as an `ErrorDefinition` (see [Defining your own errors](#defining-your-own-errors))
+   and offer typed `Add...` extension methods over `IValidationBuilder<TContext>`, as `AcmeValidationExtensions` does.
+   Formats state what is wrong (`Value {value} for {name} must be between {min} and {max}`), use `{name} = {value}` for
+   key properties, and are English.
+4. **Custom metadata** (only for what a definition cannot express): derive from any `ValidationMetadata`. Derive
+   from `PropertyValidationMetadata` when the error is about one property: the entry then points at that property and
+   `{name}` is its path, both provided by the base class. Derive from `ValidationMetadata` itself for an error about
+   the builder's scope (the entry points at the scope). Write names with `WriteText` (entity names through
+   `writer.Localize`) and values with `WriteValue`, and create a new instance for each entry (see
+   [Metadata and rendering](#metadata-and-rendering)).
+5. **HTTP statuses.** In the companion package, declare every code with `[assembly: HttpErrorCode(code, status)]`
+   (optionally a `Type` and a stable `Title`), and offer a registration helper that reads them:
+
+   ```csharp
+   [assembly: HttpErrorCode(AcmeErrorCodes.SkuRetired, 409, Title = "SKU retired")]
+
+   public static class AcmeHttp
+   {
+       public static ErrorCodeMapBuilder AddAcmeErrors(this ErrorCodeMapBuilder builder) =>
+           builder.AddAssembly(typeof(AcmeHttp).Assembly);
+   }
+   ```
+
+   The analyzer bundled with `ValidationGuard.Http` checks the declarations at build time. The attributes are optional:
+   the helper may instead register the codes itself, which suits statuses computed in code. The analyzer then checks the
+   constant arguments (blank codes, statuses, `type` URIs), but a code registered twice is reported only at startup:
+
+   ```csharp
+   public static ErrorCodeMapBuilder AddAcmeErrors(this ErrorCodeMapBuilder builder) => builder
+       .Add(AcmeErrorCodes.NotBetween, 422)
+       .Add(AcmeErrorCodes.SkuRetired, 409, title: "SKU retired");
+   ```
+
+   Either way, applications call `.AddAcmeErrors()`; with attributes they may also register the declaring assembly
+   directly (`.AddAssemblyOf<AcmeHttp>()`).
+6. **Localization.** Ship translations of your formats and entity names as `.resx` resources for
+   `IStringLocalizer<T>`, keyed by the English text, with a marker type, `[assembly: ResourceLocation("Resources")]`
+   and `[assembly: NeutralResourcesLanguage("en")]`;
+   see [Localizing a library that extends ValidationGuard](#localizing-a-library-that-extends-validationguard). Keep
+   them in step with the formats: rewording a format changes its key.
+7. **Tests.** Cover what applications rely on: every definition is valid
+   (`ErrorDefinitionValidator.ValidateFields(typeof(AcmeErrors))`, also for generic holders closed over a type), every
+   code has an HTTP status, the messages render as intended, and every shipped language translates every definition
+   (`ErrorDefinitionValidator.ValidateLocalizations(typeof(AcmeErrors), localizer, requireAll: true)`).
+8. **Document the setup** for applications: the packages to reference, `.AddAcmeErrors()`, and the localizer to add
+   (`IStringLocalizer<AcmeMessages>`), as in [With third-party libraries and localization](#with-third-party-libraries-and-localization).
 
 ## Release flow (GitHub Actions + NuGet)
 
